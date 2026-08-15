@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIM-TKD - Sistem Informasi Manajemen Tata Kelola Daerah</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ============ Laman Utama (Landing) ============ */
+        .welcome-panel {
+            background: #ffffff;
+            border-radius: var(--radius);
+            box-shadow: 0 8px 32px rgba(26, 58, 107, 0.12);
+            overflow: hidden;
+            margin-top: 32px;
+        }
+
+        .welcome-head {
+            text-align: center;
+            padding: 38px 32px 8px;
+        }
+
+        .welcome-head i {
+            font-size: 46px;
+            color: var(--primary);
+            margin-bottom: 10px;
+            display: inline-block;
+        }
+
+        .welcome-head h2 {
+            font-size: 24px;
+            color: var(--primary-dark);
+            margin: 0 0 8px;
+        }
+
+        .welcome-head p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            max-width: 640px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .welcome-features {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            padding: 28px 32px;
+        }
+
+        .feature-card {
+            background: #f7f9fc;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 22px 18px;
+            text-align: center;
+            transition: all var(--transition);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 18px rgba(26, 58, 107, 0.12);
+            border-color: var(--primary);
+        }
+
+        .feature-card i {
+            font-size: 26px;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .feature-card h4 {
+            font-size: 14px;
+            color: var(--primary-dark);
+            margin: 0 0 6px;
+        }
+
+        .feature-card p {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin: 0;
+            line-height: 1.45;
+        }
+
+        .welcome-actions {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            padding: 6px 32px 26px;
+        }
+
+        .welcome-btn {
+            width: 180px;
+            margin-top: 0;
+            text-decoration: none;
+        }
+
+        .btn-welcome-outline {
+            width: 180px;
+            padding: 14px;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: var(--primary);
+            background: #ffffff;
+            border: 2px solid var(--primary);
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .btn-welcome-outline:hover {
+            background: rgba(26, 58, 107, 0.06);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(26, 58, 107, 0.18);
+        }
+
+        .welcome-note {
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-muted);
+            padding: 0 32px 26px;
+            margin: 0;
+        }
+
+        .welcome-note i {
+            margin-right: 5px;
+            color: var(--primary);
+        }
+
+        @media (max-width: 900px) {
+            .welcome-features { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 560px) {
+            .welcome-features { grid-template-columns: 1fr; }
+            .welcome-actions { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background -->
+    <div class="bg-pattern"></div>
+
+    <!-- Container Utama -->
+    <div class="main-container">
+
+        <!-- Header / Banner -->
+        <div class="header-banner">
+            <div class="header-content">
+                <div class="header-left">
+                    <div class="logo-container">
+                        <img src="img/Logo Polban.png" class="logo-polban" alt="Logo POLBAN">
+                    </div>
+                    <div class="header-text">
+                        <h1>SISTEM INFORMASI MANAJEMEN</h1>
+                        <h2>TATA KELOLA DAERAH (MODUL EDUKASI)</h2>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <div class="logo-container">
+                        <img src="img/Logo Polban.png" class="logo-polban logo-polban-right" alt="Logo POLBAN">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel Selamat Datang -->
+        <div class="welcome-panel">
+            <div class="welcome-head">
+                <i class="fas fa-university"></i>
+                <h2>Selamat Datang di SIM-TKD</h2>
+                <p>
+                    Sistem Informasi Manajemen Tata Kelola Daerah (Modul Edukasi) —
+                    aplikasi penatausahaan keuangan daerah berbasis SIPD/AKLAP
+                    untuk pengelolaan Penerimaan, Belanja, Akuntansi, dan Pelaporan.
+                </p>
+            </div>
+
+            <div class="welcome-features">
+                <div class="feature-card">
+                    <i class="fas fa-arrow-down"></i>
+                    <h4>Penerimaan</h4>
+                    <p>Permohonan rekening, STBP, STS, dan BKU Penerimaan.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-arrow-up"></i>
+                    <h4>Belanja</h4>
+                    <p>Pengelolaan pengeluaran daerah (SPP/SPM).</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-book"></i>
+                    <h4>Akuntansi</h4>
+                    <p>Jurnal Approve dan Laporan Realisasi Anggaran.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-chart-line"></i>
+                    <h4>Pelaporan</h4>
+                    <p>Laporan realisasi dan laporan keuangan daerah.</p>
+                </div>
+            </div>
+
+            <div class="welcome-actions">
+                <a href="login.html" class="btn-login welcome-btn">
+                    <i class="fas fa-sign-in-alt"></i> MASUK
+                </a>
+                <a href="daftar.html" class="btn-welcome-outline">
+                    <i class="fas fa-user-plus"></i> DAFTAR
+                </a>
+            </div>
+
+            <p class="welcome-note">
+                <i class="fas fa-info-circle"></i>
+                Sudah memiliki akun? Klik <b>Masuk</b>. Jika sesi Anda aktif, Anda akan dialihkan otomatis ke dashboard.
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <div class="panel-footer">
+            <div class="footer-links">
+                <a href="#"><i class="fas fa-question-circle"></i> Bantuan</a>
+                <span class="separator">|</span>
+                <a href="mailto:riansetya@outlook.co.id"><i class="fas fa-envelope"></i> Hubungi Admin</a>
+                <span class="separator">|</span>
+                <a href="#"><i class="fas fa-download"></i> Panduan</a>
+            </div>
+            <div class="footer-text">
+                <p>&copy; 2026 Politeknik Negeri Bandung</p>
+                <p>Jurusan Akuntansi</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // Laman Utama - redirect otomatis ke dashboard
+        // bila pengguna sudah login (sesi aktif).
+        // ==========================================
+        (function () {
+            fetch('api/session.php')
+                .then(function (res) { return res.json(); })
+                .then(function (d) {
+                    if (d && d.success) {
+                        window.location.replace('dashboard/dashboard.html');
+                    }
+                })
+                .catch(function () { /* bukan via server -> tampilkan landing */ });
+        })();
+    </script>
+</body>
+</html>
