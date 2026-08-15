@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tambah STS - SIM-TKD</title>
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- ================= SIDEBAR ================= -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <img src="../img/Logo Polban.png" alt="Logo POLBAN">
+                <div class="sidebar-title">
+                    <span class="title-main">SIM-TKD</span>
+                    <span class="title-sub">Modul Edukasi</span>
+                </div>
+            </div>
+            <button class="sidebar-toggle" id="sidebarToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+
+        <div class="sidebar-user">
+            <div class="user-avatar">
+                <i class="fas fa-user-tie"></i>
+            </div>
+            <div class="user-info">
+                <span class="user-name" id="sidebarUserName">Admin Dinas</span>
+                <span class="user-role" id="sidebarUserRole">Dinas Kepemudaan dan Olahraga</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-menu">
+            <span class="menu-label">MENU UTAMA</span>
+
+            <a href="../dashboard/dashboard.html" class="menu-item">
+                <i class="fas fa-th-large"></i>
+                <span>Dashboard</span>
+            </a>
+
+            <!-- Penerimaan (dropdown utama) -->
+            <div class="menu-group open" data-menu="penerimaan">
+                <a href="#" class="menu-item has-submenu active">
+                    <i class="fas fa-arrow-down"></i>
+                    <span>Penerimaan</span>
+                    <i class="fas fa-chevron-down submenu-arrow"></i>
+                </a>
+                <div class="submenu">
+                    <!-- Rekening -->
+                    <div class="menu-group" data-menu="rekening">
+                        <a href="#" class="menu-item has-submenu">
+                            <i class="fas fa-university"></i>
+                            <span>Rekening</span>
+                            <i class="fas fa-chevron-down submenu-arrow"></i>
+                        </a>
+                        <div class="submenu">
+                            <a href="permohonan.html" class="menu-item submenu-item"><i class="fas fa-file-signature"></i><span>Permohonan</span></a>
+                        </div>
+                    </div>
+
+                    <!-- STBP -->
+                    <a href="stbp-pembuatan.html" class="menu-item">
+                        <i class="fas fa-file-invoice"></i>
+                        <span>STBP</span>
+                    </a>
+
+                    <!-- STS (aktif) -->
+                    <a href="sts-pembuatan.html" class="menu-item active">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                        <span>STS</span>
+                    </a>
+
+                    <!-- Laporan -->
+                    <div class="menu-group" data-menu="laporan">
+                        <a href="#" class="menu-item has-submenu">
+                            <i class="fas fa-file-alt"></i>
+                            <span>Laporan</span>
+                            <i class="fas fa-chevron-down submenu-arrow"></i>
+                        </a>
+                        <div class="submenu">
+                            <a href="#" class="menu-item submenu-item"><i class="fas fa-sun"></i><span>Laporan Harian</span></a>
+                            <a href="#" class="menu-item submenu-item"><i class="fas fa-calendar-alt"></i><span>Laporan Bulanan</span></a>
+                            <a href="#" class="menu-item submenu-item"><i class="fas fa-chart-pie"></i><span>Rekap Penerimaan</span></a>
+                            <a href="bku-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-book"></i><span>BKU Penerimaan</span></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <a href="../belanja/index.html" class="menu-item">
+                <i class="fas fa-arrow-up"></i>
+                <span>Belanja</span>
+            </a>
+            <a href="../akuntansi/akuntansi.html" class="menu-item">
+                <i class="fas fa-book"></i>
+                <span>Akuntansi</span>
+            </a>
+
+            <!-- Pengaturan -->
+            <div class="menu-group" data-menu="pengaturan">
+                <a href="#" class="menu-item has-submenu">
+                    <i class="fas fa-cog"></i>
+                    <span>Pengaturan</span>
+                    <i class="fas fa-chevron-down submenu-arrow"></i>
+                </a>
+                <div class="submenu">
+                    <a href="../pengaturan/akun-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-coins"></i><span>Akun Penerimaan</span></a>
+                </div>
+            </div>
+
+            <span class="menu-label">AKUN</span>
+            <a href="../api/logout.php" class="menu-item menu-logout" id="logoutLink">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Keluar</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <span>&copy; 2026 SIM-TKD POLBAN</span>
+        </div>
+    </aside>
+
+    <!-- ================= OVERLAY (mobile) ================= -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- ================= MAIN ================= -->
+    <div class="main-wrapper">
+
+        <!-- Topbar -->
+        <header class="topbar">
+            <div class="topbar-left">
+                <button class="topbar-toggle" id="topbarToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="breadcrumb">
+                    <i class="fas fa-home"></i>
+                    <span>Beranda</span>
+                    <i class="fas fa-chevron-right"></i>
+                    <span>Penerimaan</span>
+                    <i class="fas fa-chevron-right"></i>
+                    <span>STS</span>
+                    <i class="fas fa-chevron-right"></i>
+                    <span class="current">Pembuatan</span>
+                </div>
+            </div>
+            <div class="topbar-right">
+                <div class="topbar-item notification">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge">3</span>
+                </div>
+                <div class="topbar-item">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span id="currentDate">--</span>
+                </div>
+                <div class="topbar-item user">
+                    <div class="user-avatar small">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <span id="topbarUserName">Admin Dinas</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Content -->
+        <main class="content">
+            <form id="formTambahSts" autocomplete="off">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Tambah STS</h1>
+                        <p class="page-subtitle">Buat Surat Tanda Setoran (STS) baru</p>
+                    </div>
+                    <div class="page-actions">
+                        <a href="sts-pembuatan.html" class="btn btn-outline"><i class="fas fa-arrow-left"></i> Kembali</a>
+                    </div>
+                </div>
+
+                <!-- Informasi -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-info-circle"></i> Informasi</h3>
+                    </div>
+                    <div class="card-body form-page">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="namaPenyetor">Nama Penyetor</label>
+                                <input type="text" id="namaPenyetor" class="form-control" readonly placeholder="Nama penyetor">
+                            </div>
+                            <div class="form-group">
+                                <label for="tanggalSts">Tanggal STS</label>
+                                <input type="date" id="tanggalSts" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="tanggalDari">Tanggal Acuan Dari</label>
+                                <input type="date" id="tanggalDari" class="form-control" placeholder="Pilih tanggal disini ...">
+                            </div>
+                            <div class="form-group">
+                                <label for="tanggalAkhir">Tanggal Acuan Akhir</label>
+                                <input type="date" id="tanggalAkhir" class="form-control" placeholder="Pilih tanggal disini ...">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="mengetahui">Mengetahui</label>
+                                <select id="mengetahui" class="form-control">
+                                    <option value="">Pilih Mengetahui</option>
+                                    <option value="Kepala Dinas">Kepala Dinas</option>
+                                    <option value="Sekretaris Dinas">Sekretaris Dinas</option>
+                                    <option value="Bendahara Penerimaan">Bendahara Penerimaan</option>
+                                    <option value="Pejabat Penatausahaan Keuangan">Pejabat Penatausahaan Keuangan</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="namaBank">Pilih Bank</label>
+                                <select id="namaBank" class="form-control">
+                                    <option value="">Pilih Bank</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="nomorRekening">Nomor Rekening</label>
+                                <input type="text" id="nomorRekening" class="form-control" placeholder="000000000 000000">
+                            </div>
+                            <div class="form-group">
+                                <label for="namaRekening">Nama Rekening</label>
+                                <input type="text" id="namaRekening" class="form-control" placeholder="Drs. Nama Anda S.Kom., M.Kom">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="keterangan">Keterangan</label>
+                            <textarea id="keterangan" class="form-control" rows="3" placeholder="Masukan keterangan disini ..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data STBP -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-file-invoice"></i> Data STBP</h3>
+                    </div>
+                    <div class="card-body form-page">
+                        <div class="sts-total">
+                            <span>Total STS</span>
+                            <span class="sts-total-value" id="totalSts">Rp0</span>
+                        </div>
+
+                        <!-- Daftar STBP (inline, bukan popup) -->
+                        <div class="sts-pilih-title" style="margin-top:22px;"><i class="fas fa-search"></i> Cari STBP</div>
+                        <div class="search-box picker-search">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="cariStbp" placeholder="Pencarian ...">
+                        </div>
+                        <div class="card table-card" id="stbpPickCard">
+                            <div class="card-body table-body">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:40px;"><input type="checkbox" id="stbpCheckAll" class="row-check"></th>
+                                            <th>Nomor STBP</th>
+                                            <th>Nilai STBP</th>
+                                            <th>Tanggal STBP</th>
+                                            <th>Nama Unit</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="stbpPickBody">
+                                        <tr><td colspan="5" style="text-align:center;color:#9098a5;">Memuat data...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="table-footer">
+                                <div class="pagination">
+                                    <button class="page-btn" id="pickPrev"><i class="fas fa-chevron-left"></i> Sebelumnya</button>
+                                    <span class="page-number" id="pickPageCurrent">1</span>
+                                    <button class="page-btn" id="pickNext">Selanjutnya <i class="fas fa-chevron-right"></i></button>
+                                    <span class="page-info" id="pickPageInfo">Menampilkan 0 data</span>
+                                </div>
+                                <div class="per-page">
+                                    <select id="pickPerPage">
+                                        <option value="5" selected>5 Data</option>
+                                        <option value="10">10 Data</option>
+                                        <option value="25">25 Data</option>
+                                        <option value="50">50 Data</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-top:12px;">
+                            <button type="button" class="btn btn-primary" id="pilihStbp"><i class="fas fa-plus"></i> Tambahkan Terpilih</button>
+                        </div>
+
+                        <!-- Tabel STBP terpilih -->
+                        <div class="sts-pilih-title">Pilih STBP</div>
+                        <div class="card table-card" id="stbpTableCard" style="display:none;">
+                            <div class="card-body table-body">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>No.</th>
+                                            <th>Nomor STBP</th>
+                                            <th>Nilai STBP</th>
+                                            <th>Tanggal STBP</th>
+                                            <th>Nama Unit</th>
+                                            <th>AKSI</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="stbpTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="card-body empty-state" id="stbpEmpty" style="display:none;">
+                            <div class="empty-illustration">
+                                <i class="fas fa-file-invoice"></i>
+                            </div>
+                            <h3>Data Tidak Ditemukan</h3>
+                            <p>Belum ada STBP yang dipilih. Centang STBP pada daftar di atas lalu klik <b>Tambahkan Terpilih</b>.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Aksi -->
+                <div class="form-actions">
+                    <a href="sts-pembuatan.html" class="btn btn-outline"><i class="fas fa-times"></i> Batalkan</a>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Simpan STS</button>
+                </div>
+            </form>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <span>&copy; 2026 SIM-TKD - Sistem Informasi Manajemen Tata Kelola Daerah (Modul Edukasi) | Politeknik Negeri Bandung</span>
+        </footer>
+    </div>
+
+    <script src="../js/dashboard.js"></script>
+    <script>
+        // ==========================================
+        // Halaman Tambah STS
+        // ==========================================
+        (function () {
+            'use strict';
+
+            function showToast(message, type) {
+                const toast = document.createElement('div');
+                toast.className = 'toast toast-' + (type || 'success');
+                const icons = { success: 'fa-check-circle', error: 'fa-times-circle', warning: 'fa-exclamation-triangle' };
+                toast.innerHTML = '<i class="fas ' + (icons[type] || icons.success) + '"></i><span>' + message + '</span>';
+                document.body.appendChild(toast);
+                setTimeout(function () { toast.remove(); }, 3200);
+            }
+
+            function escapeHtml(str) {
+                const div = document.createElement('div');
+                div.textContent = String(str || '');
+                return div.innerHTML;
+            }
+
+            function formatRupiah(v) {
+                return 'Rp' + Number(v || 0).toLocaleString('id-ID');
+            }
+
+            function formatTanggal(s) {
+                if (!s) return '-';
+                const p = String(s).split('-');
+                const b = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+                           'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+                return parseInt(p[2], 10) + ' ' + b[parseInt(p[1], 10) - 1] + ' ' + p[0];
+            }
+
+            function formatTanggalSts(s) {
+                if (!s) return '-';
+                const p = String(s).split('-');
+                const b = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+                           'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+                const day = ('0' + parseInt(p[2], 10)).slice(-2);
+                return day + '-' + b[parseInt(p[1], 10) - 1] + '-' + p[0];
+            }
+
+            // ---------- Prefill dari sesi ----------
+            fetch('../api/session.php')
+                .then(function (res) { return res.json(); })
+                .then(function (d) {
+                    if (!d.success) {
+                        window.location.href = '../login.html';
+                        return;
+                    }
+                    document.getElementById('namaPenyetor').value = d.user.nama || '';
+                    document.getElementById('tanggalSts').value = new Date().toISOString().slice(0, 10);
+                })
+                .catch(function () { /* biarkan */ });
+
+            // ---------- Daftar bank (statis) ----------
+            const BANK_LIST = [
+                'Bank Mandiri',
+                'Bank Rakyat Indonesia (BRI)',
+                'Bank Negara Indonesia (BNI)',
+                'Bank Tabungan Negara (BTN)',
+                'Bank BJB'
+            ];
+            const bankSelect = document.getElementById('namaBank');
+            BANK_LIST.forEach(function (bank) {
+                const opt = document.createElement('option');
+                opt.value = bank;
+                opt.textContent = bank;
+                bankSelect.appendChild(opt);
+            });
+
+            // ---------- STBP terpilih ----------
+            let selectedStbp = [];
+
+            function renderSelected() {
+                const tbody = document.getElementById('stbpTableBody');
+                const card = document.getElementById('stbpTableCard');
+                const empty = document.getElementById('stbpEmpty');
+                const totalEl = document.getElementById('totalSts');
+
+                const total = selectedStbp.reduce(function (s, p) { return s + (p.jumlah || 0); }, 0);
+                totalEl.textContent = formatRupiah(total);
+
+                if (!selectedStbp.length) {
+                    card.style.display = 'none';
+                    empty.style.display = 'block';
+                    return;
+                }
+                card.style.display = 'block';
+                empty.style.display = 'none';
+                tbody.innerHTML = selectedStbp.map(function (p, i) {
+                    return '<tr>' +
+                        '<td>' + (i + 1) + '</td>' +
+                        '<td><strong>' + escapeHtml(p.nomor_stbp) + '</strong></td>' +
+                        '<td class="num">' + formatRupiah(p.jumlah) + '</td>' +
+                        '<td>' + formatTanggalSts(p.tanggal) + '</td>' +
+                        '<td>' + escapeHtml(p.skpd || '-') + '</td>' +
+                        '<td><div class="row-actions"><button class="action-btn danger" title="Hapus dari daftar" data-index="' + i + '"><i class="fas fa-trash"></i></button></div></td>' +
+                    '</tr>';
+                }).join('');
+            }
+
+            document.getElementById('stbpTableBody').addEventListener('click', function (e) {
+                const btn = e.target.closest('.action-btn');
+                if (!btn) return;
+                selectedStbp.splice(parseInt(btn.getAttribute('data-index'), 10), 1);
+                renderSelected();
+            });
+
+            // ---------- Daftar STBP (inline, tanpa popup) ----------
+            const stbpPickBody = document.getElementById('stbpPickBody');
+            const cariStbp = document.getElementById('cariStbp');
+            const pickPrev = document.getElementById('pickPrev');
+            const pickNext = document.getElementById('pickNext');
+            const pickPageCurrent = document.getElementById('pickPageCurrent');
+            const pickPageInfo = document.getElementById('pickPageInfo');
+            const pickPerPage = document.getElementById('pickPerPage');
+            const checkAll = document.getElementById('stbpCheckAll');
+            let stbpCache = [];
+            let pickPage = 1;
+
+            function loadStbpPicker() {
+                stbpPickBody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#9098a5;">Memuat data...</td></tr>';
+                fetch('../api/stbp.php?status=belum_diverifikasi&q=' + encodeURIComponent(cariStbp.value.trim()))
+                    .then(function (res) { return res.json(); })
+                    .then(function (data) {
+                        stbpCache = (data && data.success) ? (data.data || []) : [];
+                        pickPage = 1;
+                        renderStbpPicker();
+                    })
+                    .catch(function () {
+                        stbpCache = [];
+                        renderStbpPicker();
+                    });
+            }
+
+            function renderStbpPicker() {
+                const q = cariStbp.value.trim().toLowerCase();
+                const filtered = stbpCache.filter(function (s) {
+                    return (s.nomor_stbp + ' ' + s.akun_nama + ' ' + s.uraian).toLowerCase().indexOf(q) !== -1;
+                });
+
+                if (!filtered.length) {
+                    stbpPickBody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#9098a5;">Data tidak ditemukan.</td></tr>';
+                    pickPageInfo.textContent = 'Menampilkan 0 data';
+                    pickPrev.disabled = true;
+                    pickNext.disabled = true;
+                    pickPageCurrent.textContent = '1';
+                    checkAll.checked = false;
+                    return;
+                }
+
+                const perPage = parseInt(pickPerPage.value, 10);
+                const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
+                if (pickPage > totalPages) pickPage = totalPages;
+                const start = (pickPage - 1) * perPage;
+                const pageData = filtered.slice(start, start + perPage);
+
+                const selectedIds = {};
+                selectedStbp.forEach(function (s) { selectedIds[s.id] = true; });
+
+                stbpPickBody.innerHTML = pageData.map(function (s) {
+                    const disabled = selectedIds[s.id] ? ' disabled' : '';
+                    return '<tr>' +
+                        '<td><input type="checkbox" class="row-check pick-check" data-id="' + s.id + '"' + disabled + '></td>' +
+                        '<td><strong>' + escapeHtml(s.nomor_stbp) + '</strong></td>' +
+                        '<td class="num">' + formatRupiah(s.jumlah) + '</td>' +
+                        '<td>' + formatTanggalSts(s.tanggal) + '</td>' +
+                        '<td>' + escapeHtml(s.skpd || '-') + '</td>' +
+                    '</tr>';
+                }).join('');
+
+                checkAll.checked = false;
+                const end = start + pageData.length;
+                pickPageInfo.textContent = 'Menampilkan ' + start + 1 + ' sampai ' + end + ' dari ' + filtered.length + ' data';
+                pickPrev.disabled = pickPage <= 1;
+                pickNext.disabled = pickPage >= totalPages;
+                pickPageCurrent.textContent = pickPage;
+            }
+
+            // Daftar STBP selalu tampil di halaman (tanpa popup)
+
+            cariStbp.addEventListener('input', function () {
+                pickPage = 1;
+                renderStbpPicker();
+            });
+            pickPrev.addEventListener('click', function () {
+                if (pickPage > 1) { pickPage--; renderStbpPicker(); }
+            });
+            pickNext.addEventListener('click', function () {
+                const perPage = parseInt(pickPerPage.value, 10);
+                const q = cariStbp.value.trim().toLowerCase();
+                const totalPages = Math.max(1, Math.ceil(stbpCache.filter(function (s) {
+                    return (s.nomor_stbp + ' ' + s.akun_nama + ' ' + s.uraian).toLowerCase().indexOf(q) !== -1;
+                }).length / perPage));
+                if (pickPage < totalPages) { pickPage++; renderStbpPicker(); }
+            });
+            pickPerPage.addEventListener('change', function () {
+                pickPage = 1;
+                renderStbpPicker();
+            });
+
+            checkAll.addEventListener('change', function () {
+                stbpPickBody.querySelectorAll('.pick-check:not(:disabled)').forEach(function (cb) {
+                    cb.checked = checkAll.checked;
+                });
+            });
+
+            // ---------- Tambahkan terpilih ----------
+            document.getElementById('pilihStbp').addEventListener('click', function () {
+                const checked = stbpPickBody.querySelectorAll('.pick-check:checked');
+                if (!checked.length) {
+                    showToast('Pilih minimal satu STBP.', 'warning');
+                    return;
+                }
+                const selectedIds = {};
+                selectedStbp.forEach(function (s) { selectedIds[s.id] = true; });
+
+                checked.forEach(function (cb) {
+                    const id = parseInt(cb.getAttribute('data-id'), 10);
+                    if (selectedIds[id]) return;
+                    const src = stbpCache.find(function (s) { return s.id === id; });
+                    if (!src) return;
+                    selectedStbp.push({
+                        id: src.id,
+                        nomor_stbp: src.nomor_stbp,
+                        tanggal: src.tanggal,
+                        jumlah: src.jumlah,
+                        skpd: src.skpd || ''
+                    });
+                });
+
+                renderSelected();
+                loadStbpPicker();
+                showToast('STBP berhasil ditambahkan ke STS.', 'success');
+            });
+
+            // ---------- Muat daftar STBP saat halaman dibuka (inline) ----------
+            loadStbpPicker();
+
+            // ---------- Submit ----------
+            document.getElementById('formTambahSts').addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                const tanggalSts = document.getElementById('tanggalSts').value;
+                if (!tanggalSts) { showToast('Tanggal STS wajib diisi.', 'warning'); return; }
+                if (!selectedStbp.length) { showToast('Pilih minimal satu STBP terlebih dahulu.', 'warning'); return; }
+
+                const btnSubmit = this.querySelector('.btn-primary');
+                btnSubmit.disabled = true;
+
+                fetch('../api/sts.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'create',
+                        nama_penyetor: document.getElementById('namaPenyetor').value.trim(),
+                        tanggal_sts: tanggalSts,
+                        tanggal_acuan_dari: document.getElementById('tanggalDari').value,
+                        tanggal_acuan_akhir: document.getElementById('tanggalAkhir').value,
+                        mengetahui: document.getElementById('mengetahui').value,
+                        nama_bank: document.getElementById('namaBank').value,
+                        nomor_rekening: document.getElementById('nomorRekening').value.trim(),
+                        nama_rekening: document.getElementById('namaRekening').value.trim(),
+                        keterangan: document.getElementById('keterangan').value.trim(),
+                        stbp_ids: selectedStbp.map(function (s) { return s.id; })
+                    })
+                })
+                .then(function (res) { return res.json(); })
+                .then(function (data) {
+                    btnSubmit.disabled = false;
+                    if (data.success) {
+                        showToast(data.message + ' (Nomor: ' + (data.nomor || '') + ')', 'success');
+                        setTimeout(function () {
+                            window.location.href = 'sts-cetak.html?id=' + (data.id || '');
+                        }, 1300);
+                    } else {
+                        showToast(data.message || 'Gagal menyimpan STS.', 'error');
+                    }
+                })
+                .catch(function () {
+                    btnSubmit.disabled = false;
+                    showToast('Terjadi kesalahan koneksi ke server.', 'error');
+                });
+            });
+        })();
+    </script>
+</body>
+</html>

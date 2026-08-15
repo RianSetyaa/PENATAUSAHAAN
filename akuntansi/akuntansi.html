@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jurnal Approve - AKLAP</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ============================================================
+           AKLAP - Jurnal Approve (Belanja)
+           Halaman standalone (domain terpisah dari SIM-TKD).
+           ============================================================ */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --navy: #16305a;
+            --navy-dark: #0e2140;
+            --navy-mid: #1d3a6e;
+            --blue: #1f6feb;
+            --green: #16a34a;
+            --green-dark: #15803d;
+            --bg: #eef1f6;
+            --card: #ffffff;
+            --border: #d8dee9;
+            --text: #1f2937;
+            --muted: #6b7280;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* ---------- Topbar ---------- */
+        .topbar {
+            background: var(--navy);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            height: 58px;
+            box-shadow: 0 2px 6px rgba(0,0,0,.2);
+            position: relative;
+            z-index: 20;
+        }
+        .topbar-left { display: flex; align-items: center; gap: 12px; }
+        .topbar-left .logo-badge {
+            width: 38px; height: 38px; border-radius: 50%;
+            background: #fff; color: var(--navy);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px;
+        }
+        .topbar-left .brand { line-height: 1.15; }
+        .topbar-left .brand b { font-size: 15px; letter-spacing: .3px; display: block; }
+        .topbar-left .brand span { font-size: 11.5px; opacity: .85; display: block; }
+
+        .topbar-right { display: flex; align-items: center; gap: 14px; }
+        .topbar-right .region { text-align: right; line-height: 1.15; }
+        .topbar-right .region b { font-size: 12.5px; display: block; }
+        .topbar-right .region span { font-size: 11px; opacity: .85; display: block; }
+        .topbar-user { display: flex; align-items: center; gap: 8px; }
+        .topbar-user .avatar {
+            width: 32px; height: 32px; border-radius: 50%;
+            background: #fff; color: var(--navy);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 15px; font-weight: 700;
+        }
+
+        /* ---------- Body layout ---------- */
+        .body-wrap { display: flex; flex: 1; min-height: 0; }
+
+        /* ---------- Sidebar ---------- */
+        .sidebar {
+            width: 236px;
+            background: var(--navy-dark);
+            color: #cbd5e1;
+            flex-shrink: 0;
+            overflow-y: auto;
+            padding: 10px 0 20px;
+            transition: margin-left .25s ease;
+        }
+        .sidebar.collapsed { margin-left: -236px; }
+        .side-title {
+            font-size: 10.5px; letter-spacing: 1.4px; text-transform: uppercase;
+            color: #7d8db1; padding: 14px 18px 6px;
+        }
+        .side-link {
+            display: flex; align-items: center; gap: 11px;
+            padding: 10px 18px; color: #cbd5e1; text-decoration: none;
+            font-size: 13.5px; border-left: 3px solid transparent;
+        }
+        .side-link i { width: 18px; text-align: center; font-size: 14px; }
+        .side-link:hover { background: rgba(255,255,255,.06); color: #fff; }
+        .side-link.active {
+            background: var(--navy-mid); color: #fff; border-left-color: #4c9aff;
+        }
+        .side-group .side-link { cursor: pointer; }
+        .side-arrow { margin-left: auto; font-size: 11px; transition: transform .2s; color: #7d8db1; }
+        .side-group.open .side-arrow { transform: rotate(90deg); }
+        .side-sub { display: none; padding-left: 10px; }
+        .side-sub.open { display: block; }
+        .side-sub .side-link { padding: 8px 16px; font-size: 13px; color: #9fb0d3; }
+        .side-sub .side-link i { font-size: 12px; }
+        .side-sub .side-link:hover { color: #fff; }
+        .side-sub .side-link.active {
+            color: #fff; background: var(--navy-mid); border-left-color: #4c9aff;
+        }
+
+        /* ---------- Main ---------- */
+        .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+        .breadcrumb-bar {
+            background: #fff; border-bottom: 1px solid var(--border);
+            padding: 10px 22px; display: flex; align-items: center; justify-content: space-between;
+            gap: 10px; flex-wrap: wrap;
+        }
+        .breadcrumb-bar .crumb { font-size: 13px; color: var(--muted); }
+        .breadcrumb-bar .crumb i { font-size: 11px; margin: 0 7px; color: #9aa4b2; }
+        .crumb a { color: var(--blue); text-decoration: none; }
+        .crumb .current { color: var(--text); font-weight: 600; }
+        .btn-back {
+            background: var(--navy); color: #fff; border: none;
+            padding: 7px 14px; border-radius: 6px; cursor: pointer;
+            font-size: 12.5px; display: inline-flex; align-items: center; gap: 7px;
+            text-decoration: none;
+        }
+        .btn-back:hover { background: var(--navy-mid); }
+
+        .content { padding: 20px 22px; flex: 1; }
+
+        /* ---------- Page title + tabs ---------- */
+        .page-head {
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 12px; flex-wrap: wrap; margin-bottom: 16px;
+        }
+        .page-head h1 { font-size: 19px; color: var(--navy); }
+        .page-head p { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+        .tabs { display: flex; gap: 6px; background: #e2e8f0; padding: 4px; border-radius: 8px; }
+        .tabs button {
+            border: none; background: transparent; padding: 7px 16px;
+            border-radius: 6px; cursor: pointer; font-size: 13px; color: var(--muted);
+            font-weight: 600;
+        }
+        .tabs button.active { background: #fff; color: var(--navy); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+
+        /* ---------- Filter card ---------- */
+        .card {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 10px; box-shadow: 0 1px 3px rgba(16,24,40,.06);
+            margin-bottom: 18px;
+        }
+        .card-head {
+            padding: 12px 18px; border-bottom: 1px solid var(--border);
+            font-weight: 700; font-size: 13.5px; color: var(--navy);
+            display: flex; align-items: center; gap: 8px;
+        }
+        .card-body { padding: 16px 18px; }
+
+        .filter-grid {
+            display: grid; grid-template-columns: repeat(6, 1fr);
+            gap: 14px; align-items: end;
+        }
+        .filter-field { display: flex; flex-direction: column; gap: 5px; }
+        .filter-field label { font-size: 11.5px; color: var(--muted); font-weight: 600; }
+        .filter-field select,
+        .filter-field input {
+            height: 36px; border: 1px solid var(--border); border-radius: 6px;
+            padding: 0 10px; font-size: 13px; background: #fff; color: var(--text);
+            width: 100%;
+        }
+        .filter-field input:focus, .filter-field select:focus { outline: 2px solid #bfdbfe; border-color: var(--blue); }
+        .filter-actions { display: flex; gap: 10px; }
+
+        .btn {
+            border: none; border-radius: 6px; padding: 9px 18px; cursor: pointer;
+            font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 7px;
+            height: 36px;
+        }
+        .btn-primary { background: var(--blue); color: #fff; }
+        .btn-primary:hover { background: #1a5fd0; }
+        .btn-success { background: var(--green); color: #fff; }
+        .btn-success:hover { background: var(--green-dark); }
+        .btn:disabled { opacity: .6; cursor: not-allowed; }
+
+        /* ---------- Table ---------- */
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        thead th {
+            background: #f1f5f9; color: #334155; text-align: left;
+            padding: 10px 12px; border-bottom: 1px solid var(--border);
+            font-size: 11.5px; text-transform: uppercase; letter-spacing: .3px;
+            white-space: nowrap;
+        }
+        tbody td { padding: 10px 12px; border-bottom: 1px solid #edf0f5; vertical-align: middle; }
+        tbody tr:hover { background: #f8fafc; }
+        .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+        .c { text-align: center; }
+
+        .badge {
+            display: inline-block; padding: 4px 10px; border-radius: 999px;
+            font-size: 11.5px; font-weight: 600;
+        }
+        .badge-approved { background: #dcfce7; color: #15803d; }
+        .badge-pending { background: #fef3c7; color: #b45309; }
+        .badge-rejected { background: #fee2e2; color: #b91c1c; }
+
+        .aksi-btn {
+            border: 1px solid var(--border); background: #fff; color: var(--muted);
+            width: 28px; height: 28px; border-radius: 6px; cursor: pointer;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 12px;
+        }
+        .aksi-btn:hover { color: var(--blue); border-color: var(--blue); }
+
+        .dropdown { position: relative; display: inline-block; }
+        .dropdown-menu {
+            display: none; position: absolute; right: 0; top: calc(100% + 4px);
+            background: #fff; border: 1px solid var(--border); border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0,0,0,.14); min-width: 160px; z-index: 30;
+            padding: 5px;
+        }
+        .dropdown-menu.open { display: block; }
+        .dropdown-item {
+            display: flex; align-items: center; gap: 8px; width: 100%;
+            border: none; background: none; padding: 8px 10px; border-radius: 6px;
+            font-size: 12.5px; color: var(--text); cursor: pointer; text-align: left;
+        }
+        .dropdown-item:hover { background: #f1f5f9; color: var(--navy); }
+        .dropdown-item.approve { color: var(--green); }
+        .dropdown-item.danger { color: #dc2626; }
+
+        /* ---------- Footer ---------- */
+        .footer {
+            text-align: center; padding: 14px; font-size: 12px;
+            color: var(--muted); border-top: 1px solid var(--border); background: #fff;
+        }
+
+        /* ---------- Toast ---------- */
+        #toast {
+            position: fixed; bottom: 24px; right: 24px; z-index: 99;
+            background: var(--navy-dark); color: #fff; padding: 12px 18px;
+            border-radius: 8px; font-size: 13px; box-shadow: 0 6px 18px rgba(0,0,0,.25);
+            opacity: 0; transform: translateY(12px); transition: all .25s ease; pointer-events: none;
+        }
+        #toast.show { opacity: 1; transform: translateY(0); }
+
+        /* ---------- Responsive ---------- */
+        .sidebar-toggle { display: none; }
+        @media (max-width: 1024px) {
+            .filter-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+        @media (max-width: 768px) {
+            .sidebar { position: fixed; left: 0; top: 58px; bottom: 0; z-index: 40; }
+            .sidebar-toggle { display: inline-flex; }
+            .filter-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ================= TOPBAR ================= -->
+    <header class="topbar">
+        <div class="topbar-left">
+            <div class="logo-badge"><i class="fas fa-landmark"></i></div>
+            <div class="brand">
+                <b>AKLAP</b>
+                <span>Aplikasi Laporan Akuntansi Pemerintahan</span>
+            </div>
+        </div>
+        <div class="topbar-right">
+            <div class="region">
+                <b>Provinsi Sulawesi Barat</b>
+                <span>Tahun Anggaran 2024</span>
+            </div>
+            <div class="topbar-user">
+                <div class="avatar">H</div>
+                <span style="font-size:13px;">HASMIATI</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="body-wrap">
+
+        <!-- ================= SIDEBAR ================= -->
+        <aside class="sidebar" id="sidebar">
+            <div class="side-title">Menu Utama</div>
+            <a href="#" class="side-link"><i class="fas fa-th-large"></i> Dashboard</a>
+            <a href="#" class="side-link"><i class="fas fa-file-import"></i> Input Transaksi Non Anggaran</a>
+            <a href="#" class="side-link"><i class="fas fa-book"></i> Jurnal Umum</a>
+            <div class="side-group open" id="sideGroupToApprove">
+                <a href="#" class="side-link active" id="sideLinkToApprove"><i class="fas fa-check-double"></i> Jurnal To Approve <i class="fas fa-chevron-right side-arrow"></i></a>
+                <div class="side-sub open" id="sideSubToApprove">
+                    <a href="#" class="side-link"><i class="fas fa-coins"></i> Anggaran</a>
+                    <a href="#" class="side-link active"><i class="fas fa-arrow-down"></i> Pendapatan</a>
+                    <a href="#" class="side-link"><i class="fas fa-arrow-up"></i> Belanja</a>
+                    <a href="#" class="side-link"><i class="fas fa-file-import"></i> Transaksi Non Anggaran</a>
+                    <a href="#" class="side-link"><i class="fas fa-list"></i> Umum</a>
+                    <a href="#" class="side-link"><i class="fas fa-rotate-left"></i> Pembalik</a>
+                    <a href="#" class="side-link"><i class="fas fa-lock"></i> Penutup</a>
+                </div>
+            </div>
+            <a href="#" class="side-link"><i class="fas fa-book-open"></i> Buku Jurnal</a>
+            <a href="#" class="side-link"><i class="fas fa-table-list"></i> Buku Besar</a>
+            <a href="#" class="side-link"><i class="fas fa-right-left"></i> Laporan Mutasi Rekening</a>
+            <a href="#" class="side-link"><i class="fas fa-building-columns"></i> Buku Besar Pembantu Bank</a>
+            <a href="#" class="side-link"><i class="fas fa-scale-balanced"></i> Neraca Saldo</a>
+            <div class="side-group" id="sideGroupKeuangan">
+                <a href="#" class="side-link" id="sideLinkKeuangan"><i class="fas fa-chart-line"></i> Laporan Keuangan <i class="fas fa-chevron-right side-arrow"></i></a>
+                <div class="side-sub" id="sideSubKeuangan">
+                    <a href="#" class="side-link"><i class="fas fa-scale-balanced"></i> Neraca</a>
+                    <a href="lra.html" class="side-link"><i class="fas fa-chart-column"></i> LRA</a>
+                    <a href="#" class="side-link"><i class="fas fa-chart-pie"></i> LO</a>
+                    <a href="#" class="side-link"><i class="fas fa-wallet"></i> LPE</a>
+                    <a href="#" class="side-link"><i class="fas fa-bullseye"></i> Prognosis</a>
+                    <a href="#" class="side-link"><i class="fas fa-layer-group"></i> LRA Per Program</a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ================= MAIN ================= -->
+        <main class="main">
+            <div class="breadcrumb-bar">
+                <div class="crumb">
+                    <i class="fas fa-house"></i> <a href="#">Home</a>
+                    <i class="fas fa-chevron-right"></i> Jurnal Approve
+                    <i class="fas fa-chevron-right"></i> <span class="current">Pendapatan</span>
+                </div>
+                <a href="../dashboard/dashboard.html" class="btn-back"><i class="fas fa-arrow-left"></i> Kembali ke Penatausahaan</a>
+            </div>
+
+            <div class="content">
+                <!-- Judul -->
+                <div class="page-head">
+                    <div>
+                        <h1>Jurnal Approve</h1>
+                        <p>Persetujuan jurnal transaksi penerimaan (STBP) dan penyetoran (STS) yang masuk ke akuntansi.</p>
+                    </div>
+                </div>
+
+                <!-- Filter -->
+                <div class="card">
+                    <div class="card-head"><i class="fas fa-filter"></i> Filter Pencarian</div>
+                    <div class="card-body">
+                        <div class="filter-grid">
+                            <div class="filter-field">
+                                <label>SKPD</label>
+                                <select id="fSkpd">
+                                    <option>Dinas Kepemudaan dan Olahraga</option>
+                                    <option>Dinas Pendidikan</option>
+                                    <option>Dinas Kesehatan</option>
+                                    <option>Dinas Pekerjaan Umum</option>
+                                </select>
+                            </div>
+                            <div class="filter-field">
+                                <label>Transaksi</label>
+                                <select id="fTransaksi">
+                                    <option>Penerimaan</option>
+                                    <option>Penyetoran</option>
+                                </select>
+                            </div>
+                            <div class="filter-field">
+                                <label>Status</label>
+                                <select id="fStatus">
+                                    <option>Semua Status</option>
+                                    <option>Sudah Approve</option>
+                                    <option>Belum Approve</option>
+                                    <option>Ditolak</option>
+                                </select>
+                            </div>
+                            <div class="filter-field">
+                                <label>Tanggal Awal</label>
+                                <input type="date" id="fTglAwal">
+                            </div>
+                            <div class="filter-field">
+                                <label>Tanggal Akhir</label>
+                                <input type="date" id="fTglAkhir">
+                            </div>
+                            <div class="filter-field">
+                                <label>Filter By Keyword</label>
+                                <select id="fKeywordType">
+                                    <option>No. Jurnal</option>
+                                    <option>No. Dokumen</option>
+                                    <option>Keterangan</option>
+                                </select>
+                            </div>
+                            <div class="filter-field">
+                                <label>Keyword</label>
+                                <input type="text" id="fKeyword" placeholder="Ketik kata kunci...">
+                            </div>
+                            <div class="filter-actions">
+                                <button class="btn btn-primary" id="btnTerapkan"><i class="fas fa-magnifying-glass"></i> Terapkan</button>
+                                <button class="btn btn-success" id="btnApprove"><i class="fas fa-check"></i> Approve</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabel Jurnal -->
+                <div class="card">
+                    <div class="card-head"><i class="fas fa-list"></i> Daftar Jurnal Pendapatan <span id="rowCount" style="margin-left:auto;font-weight:500;font-size:12px;color:#6b7280;"></span></div>
+                    <div class="table-wrap">
+                        <table id="tblJurnal">
+                            <thead>
+                                <tr>
+                                    <th style="width:34px;" class="c"><input type="checkbox" id="checkAll"></th>
+                                    <th>Nomor Jurnal</th>
+                                    <th>Nomor Dokumen</th>
+                                    <th>Tanggal</th>
+                                    <th class="num">Jumlah</th>
+                                    <th>Keterangan</th>
+                                    <th>Status</th>
+                                    <th style="width:90px;" class="c">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbodyJurnal">
+                                <!-- diisi JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <footer class="footer">
+                &copy; 2026 AKLAP - Modul Edukasi SIM-TKD | Politeknik Negeri Bandung (Jurusan Akuntansi)
+            </footer>
+        </main>
+    </div>
+
+    <div id="toast"></div>
+
+    <script>
+        (function () {
+            'use strict';
+
+            var DATA = [
+                // 1. Penerimaan (dari STBP - kode dokumen 41.0)
+                { no: 'JRN-2024-03-000006', dok: '76.00/41.0/000006/2.19.0.00.0.00.01.0000/4/2024', tgl: '2024-03-08', tglAkhir: '2024-03-08', nilai: 100000, ket: 'Penerimaan Sumbangan Pihak Ketiga dari CV.Hotel Berkah pada Dinas Kepemudaan dan Olahraga Prov.Sulbar', status: 'Belum Approve', transaksi: 'Penerimaan' },
+                { no: 'JRN-2024-03-000008', dok: '76.00/41.0/000007/2.19.0.00.0.00.01.0000/4/2024', tgl: '2024-03-18', tglAkhir: '2024-03-18', nilai: 350000, ket: 'Penerimaan Sumbangan Pihak Ketiga dari Aflah Hotel dan PT. Mutira Infosarana pada Dinas Kepemudaan dan Olahraga Prov.Sulbar', status: 'Belum Approve', transaksi: 'Penerimaan' },
+                { no: 'JRN-2024-03-000010', dok: '76.00/41.0/000008/2.19.0.00.0.00.01.0000/4/2024', tgl: '2024-03-25', tglAkhir: '2024-03-25', nilai: 200000, ket: 'Penerimaan Retribusi Pelayanan Persampahan pada Dinas Kepemudaan dan Olahraga Prov.Sulbar', status: 'Sudah Approve', transaksi: 'Penerimaan' },
+                // 2. Penyetoran (dari STS - kode dokumen 42.0)
+                { no: 'JRN-2024-03-000007', dok: '76.00/42.0/000006/2.19.0.00.0.00.01.0000/4/2024', tgl: '2024-03-08', tglAkhir: '2024-03-08', nilai: 100000, ket: 'Setor Penerimaan Sumbangan Pihak Ketiga dari CV.Hotel Berkah pada Dinas Kepemudaan dan Olahraga Prov.Sulbar', status: 'Belum Approve', transaksi: 'Penyetoran' },
+                { no: 'JRN-2024-03-000009', dok: '76.00/42.0/000007/2.19.0.00.0.00.01.0000/4/2024', tgl: '2024-03-18', tglAkhir: '2024-03-18', nilai: 350000, ket: 'Setor Penerimaan Sumbangan Pihak Ketiga dari Aflah Hotel dan PT. Mutira Infosarana pada Dinas Kepemudaan dan Olahraga Prov.Sulbar', status: 'Belum Approve', transaksi: 'Penyetoran' }
+            ];
+
+            var BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+
+            function fmtRp(v) {
+                return 'Rp ' + Number(v || 0).toLocaleString('id-ID');
+            }
+            function fmtTgl(s) {
+                if (!s) return '-';
+                var p = String(s).split('-');
+                return p[2] + ' ' + BULAN[parseInt(p[1], 10) - 1] + ' ' + p[0];
+            }
+            function fmtTglRange(a, b) {
+                return fmtTgl(a) + ' s.d. ' + fmtTgl(b || a);
+            }
+            function esc(t) {
+                var d = document.createElement('div');
+                d.textContent = String(t || '');
+                return d.innerHTML;
+            }
+
+            var tbody = document.getElementById('tbodyJurnal');
+
+            function render(filtered) {
+                if (!filtered.length) {
+                    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#9aa4b2;padding:28px;">Tidak ada data yang cocok dengan filter.</td></tr>';
+                } else {
+                    tbody.innerHTML = filtered.map(function (r) {
+                        var st = r.status;
+                        var badgeCls = st === 'Sudah Approve' ? 'badge-approved' : (st === 'Ditolak' ? 'badge-rejected' : 'badge-pending');
+                        var locked = st !== 'Belum Approve';
+                        return '<tr data-status="' + st + '">' +
+                            '<td class="c"><input type="checkbox" class="row-check" ' + (locked ? 'disabled' : '') + '></td>' +
+                            '<td>' + esc(r.no) + '</td>' +
+                            '<td>' + esc(r.dok) + '</td>' +
+                            '<td>' + fmtTglRange(r.tgl, r.tglAkhir) + '</td>' +
+                            '<td class="num">' + fmtRp(r.nilai) + '</td>' +
+                            '<td>' + esc(r.ket) + '</td>' +
+                            '<td><span class="badge ' + badgeCls + '">' + st + '</span></td>' +
+                            '<td class="c"><div class="dropdown">' +
+                                '<button class="aksi-btn" data-drop="' + esc(r.no) + '"><i class="fas fa-ellipsis-vertical"></i></button>' +
+                                '<div class="dropdown-menu" id="dm-' + esc(r.no) + '">' +
+                                    '<button class="dropdown-item" data-act="lihat"><i class="fas fa-eye"></i> Lihat</button>' +
+                                    '<button class="dropdown-item approve" data-act="approve"><i class="fas fa-check"></i> Approve</button>' +
+                                    '<button class="dropdown-item danger" data-act="reject"><i class="fas fa-xmark"></i> Reject</button>' +
+                                '</div>' +
+                            '</div></td>' +
+                        '</tr>';
+                    }).join('');
+                }
+                document.getElementById('rowCount').textContent = filtered.length + ' data';
+            }
+
+            function applyFilter() {
+                var kw = document.getElementById('fKeyword').value.trim().toLowerCase();
+                var kwType = document.getElementById('fKeywordType').value;
+                var status = document.getElementById('fStatus').value;
+                var transaksi = document.getElementById('fTransaksi').value;
+                var tAwal = document.getElementById('fTglAwal').value;
+                var tAkhir = document.getElementById('fTglAkhir').value;
+
+                var filtered = DATA.filter(function (r) {
+                    if (r.transaksi !== transaksi) return false;
+                    if (status !== 'Semua Status' && r.status !== status) return false;
+                    if (tAwal && r.tgl < tAwal) return false;
+                    if (tAkhir && r.tgl > tAkhir) return false;
+                    if (kw) {
+                        var field = kwType === 'No. Jurnal' ? r.no :
+                                    kwType === 'No. Dokumen' ? r.dok : r.ket;
+                        if (String(field).toLowerCase().indexOf(kw) === -1) return false;
+                    }
+                    return true;
+                });
+                render(filtered);
+            }
+
+            function toast(msg) {
+                var t = document.getElementById('toast');
+                t.textContent = msg;
+                t.classList.add('show');
+                clearTimeout(toast._t);
+                toast._t = setTimeout(function () { t.classList.remove('show'); }, 2400);
+            }
+
+            // Tombol Terapkan
+            document.getElementById('btnTerapkan').addEventListener('click', applyFilter);
+
+            function setRowStatus(tr, no, status) {
+                DATA.forEach(function (d) { if (d.no === no) d.status = status; });
+                var badgeCls = status === 'Sudah Approve' ? 'badge badge-approved' : (status === 'Ditolak' ? 'badge badge-rejected' : 'badge badge-pending');
+                tr.querySelector('.badge').className = badgeCls;
+                tr.querySelector('.badge').textContent = status;
+                tr.setAttribute('data-status', status);
+                var cb = tr.querySelector('.row-check');
+                if (cb) { cb.checked = false; cb.disabled = true; }
+            }
+
+            // Approve massal (baris yang dicentang)
+            document.getElementById('btnApprove').addEventListener('click', function () {
+                var checks = tbody.querySelectorAll('.row-check:checked');
+                if (!checks.length) { toast('Pilih minimal satu jurnal yang belum di-approve.'); return; }
+                var n = 0;
+                checks.forEach(function (c) {
+                    var tr = c.closest('tr');
+                    var no = tr.children[1].textContent;
+                    setRowStatus(tr, no, 'Sudah Approve');
+                    n++;
+                });
+                toast(n + ' jurnal berhasil di-approve.');
+            });
+
+            // Check all
+            document.getElementById('checkAll').addEventListener('change', function (e) {
+                tbody.querySelectorAll('.row-check:not(:disabled)').forEach(function (c) {
+                    c.checked = e.target.checked;
+                });
+            });
+
+            // Tabs (pindah sub-modul)
+            document.querySelectorAll('.tabs button').forEach(function (b) {
+                b.addEventListener('click', function () {
+                    document.querySelectorAll('.tabs button').forEach(function (x) { x.classList.remove('active'); });
+                    b.classList.add('active');
+                    toast('Modul "' + b.textContent + '" dipilih.');
+                });
+            });
+
+            // Sidebar submenu "Jurnal To Approve"
+            document.getElementById('sideLinkToApprove').addEventListener('click', function (e) {
+                e.preventDefault();
+                document.getElementById('sideGroupToApprove').classList.toggle('open');
+                document.getElementById('sideSubToApprove').classList.toggle('open');
+            });
+            document.getElementById('sideLinkKeuangan').addEventListener('click', function (e) {
+                e.preventDefault();
+                document.getElementById('sideGroupKeuangan').classList.toggle('open');
+                document.getElementById('sideSubKeuangan').classList.toggle('open');
+            });
+            document.querySelectorAll('#sideSubToApprove .side-link').forEach(function (l) {
+                l.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    document.querySelectorAll('#sideSubToApprove .side-link').forEach(function (x) { x.classList.remove('active'); });
+                    l.classList.add('active');
+                    toast('Jurnal Approve > "' + l.textContent.trim() + '" dipilih.');
+                });
+            });
+
+            // Dropdown aksi per baris
+            tbody.addEventListener('click', function (e) {
+                var btn = e.target.closest('[data-drop]');
+                var item = e.target.closest('.dropdown-item');
+                if (btn) {
+                    document.querySelectorAll('.dropdown-menu.open').forEach(function (m) { m.classList.remove('open'); });
+                    var menu = document.getElementById('dm-' + btn.getAttribute('data-drop'));
+                    if (menu) menu.classList.toggle('open');
+                    return;
+                }
+                if (item) {
+                    var tr = item.closest('tr');
+                    var no = tr.children[1].textContent;
+                    var act = item.getAttribute('data-act');
+                    if (act === 'approve') {
+                        setRowStatus(tr, no, 'Sudah Approve');
+                        toast('Jurnal "' + no + '" berhasil di-approve.');
+                    } else if (act === 'reject') {
+                        setRowStatus(tr, no, 'Ditolak');
+                        toast('Jurnal "' + no + '" ditolak (reject).');
+                    } else if (act === 'lihat') {
+                        toast('Lihat jurnal "' + no + '".');
+                    }
+                    document.querySelectorAll('.dropdown-menu.open').forEach(function (m) { m.classList.remove('open'); });
+                }
+            });
+
+            // Tutup dropdown saat klik di luar menu atau tekan Escape
+            document.addEventListener('click', function (e) {
+                if (!e.target.closest('.dropdown')) {
+                    document.querySelectorAll('.dropdown-menu.open').forEach(function (m) { m.classList.remove('open'); });
+                }
+            });
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') {
+                    document.querySelectorAll('.dropdown-menu.open').forEach(function (m) { m.classList.remove('open'); });
+                }
+            });
+
+            // Render awal: terapkan filter default (Transaksi = Penerimaan)
+            applyFilter();
+        })();
+    </script>
+</body>
+</html>

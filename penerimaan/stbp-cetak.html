@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cetak STBP - SIM-TKD</title>
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ===== Toolbar cetak ===== */
+        .print-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        /* ===== Dokumen STBP ===== */
+        .stbp-sheet {
+            /* Pengaturan kertas (bisa diubah lewat panel) */
+            --sf-size: 13px;
+            --sf-line: 1px;
+            --sf-line-color: #1e293b;
+            --sf-text-color: #0f172a;
+            --sf-frame: 40px;
+            --sf-col-gap: 10px;
+            --sf-font: 'Inter', system-ui, sans-serif;
+            --sf-bg-main: #ffffff;
+            --sf-bg-hl1: #f1f5f9;
+            --sf-bg-hl2: #e2e8f0;
+            --sf-line-height: 1.7;
+            --sf-table-layout: auto;
+            --sf-watermark: none;
+            max-width: none;
+            width: 100%;
+            box-sizing: border-box;
+            margin: 0 auto;
+            background: var(--sf-bg-main);
+            border: 1px solid var(--sf-line-color);
+            border-radius: var(--radius-lg);
+            padding: var(--sf-frame);
+            box-shadow: 0 8px 30px rgba(15, 23, 42, 0.06);
+            font-family: var(--sf-font);
+            font-size: var(--sf-size);
+            color: var(--sf-text-color);
+            line-height: var(--sf-line-height);
+            position: relative;
+        }
+        .stbp-sheet.watermarked {
+            background-image: var(--sf-watermark);
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: 55% auto;
+        }
+        .stbp-head {
+            text-align: center;
+            margin-bottom: 26px;
+        }
+        .stbp-head .stbp-logo {
+            width: 68px;
+            height: 68px;
+            object-fit: contain;
+            margin: 0 auto 10px;
+            display: block;
+        }
+        .stbp-head .instansi {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .stbp-head .title {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-top: 4px;
+            letter-spacing: 1px;
+        }
+        .stbp-head .nomor {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 6px;
+        }
+        .stbp-head .divider {
+            height: 3px;
+            background: var(--primary);
+            width: 180px;
+            margin: 12px auto 0;
+            border-radius: 3px;
+        }
+        .stbp-field {
+            display: flex;
+            margin-bottom: 10px;
+            font-size: 14px;
+            line-height: 1.7;
+        }
+        .stbp-field .flabel {
+            width: 190px;
+            flex-shrink: 0;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .stbp-field .fval {
+            flex: 1;
+            color: var(--text-primary);
+        }
+        .stbp-field .fval.amount {
+            font-weight: 700;
+        }
+        .stbp-words {
+            font-style: italic;
+        }
+        .stbp-rincian-title {
+            margin-top: 24px;
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+        .stbp-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        .stbp-table {
+            table-layout: var(--sf-table-layout);
+        }
+        .stbp-table th,
+        .stbp-table td {
+            border: var(--sf-line) solid var(--sf-line-color);
+            padding: var(--sf-col-gap) 12px;
+            font-size: 13px;
+            text-align: left;
+            color: var(--sf-text-color);
+        }
+        .stbp-table th {
+            background: var(--sf-bg-hl1);
+            font-weight: 700;
+        }
+        .stbp-table tbody tr:nth-child(even) td {
+            background: var(--sf-bg-hl2);
+        }
+        .stbp-table td.num {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+        .stbp-footer {
+            margin-top: 44px;
+            display: flex;
+            justify-content: flex-end;
+        }
+        .stbp-sign {
+            text-align: center;
+            min-width: 240px;
+        }
+        .stbp-sign .role {
+            margin-bottom: 70px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        .stbp-sign .name {
+            font-weight: 700;
+            text-decoration: underline;
+            font-size: 14px;
+        }
+
+        /* ===== Panel pengaturan kertas ===== */
+        .print-settings {
+            margin: 0 0 20px;
+        }
+        .stbp-notfound {
+            max-width: 820px;
+            margin: 0 auto;
+        }
+        .print-settings .card-body {
+            padding-top: 18px;
+        }
+        .settings-section {
+            margin-bottom: 22px;
+        }
+        .settings-section:last-of-type {
+            margin-bottom: 0;
+        }
+        .settings-section-title {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .settings-section-title i {
+            color: var(--primary);
+            font-size: 13px;
+        }
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+            gap: 14px 16px;
+        }
+        .settings-field label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+        .settings-field input[type="number"],
+        .settings-field input[type="text"],
+        .settings-field select {
+            width: 100%;
+            padding: 9px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: inherit;
+            color: var(--text-primary);
+            background: #ffffff;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .settings-field input:focus,
+        .settings-field select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(26, 58, 107, 0.12);
+        }
+        .color-input {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 6px 10px;
+            background: #ffffff;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .color-input:focus-within {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(26, 58, 107, 0.12);
+        }
+        .color-input input[type="color"] {
+            width: 34px;
+            height: 26px;
+            padding: 0;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: none;
+            cursor: pointer;
+        }
+        .color-input span {
+            font-family: 'SF Mono', 'Consolas', monospace;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        .settings-toggle {
+            display: flex;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+            background: #f8fafc;
+        }
+        .settings-toggle button {
+            flex: 1;
+            padding: 9px 6px;
+            border: none;
+            background: transparent;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s ease;
+        }
+        .settings-toggle button.active {
+            background: var(--primary);
+            color: #ffffff;
+        }
+        .watermark-field {
+            margin-top: 22px;
+        }
+        .watermark-drop {
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            padding: 22px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 12px;
+            background: #f8fafc;
+            transition: all 0.2s ease;
+        }
+        .watermark-drop.drag {
+            border-color: var(--primary);
+            background: rgba(26, 58, 107, 0.06);
+        }
+        .watermark-drop p { margin: 4px 0; }
+        .watermark-drop .fa-cloud-upload-alt { font-size: 28px; color: var(--primary); opacity: 0.6; }
+        .watermark-drop a { color: var(--primary); font-weight: 600; }
+        @media (max-width: 700px) {
+            .settings-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ===== Saat mencetak: hanya dokumen, landscape ===== */
+        @page {
+            size: A4 landscape;
+            margin: 12mm;
+        }
+        @media print {
+            .sidebar, .topbar, .footer, .overlay, .print-toolbar, .print-settings { display: none !important; }
+            .main-wrapper { margin-left: 0 !important; }
+            .content { padding: 0 !important; margin: 0 !important; }
+            body { background: #ffffff !important; }
+            .stbp-sheet {
+                box-shadow: none;
+                border: none;
+                border-radius: 0;
+                padding: 0;
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ================= SIDEBAR ================= -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <img src="../img/Logo Polban.png" alt="Logo POLBAN">
+                <div class="sidebar-title">
+                    <span class="title-main">SIM-TKD</span>
+                    <span class="title-sub">Modul Edukasi</span>
+                </div>
+            </div>
+            <button class="sidebar-toggle" id="sidebarToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+
+        <div class="sidebar-user">
+            <div class="user-avatar">
+                <i class="fas fa-user-tie"></i>
+            </div>
+            <div class="user-info">
+                <span class="user-name" id="sidebarUserName">Admin Dinas</span>
+                <span class="user-role" id="sidebarUserRole">Dinas Kepemudaan dan Olahraga</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-menu">
+            <span class="menu-label">MENU UTAMA</span>
+
+            <a href="../dashboard/dashboard.html" class="menu-item">
+                <i class="fas fa-th-large"></i>
+                <span>Dashboard</span>
+            </a>
+
+            <!-- Penerimaan (dropdown utama) -->
+            <div class="menu-group open" data-menu="penerimaan">
+                <a href="#" class="menu-item has-submenu active">
+                    <i class="fas fa-arrow-down"></i>
+                    <span>Penerimaan</span>
+                    <i class="fas fa-chevron-down submenu-arrow"></i>
+                </a>
+                <div class="submenu">
+                    <!-- Rekening -->
+                    <div class="menu-group" data-menu="rekening">
+                        <a href="#" class="menu-item has-submenu">
+                            <i class="fas fa-university"></i>
+                            <span>Rekening</span>
+                            <i class="fas fa-chevron-down submenu-arrow"></i>
+                        </a>
+                        <div class="submenu">
+                            <a href="permohonan.html" class="menu-item submenu-item"><i class="fas fa-file-signature"></i><span>Permohonan</span></a>
+                        </div>
+                    </div>
+
+                    <!-- STBP (aktif) -->
+                    <a href="stbp-pembuatan.html" class="menu-item active">
+                        <i class="fas fa-file-invoice"></i>
+                        <span>STBP</span>
+                    </a>
+
+                    <a href="sts-pembuatan.html" class="menu-item">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                        <span>STS</span>
+                    </a>
+
+                    <!-- Laporan -->
+                    <div class="menu-group" data-menu="laporan">
+                        <a href="#" class="menu-item has-submenu">
+                            <i class="fas fa-file-alt"></i>
+                            <span>Laporan</span>
+                            <i class="fas fa-chevron-down submenu-arrow"></i>
+                        </a>
+                        <div class="submenu">
+                            <a href="#" class="menu-item submenu-item"><i class="fas fa-sun"></i><span>Laporan Harian</span></a>
+                            <a href="#" class="menu-item submenu-item"><i class="fas fa-calendar-alt"></i><span>Laporan Bulanan</span></a>
+                            <a href="#" class="menu-item submenu-item"><i class="fas fa-chart-pie"></i><span>Rekap Penerimaan</span></a>
+                            <a href="bku-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-book"></i><span>BKU Penerimaan</span></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <a href="../belanja/index.html" class="menu-item">
+                <i class="fas fa-arrow-up"></i>
+                <span>Belanja</span>
+            </a>
+            <a href="../akuntansi/akuntansi.html" class="menu-item">
+                <i class="fas fa-book"></i>
+                <span>Akuntansi</span>
+            </a>
+
+            <!-- Pengaturan -->
+            <div class="menu-group" data-menu="pengaturan">
+                <a href="#" class="menu-item has-submenu">
+                    <i class="fas fa-cog"></i>
+                    <span>Pengaturan</span>
+                    <i class="fas fa-chevron-down submenu-arrow"></i>
+                </a>
+                <div class="submenu">
+                    <a href="../pengaturan/akun-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-coins"></i><span>Akun Penerimaan</span></a>
+                </div>
+            </div>
+
+            <span class="menu-label">AKUN</span>
+            <a href="../api/logout.php" class="menu-item menu-logout" id="logoutLink">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Keluar</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <span>&copy; 2026 SIM-TKD POLBAN</span>
+        </div>
+    </aside>
+
+    <!-- ================= OVERLAY (mobile) ================= -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- ================= MAIN ================= -->
+    <div class="main-wrapper">
+
+        <!-- Topbar -->
+        <header class="topbar">
+            <div class="topbar-left">
+                <button class="topbar-toggle" id="topbarToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="breadcrumb">
+                    <i class="fas fa-home"></i>
+                    <span>Beranda</span>
+                    <i class="fas fa-chevron-right"></i>
+                    <span>Penerimaan</span>
+                    <i class="fas fa-chevron-right"></i>
+                    <span>STBP</span>
+                    <i class="fas fa-chevron-right"></i>
+                    <span class="current">Cetak</span>
+                </div>
+            </div>
+            <div class="topbar-right">
+                <div class="topbar-item notification">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge">3</span>
+                </div>
+                <div class="topbar-item">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span id="currentDate">--</span>
+                </div>
+                <div class="topbar-item user">
+                    <div class="user-avatar small">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <span id="topbarUserName">Admin Dinas</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Content -->
+        <main class="content">
+            <div class="print-toolbar">
+                <button class="btn btn-outline" onclick="history.back();"><i class="fas fa-arrow-left"></i> Kembali</button>
+                <button class="btn btn-success" id="btnCetak" onclick="window.print();"><i class="fas fa-print"></i> Cetak Sekarang</button>
+            </div>
+
+            <!-- ===== Pengaturan Kertas PDF ===== -->
+            <div class="card print-settings" id="printSettings">
+                <div class="card-header">
+                    <h3><i class="fas fa-sliders-h"></i> Pengaturan Kertas PDF</h3>
+                </div>
+                <div class="card-body">
+                    <!-- Teks & Garis -->
+                    <div class="settings-section">
+                        <div class="settings-section-title"><i class="fas fa-font"></i> Teks &amp; Garis</div>
+                        <div class="settings-grid">
+                            <div class="settings-field">
+                                <label for="setFontSize">Ukuran Font</label>
+                                <input type="number" id="setFontSize" value="13" min="8" max="30">
+                            </div>
+                            <div class="settings-field">
+                                <label for="setLineHeight">Jarak Tulisan</label>
+                                <input type="number" id="setLineHeight" value="1.7" min="1" max="3" step="0.1">
+                            </div>
+                            <div class="settings-field">
+                                <label for="setFont">Font</label>
+                                <select id="setFont">
+                                    <option value="'Inter', system-ui, sans-serif" selected>Inter, Sans-Serif</option>
+                                    <option value="Arial, Helvetica, sans-serif">Arial</option>
+                                    <option value="'Times New Roman', Times, serif">Times New Roman</option>
+                                    <option value="'Courier New', monospace">Monospace</option>
+                                </select>
+                            </div>
+                            <div class="settings-field">
+                                <label for="setLineWidth">Ketebalan Garis</label>
+                                <input type="number" id="setLineWidth" value="1" min="0" max="5" step="0.5">
+                            </div>
+                            <div class="settings-field">
+                                <label for="setLineColor">Warna Garis</label>
+                                <div class="color-input">
+                                    <input type="color" id="setLineColor" value="#1e293b">
+                                    <span id="setLineColorVal">#1e293b</span>
+                                </div>
+                            </div>
+                            <div class="settings-field">
+                                <label for="setTextColor">Warna Tulisan</label>
+                                <div class="color-input">
+                                    <input type="color" id="setTextColor" value="#0f172a">
+                                    <span id="setTextColorVal">#0f172a</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Layout -->
+                    <div class="settings-section">
+                        <div class="settings-section-title"><i class="fas fa-table"></i> Layout</div>
+                        <div class="settings-grid">
+                            <div class="settings-field">
+                                <label for="setFrame">Jarak Frame</label>
+                                <input type="number" id="setFrame" value="40" min="0" max="120">
+                            </div>
+                            <div class="settings-field">
+                                <label for="setColGap">Jarak Kolom</label>
+                                <input type="number" id="setColGap" value="10" min="0" max="40">
+                            </div>
+                            <div class="settings-field">
+                                <label>Lebar Kolom</label>
+                                <div class="settings-toggle" id="setColLayout">
+                                    <button type="button" data-layout="auto" class="active">Sesuaikan Konten</button>
+                                    <button type="button" data-layout="fixed">Sama Rata</button>
+                                </div>
+                            </div>
+                            <div class="settings-field">
+                                <label for="setTanggal">Tanggal</label>
+                                <input type="text" id="setTanggal" value="hh/bb/tttt" placeholder="hh/bb/tttt">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Warna Background -->
+                    <div class="settings-section">
+                        <div class="settings-section-title"><i class="fas fa-palette"></i> Warna Background</div>
+                        <div class="settings-grid">
+                            <div class="settings-field">
+                                <label for="setBgMain">Utama</label>
+                                <div class="color-input">
+                                    <input type="color" id="setBgMain" value="#ffffff">
+                                    <span id="setBgMainVal">#ffffff</span>
+                                </div>
+                            </div>
+                            <div class="settings-field">
+                                <label for="setBgHl1">Highlight 1</label>
+                                <div class="color-input">
+                                    <input type="color" id="setBgHl1" value="#f1f5f9">
+                                    <span id="setBgHl1Val">#f1f5f9</span>
+                                </div>
+                            </div>
+                            <div class="settings-field">
+                                <label for="setBgHl2">Highlight 2</label>
+                                <div class="color-input">
+                                    <input type="color" id="setBgHl2" value="#e2e8f0">
+                                    <span id="setBgHl2Val">#e2e8f0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Watermark -->
+                    <div class="settings-field watermark-field">
+                        <label>Watermark</label>
+                        <div class="watermark-drop" id="watermarkDrop">
+                            <input type="file" id="watermarkInput" accept="image/*" hidden>
+                            <p><i class="fas fa-cloud-upload-alt"></i></p>
+                            <p id="watermarkText">Tidak ada file yang dipilih.<br>Seret dan lepaskan file Anda atau <a href="#" id="watermarkPick">Pilih Disini</a></p>
+                            <button type="button" class="btn btn-outline btn-sm" id="watermarkClear" style="display:none;"><i class="fas fa-times"></i> Hapus Watermark</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status Dokumen Tidak Ditemukan -->
+            <div class="card stbp-notfound" id="stbpNotFound" style="display:none;">
+                <div class="empty-state">
+                    <div class="empty-illustration">
+                        <i class="fas fa-file-invoice"></i>
+                    </div>
+                    <h3>Dokumen Tidak Tersedia</h3>
+                    <p>STBP yang Anda cari tidak ditemukan. Silakan buat STBP terlebih dahulu atau kembali ke daftar.</p>
+                    <div class="empty-actions">
+                        <a href="stbp-pembuatan.html" class="btn btn-outline"><i class="fas fa-arrow-left"></i> Kembali ke Daftar</a>
+                        <a href="stbp-tambah.html" class="btn btn-primary"><i class="fas fa-plus"></i> Buat STBP</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dokumen STBP -->
+            <div class="stbp-sheet" id="stbpSheet">
+                <div class="stbp-head">
+                    <img src="../img/Logo Polban.png" alt="Logo" class="stbp-logo">
+                    <div class="instansi" id="docInstansi">PEMERINTAH DAERAH</div>
+                    <div class="title">SURAT TANDA BUKTI PENERIMAAN</div>
+                    <div class="nomor" id="docNomor">Nomor: -</div>
+                    <div class="divider"></div>
+                </div>
+
+                <div class="stbp-field"><span class="flabel">a. Dari</span><span class="fval" id="fDari">-</span></div>
+                <div class="stbp-field"><span class="flabel">b. Tanggal</span><span class="fval" id="fTanggal">-</span></div>
+                <div class="stbp-field"><span class="flabel">c. Di Bank</span><span class="fval" id="fBank">-</span></div>
+                <div class="stbp-field"><span class="flabel">d. Nomor Rekening</span><span class="fval" id="fNoRek">-</span></div>
+                <div class="stbp-field"><span class="flabel">e. Sebesar</span><span class="fval amount" id="fSebesar">-</span></div>
+                <div class="stbp-field"><span class="flabel">f. Terbilang</span><span class="fval stbp-words" id="fTerbilang">-</span></div>
+                <div class="stbp-field"><span class="flabel">g. Sebagai Pembayaran</span><span class="fval" id="fUraian">-</span></div>
+
+                <div class="stbp-rincian-title">Dengan rincian penerimaan sebagai berikut:</div>
+                <table class="stbp-table">
+                    <thead>
+                        <tr>
+                            <th style="width:40px;">No</th>
+                            <th>Kode Rekening</th>
+                            <th>Uraian</th>
+                            <th style="width:150px;">Jumlah (Rp)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rincianBody">
+                        <tr><td colspan="4" style="text-align:center;color:#9098a5;">Memuat...</td></tr>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="3" style="text-align:right;font-weight:700;">TOTAL</td>
+                            <td class="num" id="totalCell" style="font-weight:700;">-</td>
+                        </tr>
+                    </tfoot>
+                </table>
+
+                <div class="stbp-footer">
+                    <div class="stbp-sign">
+                        <div class="role">Bendahara Penerimaan,<br><span id="signRole">Dinas Kepemudaan dan Olahraga</span></div>
+                        <div class="name" id="signName">(______________________)</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <span>&copy; 2026 SIM-TKD - Sistem Informasi Manajemen Tata Kelola Daerah (Modul Edukasi) | Politeknik Negeri Bandung</span>
+        </footer>
+    </div>
+
+    <script src="../js/dashboard.js"></script>
+    <script>
+        // ==========================================
+        // Halaman Cetak STBP
+        // ==========================================
+        (function () {
+            'use strict';
+
+            function escapeHtml(str) {
+                const div = document.createElement('div');
+                div.textContent = String(str || '');
+                return div.innerHTML;
+            }
+
+            function formatRupiah(v) {
+                return 'Rp ' + Number(v || 0).toLocaleString('id-ID');
+            }
+
+            function formatTanggal(s) {
+                if (!s) return '-';
+                const p = String(s).split('-');
+                const b = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+                           'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+                return parseInt(p[2], 10) + ' ' + b[parseInt(p[1], 10) - 1] + ' ' + p[0];
+            }
+
+            // Ubah angka menjadi terbilang bahasa Indonesia
+            function terbilang(n) {
+                const angka = ['', 'satu', 'dua', 'tiga', 'empat', 'lima', 'enam',
+                               'tujuh', 'delapan', 'sembilan', 'sepuluh', 'sebelas'];
+                function urai(x) {
+                    if (x < 12) return angka[x];
+                    if (x < 20) return urai(x - 10) + ' belas';
+                    if (x < 100) return urai(Math.floor(x / 10)) + ' puluh ' + urai(x % 10);
+                    if (x < 200) return 'seratus ' + urai(x - 100);
+                    if (x < 1000) return urai(Math.floor(x / 100)) + ' ratus ' + urai(x % 100);
+                    if (x < 2000) return 'seribu ' + urai(x - 1000);
+                    if (x < 1000000) return urai(Math.floor(x / 1000)) + ' ribu ' + urai(x % 1000);
+                    if (x < 1000000000) return urai(Math.floor(x / 1000000)) + ' juta ' + urai(x % 1000000);
+                    if (x < 1000000000000) return urai(Math.floor(x / 1000000000)) + ' miliar ' + urai(x % 1000000000);
+                    return urai(Math.floor(x / 1000000000000)) + ' triliun ' + urai(x % 1000000000000);
+                }
+                const words = urai(Math.floor(Number(n || 0))).replace(/\s+/g, ' ').trim();
+                return words === 'nol' ? 'nol rupiah' : words + ' rupiah';
+            }
+
+            const params = new URLSearchParams(window.location.search);
+            const id = params.get('id');
+
+            function showNotFound() {
+                document.getElementById('stbpNotFound').style.display = 'block';
+                document.getElementById('stbpSheet').style.display = 'none';
+            }
+
+            if (!id) {
+                showNotFound();
+                return;
+            }
+
+            fetch('../api/stbp.php?id=' + encodeURIComponent(id))
+                .then(function (res) { return res.json(); })
+                .then(function (data) {
+                    if (!data || !data.success || !data.stbp) {
+                        showNotFound();
+                        return;
+                    }
+                    const s = data.stbp;
+                    const p = data.pembayaran || {};
+                    const rows = data.pendapatan || [];
+
+                    document.getElementById('docInstansi').textContent = (s.skpd || 'PEMERINTAH DAERAH').toUpperCase();
+                    document.getElementById('docNomor').textContent = 'Nomor: ' + (s.nomor_stbp || '-');
+                    document.getElementById('fDari').textContent = p.nama_penyetor || '-';
+                    document.getElementById('fTanggal').textContent = formatTanggal(s.tanggal);
+                    document.getElementById('fBank').textContent = p.bank || '-';
+                    document.getElementById('fNoRek').textContent = p.nomor_rekening || '-';
+                    document.getElementById('fSebesar').textContent = formatRupiah(s.jumlah);
+                    document.getElementById('fTerbilang').textContent = terbilang(s.jumlah);
+                    document.getElementById('fUraian').textContent = s.uraian ||
+                        ('Penerimaan ' + (s.akun_nama || '') + ' pada ' + (s.skpd || ''));
+                    document.getElementById('signRole').textContent = s.skpd || 'Dinas';
+                    document.getElementById('signName').textContent = s.dibuat_oleh || '(______________________)';
+
+                    const tbody = document.getElementById('rincianBody');
+                    if (!rows.length) {
+                        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#9098a5;">Tidak ada rincian.</td></tr>';
+                    } else {
+                        tbody.innerHTML = rows.map(function (r, i) {
+                            return '<tr>' +
+                                '<td>' + (i + 1) + '</td>' +
+                                '<td>' + escapeHtml(r.rekening_kode || r.akun_kode || '-') + '</td>' +
+                                '<td>' + escapeHtml(r.rekening_nama || r.akun_nama || '-') + '</td>' +
+                                '<td class="num">' + Number(r.nominal || 0).toLocaleString('id-ID') + '</td>' +
+                            '</tr>';
+                        }).join('');
+                    }
+                    document.getElementById('totalCell').textContent = Number(s.jumlah || 0).toLocaleString('id-ID');
+                })
+                .catch(function () {
+                    showNotFound();
+                });
+
+            // ---------- Pengaturan Kertas PDF ----------
+            const sheet = document.getElementById('stbpSheet');
+
+            function applySettings() {
+                const v = function (id, fb) { const el = document.getElementById(id); return el && el.value !== '' ? el.value : fb; };
+                sheet.style.setProperty('--sf-size', v('setFontSize', '13') + 'px');
+                sheet.style.setProperty('--sf-line', v('setLineWidth', '1') + 'px');
+                sheet.style.setProperty('--sf-line-color', v('setLineColor', '#1e293b'));
+                sheet.style.setProperty('--sf-text-color', v('setTextColor', '#0f172a'));
+                sheet.style.setProperty('--sf-frame', v('setFrame', '40') + 'px');
+                sheet.style.setProperty('--sf-col-gap', v('setColGap', '10') + 'px');
+                sheet.style.setProperty('--sf-font', v('setFont', "'Inter', system-ui, sans-serif"));
+                sheet.style.setProperty('--sf-bg-main', v('setBgMain', '#ffffff'));
+                sheet.style.setProperty('--sf-bg-hl1', v('setBgHl1', '#f1f5f9'));
+                sheet.style.setProperty('--sf-bg-hl2', v('setBgHl2', '#e2e8f0'));
+                sheet.style.setProperty('--sf-line-height', v('setLineHeight', '1.7'));
+                const layoutBtn = document.querySelector('#setColLayout .active');
+                sheet.style.setProperty('--sf-table-layout', layoutBtn && layoutBtn.getAttribute('data-layout') === 'fixed' ? 'fixed' : 'auto');
+            }
+
+            ['setFontSize', 'setLineWidth', 'setLineColor', 'setTextColor', 'setFrame',
+             'setColGap', 'setFont', 'setBgMain', 'setBgHl1', 'setBgHl2', 'setLineHeight']
+                .forEach(function (id) {
+                    const el = document.getElementById(id);
+                    if (el) el.addEventListener('input', applySettings);
+                });
+
+            // Tampilkan nilai hex warna di samping swatch
+            ['setLineColor', 'setTextColor', 'setBgMain', 'setBgHl1', 'setBgHl2'].forEach(function (id) {
+                const el = document.getElementById(id);
+                const val = document.getElementById(id + 'Val');
+                if (el && val) el.addEventListener('input', function () { val.textContent = el.value; });
+            });
+
+            document.querySelectorAll('#setColLayout button').forEach(function (b) {
+                b.addEventListener('click', function () {
+                    document.querySelectorAll('#setColLayout button').forEach(function (x) { x.classList.remove('active'); });
+                    b.classList.add('active');
+                    applySettings();
+                });
+            });
+
+            // Panel selalu terbuka di bagian atas (tanpa popup/lipat)
+
+            // Watermark (pilih file / seret-lepas)
+            const wmInput = document.getElementById('watermarkInput');
+            const wmDrop = document.getElementById('watermarkDrop');
+            const wmText = document.getElementById('watermarkText');
+            const wmClear = document.getElementById('watermarkClear');
+
+            function setWatermark(file) {
+                const reader = new FileReader();
+                reader.onload = function (ev) {
+                    sheet.style.setProperty('--sf-watermark', 'url("' + ev.target.result + '")');
+                    sheet.classList.add('watermarked');
+                    wmText.innerHTML = 'File: <b>' + file.name + '</b>';
+                    wmClear.style.display = 'inline-flex';
+                };
+                reader.readAsDataURL(file);
+            }
+
+            wmDrop.addEventListener('click', function (e) {
+                if (e.target.closest('#watermarkPick')) { e.preventDefault(); wmInput.click(); }
+            });
+            wmInput.addEventListener('change', function () {
+                if (wmInput.files && wmInput.files[0]) setWatermark(wmInput.files[0]);
+            });
+            wmClear.addEventListener('click', function () {
+                sheet.classList.remove('watermarked');
+                sheet.style.setProperty('--sf-watermark', 'none');
+                wmText.innerHTML = 'Tidak ada file yang dipilih.<br>Seret dan lepaskan file Anda atau <a href="#" id="watermarkPick">Pilih Disini</a>';
+                wmClear.style.display = 'none';
+                wmInput.value = '';
+            });
+            wmDrop.addEventListener('dragover', function (e) { e.preventDefault(); wmDrop.classList.add('drag'); });
+            wmDrop.addEventListener('dragleave', function () { wmDrop.classList.remove('drag'); });
+            wmDrop.addEventListener('drop', function (e) {
+                e.preventDefault();
+                wmDrop.classList.remove('drag');
+                if (e.dataTransfer.files && e.dataTransfer.files[0]) setWatermark(e.dataTransfer.files[0]);
+            });
+        })();
+    </script>
+</body>
+</html>

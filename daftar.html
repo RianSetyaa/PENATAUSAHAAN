@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daftar - SIM-TKD | Sistem Informasi Manajemen Tata Kelola Daerah</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Background -->
+    <div class="bg-pattern"></div>
+
+    <!-- Container Utama -->
+    <div class="main-container register-container">
+
+        <!-- Header / Banner -->
+        <div class="header-banner">
+            <div class="header-content">
+                <div class="header-left">
+                    <div class="logo-container">
+                        <!-- Logo POLBAN (Politeknik Negeri Bandung) -->
+                        <img src="img/Logo Polban.png" class="logo-polban" alt="Logo POLBAN">
+                    </div>
+                    <div class="header-text">
+                        <h1>SISTEM INFORMASI MANAJEMEN</h1>
+                        <h2>TATA KELOLA DAERAH (MODUL EDUKASI)</h2>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <div class="logo-container">
+                        <!-- Logo POLBAN -->
+                        <img src="img/Logo Polban.png" class="logo-polban logo-polban-right" alt="Logo POLBAN">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel Daftar -->
+        <div class="login-panel register-panel">
+            <div class="panel-header">
+                <i class="fas fa-user-plus"></i>
+                <span>DAFTAR AKUN SIM-TKD</span>
+            </div>
+
+            <div class="panel-body">
+                <!-- Peringatan -->
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span><strong>Perhatian!</strong> Akun akan diverifikasi oleh administrator sebelum dapat digunakan. Isi data dengan benar dan lengkap.</span>
+                </div>
+
+                <!-- Form Daftar -->
+                <form id="registerForm" autocomplete="off">
+
+                    <!-- Nama Lengkap -->
+                    <div class="form-group">
+                        <label for="namaLengkap">
+                            <i class="fas fa-id-card"></i> Nama Lengkap
+                        </label>
+                        <input
+                            type="text"
+                            id="namaLengkap"
+                            class="form-control"
+                            placeholder="Masukkan nama lengkap Anda"
+                            autocomplete="off"
+                            required
+                        >
+                        <span class="field-error" id="errNamaLengkap"></span>
+                    </div>
+
+                    <!-- Nama Pengguna & Email -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="username">
+                                <i class="fas fa-user"></i> Nama Pengguna (Username)
+                            </label>
+                            <input
+                                type="text"
+                                id="username"
+                                class="form-control"
+                                placeholder="Contoh: budi.setiawan"
+                                autocomplete="off"
+                                required
+                            >
+                            <span class="field-error" id="errUsername"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email">
+                                <i class="fas fa-envelope"></i> Email
+                            </label>
+                            <input
+                                type="email"
+                                id="email"
+                                class="form-control"
+                                placeholder="contoh@email.com"
+                                autocomplete="off"
+                                required
+                            >
+                            <span class="field-error" id="errEmail"></span>
+                        </div>
+                    </div>
+
+                    <!-- Kata Sandi & Konfirmasi -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="password">
+                                <i class="fas fa-lock"></i> Kata Sandi
+                            </label>
+                            <div class="password-wrapper">
+                                <input
+                                    type="password"
+                                    id="password"
+                                    class="form-control"
+                                    placeholder="Minimal 8 karakter"
+                                    autocomplete="new-password"
+                                    required
+                                >
+                                <button type="button" class="toggle-password" data-target="password">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <div class="password-strength" id="pwStrength">
+                                <span class="strength-bar"></span>
+                                <span class="strength-bar"></span>
+                                <span class="strength-bar"></span>
+                                <span class="strength-text">Kekuatan: -</span>
+                            </div>
+                            <span class="field-error" id="errPassword"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="confirmPassword">
+                                <i class="fas fa-lock"></i> Konfirmasi Kata Sandi
+                            </label>
+                            <div class="password-wrapper">
+                                <input
+                                    type="password"
+                                    id="confirmPassword"
+                                    class="form-control"
+                                    placeholder="Ulangi kata sandi Anda"
+                                    autocomplete="new-password"
+                                    required
+                                >
+                                <button type="button" class="toggle-password" data-target="confirmPassword">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <span class="field-error" id="errConfirm"></span>
+                        </div>
+                    </div>
+
+                    <!-- Instansi & Peran -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="instansi">
+                                <i class="fas fa-building"></i> Nama Instansi / Dinas
+                            </label>
+                            <input
+                                type="text"
+                                id="instansi"
+                                class="form-control"
+                                placeholder="Contoh: Dinas Kepemudaan dan Olahraga"
+                                autocomplete="off"
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="peran">
+                                <i class="fas fa-user-tag"></i> Peran / Jabatan
+                            </label>
+                            <select id="peran" class="form-control" required>
+                                <option value="">-- Pilih Peran --</option>
+                                <option value="Admin Dinas">Admin Dinas</option>
+                                <option value="Operator">Operator</option>
+                                <option value="Bendahara">Bendahara</option>
+                                <option value="Verifikator">Verifikator</option>
+                                <option value="Kepala Dinas">Kepala Dinas</option>
+                                <option value="Pengguna Umum">Pengguna Umum</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Captcha -->
+                    <div class="form-group">
+                        <label for="captchaInput">
+                            <i class="fas fa-shield-alt"></i> Kode Keamanan (Captcha)
+                        </label>
+                        <div class="captcha-wrapper">
+                            <div class="captcha-box" id="captchaBox">
+                                <canvas id="captchaCanvas"></canvas>
+                                <button type="button" class="refresh-captcha" id="refreshCaptcha" title="Refresh Captcha">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </div>
+                            <input
+                                type="text"
+                                id="captchaInput"
+                                class="form-control captcha-input"
+                                placeholder="Masukkan kode di atas"
+                                maxlength="5"
+                                autocomplete="off"
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <!-- Syarat & Ketentuan -->
+                    <div class="form-group checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="terms">
+                            <span class="checkmark"></span>
+                            <span class="terms-text">
+                                Saya menyetujui <a href="#" class="link-terms">Syarat &amp; Ketentuan</a> dan
+                                <a href="#" class="link-terms">Kebijakan Privasi</a> SIM-TKD
+                            </span>
+                        </label>
+                        <span class="field-error" id="errTerms"></span>
+                    </div>
+
+                    <!-- Tombol Daftar -->
+                    <div class="form-group">
+                        <button type="submit" class="btn-login btn-register" id="btnRegister">
+                            <i class="fas fa-user-plus"></i> DAFTAR
+                        </button>
+                    </div>
+
+                    <!-- Loading -->
+                    <div class="loading" id="loading" style="display: none;">
+                        <div class="spinner"></div>
+                        <span>Sedang memproses pendaftaran...</span>
+                    </div>
+                </form>
+
+                <!-- Sudah punya akun -->
+                <div class="auth-switch">
+                    <span>Sudah memiliki akun?</span>
+                    <a href="login.html"><i class="fas fa-sign-in-alt"></i> Masuk Sekarang</a>
+                </div>
+            </div>
+
+            <div class="panel-footer">
+                <div class="footer-links">
+                    <a href="#"><i class="fas fa-question-circle"></i> Bantuan</a>
+                    <span class="separator">|</span>
+                    <a href="mailto:riansetya@outlook.co.id"><i class="fas fa-envelope"></i> Hubungi Admin</a>
+                    <span class="separator">|</span>
+                    <a href="#"><i class="fas fa-download"></i> Panduan</a>
+                </div>
+                <div class="footer-text">
+                    <p>&copy; 2026 Politeknik Negeri Bandung</p>
+                    <p>Jurusan Akuntansi</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifikasi -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="js/daftar.js"></script>
+</body>
+</html>

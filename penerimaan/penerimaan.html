@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Penerimaan - SIM-TKD | Sistem Informasi Manajemen Tata Kelola Daerah</title>
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- ================= SIDEBAR ================= -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <img src="../img/Logo Polban.png" alt="Logo POLBAN">
+                <div class="sidebar-title">
+                    <span class="title-main">SIM-TKD</span>
+                    <span class="title-sub">Modul Edukasi</span>
+                </div>
+            </div>
+            <button class="sidebar-toggle" id="sidebarToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+
+        <div class="sidebar-user">
+            <div class="user-avatar">
+                <i class="fas fa-user-tie"></i>
+            </div>
+            <div class="user-info">
+                <span class="user-name" id="sidebarUserName">Admin Dinas</span>
+                <span class="user-role" id="sidebarUserRole">Dinas Kepemudaan dan Olahraga</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-menu">
+            <span class="menu-label">MENU UTAMA</span>
+
+            <a href="../dashboard/dashboard.html" class="menu-item">
+                <i class="fas fa-th-large"></i>
+                <span>Dashboard</span>
+            </a>
+
+            <!-- Penerimaan (dropdown utama) -->
+            <div class="menu-group open" data-menu="penerimaan">
+                <a href="#" class="menu-item has-submenu active">
+                    <i class="fas fa-arrow-down"></i>
+                    <span>Penerimaan</span>
+                    <i class="fas fa-chevron-down submenu-arrow"></i>
+                </a>
+                <div class="submenu">
+                    <!-- Rekening -->
+                    <div class="menu-group open" data-menu="rekening">
+                        <a href="#" class="menu-item has-submenu">
+                            <i class="fas fa-university"></i>
+                            <span>Rekening</span>
+                            <i class="fas fa-chevron-down submenu-arrow"></i>
+                        </a>
+                        <div class="submenu">
+                            <a href="permohonan.html" class="menu-item submenu-item"><i class="fas fa-file-signature"></i><span>Permohonan</span></a>
+                        </div>
+                    </div>
+
+            <a href="stbp-pembuatan.html" class="menu-item">
+                <i class="fas fa-file-invoice"></i>
+                <span>STBP</span>
+            </a>
+
+            <a href="sts-pembuatan.html" class="menu-item">
+                <i class="fas fa-file-invoice-dollar"></i>
+                <span>STS</span>
+            </a>
+
+                    <!-- Laporan -->
+                    <div class="menu-group" data-menu="laporan">
+                        <a href="#" class="menu-item has-submenu">
+                            <i class="fas fa-file-alt"></i>
+                            <span>Laporan</span>
+                            <i class="fas fa-chevron-down submenu-arrow"></i>
+                        </a>
+                        <div class="submenu">
+                            <a href="#" class="menu-item submenu-item"><i class="fas fa-sun"></i><span>Laporan Harian</span></a>
+                            <a href="#" class="menu-item submenu-item"><i class="fas fa-calendar-alt"></i><span>Laporan Bulanan</span></a>
+                            <a href="#" class="menu-item submenu-item"><i class="fas fa-chart-pie"></i><span>Rekap Penerimaan</span></a>
+                            <a href="bku-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-book"></i><span>BKU Penerimaan</span></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <a href="../belanja/index.html" class="menu-item">
+                <i class="fas fa-arrow-up"></i>
+                <span>Belanja</span>
+            </a>
+            <a href="../akuntansi/akuntansi.html" class="menu-item">
+                <i class="fas fa-book"></i>
+                <span>Akuntansi</span>
+            </a>
+            <!-- Pengaturan (dropdown) -->
+            <div class="menu-group" data-menu="pengaturan">
+                <a href="#" class="menu-item has-submenu">
+                    <i class="fas fa-cog"></i>
+                    <span>Pengaturan</span>
+                    <i class="fas fa-chevron-down submenu-arrow"></i>
+                </a>
+                <div class="submenu">
+                    <a href="../pengaturan/akun-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-coins"></i><span>Akun Penerimaan</span></a>
+                </div>
+            </div>
+
+            <span class="menu-label">AKUN</span>
+            <a href="../api/logout.php" class="menu-item menu-logout" id="logoutLink">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Keluar</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <span>&copy; 2026 SIM-TKD POLBAN</span>
+        </div>
+    </aside>
+
+    <!-- ================= OVERLAY (mobile) ================= -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- ================= MAIN ================= -->
+    <div class="main-wrapper">
+
+        <!-- Topbar -->
+        <header class="topbar">
+            <div class="topbar-left">
+                <button class="topbar-toggle" id="topbarToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="breadcrumb">
+                    <i class="fas fa-home"></i>
+                    <span>Beranda</span>
+                    <i class="fas fa-chevron-right"></i>
+                    <span>Penerimaan</span>
+                    <i class="fas fa-chevron-right"></i>
+                    <span class="current">Daftar Rekening</span>
+                </div>
+            </div>
+            <div class="topbar-right">
+                <div class="topbar-item notification">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge">3</span>
+                </div>
+                <div class="topbar-item">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span id="currentDate">--</span>
+                </div>
+                <div class="topbar-item user">
+                    <div class="user-avatar small">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <span id="topbarUserName">Admin Dinas</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Content -->
+        <main class="content">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title" id="pageTitle">Penerimaan Daerah</h1>
+                    <p class="page-subtitle" id="pageSubtitle">Tahun Anggaran --</p>
+                </div>
+                <div class="page-actions">
+                    <button class="btn btn-primary"><i class="fas fa-plus"></i> Tambah STBP</button>
+                </div>
+            </div>
+
+            <!-- 3 Modul Penerimaan -->
+            <div class="cards-grid">
+                <!-- Rekening -->
+                <div class="card summary-card">
+                    <div class="card-icon icon-finance">
+                        <i class="fas fa-university"></i>
+                    </div>
+                    <div class="card-body">
+                        <span class="card-label">Rekening</span>
+                        <h3 class="card-value">Rekening Bank</h3>
+                        <p class="module-desc">Kelola permohonan pembukaan rekening bank penerimaan daerah.</p>
+                        <a href="permohonan.html" class="btn btn-sm module-link"><i class="fas fa-arrow-right"></i> Buka Rekening</a>
+                    </div>
+                </div>
+
+                <!-- STBP -->
+                <div class="card summary-card">
+                    <div class="card-icon icon-income">
+                        <i class="fas fa-file-invoice"></i>
+                    </div>
+                    <div class="card-body">
+                        <span class="card-label">STBP</span>
+                        <h3 class="card-value">Surat Tanda Bukti Penerimaan</h3>
+                        <p class="module-desc">Input, daftar, dan verifikasi Surat Tanda Bukti Penerimaan (STBP).</p>
+                        <a href="#" class="btn btn-sm module-link"><i class="fas fa-arrow-right"></i> Buka STBP</a>
+                    </div>
+                </div>
+
+                <!-- Laporan -->
+                <div class="card summary-card">
+                    <div class="card-icon icon-expense">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <div class="card-body">
+                        <span class="card-label">Laporan</span>
+                        <h3 class="card-value">Laporan Penerimaan</h3>
+                        <p class="module-desc">Laporan harian, bulanan, dan rekapitulasi penerimaan daerah.</p>
+                        <a href="#" class="btn btn-sm module-link"><i class="fas fa-arrow-right"></i> Buka Laporan</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Info -->
+            <div class="card table-card">
+                <div class="card-header">
+                    <h3><i class="fas fa-info-circle"></i> Modul Penerimaan</h3>
+                </div>
+                <div class="card-body" style="padding: 20px 22px;">
+                    <p style="font-size: 14px; color: #5a6c7d; line-height: 1.7;">
+                        Modul <strong>Penerimaan</strong> digunakan untuk mencatat seluruh penerimaan daerah melalui rekening bank.
+                        Terdapat <strong>3 menu dropdown</strong>:
+                    </p>
+                    <ul style="margin: 12px 0 0 20px; font-size: 14px; color: #2c3e50; line-height: 2;">
+                        <li><i class="fas fa-university" style="color:#1a3a6b; width:20px;"></i> <strong>Rekening</strong> — Permohonan</li>
+                        <li><i class="fas fa-file-invoice" style="color:#27ae60; width:20px;"></i> <strong>STBP</strong> — Input STBP, Daftar STBP, Verifikasi STBP</li>
+                        <li><i class="fas fa-file-alt" style="color:#f58220; width:20px;"></i> <strong>Laporan</strong> — Laporan Harian, Laporan Bulanan, Rekap Penerimaan, BKU Penerimaan</li>
+                    </ul>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <span>&copy; 2026 SIM-TKD - Sistem Informasi Manajemen Tata Kelola Daerah (Modul Edukasi) | Politeknik Negeri Bandung</span>
+        </footer>
+    </div>
+
+    <script src="../js/dashboard.js"></script>
+</body>
+</html>

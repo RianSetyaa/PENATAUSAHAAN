@@ -1,0 +1,5 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/loketiqc/sipd.loketiq.com/ 
+    - /bin/cp -R images $DEPLOYPATH

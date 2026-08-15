@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIM-TKD - Sistem Informasi Manajemen Tata Kelola Daerah</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Background -->
+    <div class="bg-pattern"></div>
+
+    <!-- Container Utama -->
+    <div class="main-container">
+        
+        <!-- Header / Banner -->
+        <div class="header-banner">
+            <div class="header-content">
+                <div class="header-left">
+                    <div class="logo-container">
+                        <!-- Logo POLBAN (Politeknik Negeri Bandung) -->
+                        <img src="img/Logo Polban.png" class="logo-polban" alt="Logo POLBAN">
+                    </div>
+                    <div class="header-text">
+                        <h1>SISTEM INFORMASI MANAJEMEN</h1>
+                        <h2>TATA KELOLA DAERAH (MODUL EDUKASI)</h2>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <div class="logo-container">
+                        <!-- Logo POLBAN -->
+                        <img src="img/Logo Polban.png" class="logo-polban logo-polban-right" alt="Logo POLBAN">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel Login -->
+        <div class="login-panel">
+            <div class="panel-header">
+                <i class="fas fa-sign-in-alt"></i>
+                <span>LOGIN SIM-TKD</span>
+            </div>
+            
+            <div class="panel-body">
+                
+
+                <!-- Form Login -->
+                <form id="loginForm" autocomplete="off">
+                    <!-- Tahun Anggaran -->
+                    <div class="form-group">
+                        <label for="tahunAnggaran">
+                            <i class="fas fa-calendar-alt"></i> Tahun Anggaran
+                        </label>
+                        <select id="tahunAnggaran" class="form-control" required>
+                            <option value="">-- Pilih Tahun Anggaran --</option>
+                            <option value="2026" selected>2026</option>
+                            <option value="2025">2025</option>
+                            <option value="2024">2024</option>
+                            <option value="2023">2023</option>
+                        </select>
+                    </div>
+
+                    <!-- Username -->
+                    <div class="form-group">
+                        <label for="username">
+                            <i class="fas fa-user"></i> Nama Pengguna (Username)
+                        </label>
+                        <input 
+                            type="text" 
+                            id="username" 
+                            class="form-control" 
+                            placeholder="Masukkan username Anda"
+                            autocomplete="off"
+                            required
+                        >
+                    </div>
+
+                    <!-- Password -->
+                    <div class="form-group">
+                        <label for="password">
+                            <i class="fas fa-lock"></i> Kata Sandi (Password)
+                        </label>
+                        <div class="password-wrapper">
+                            <input 
+                                type="password" 
+                                id="password" 
+                                class="form-control" 
+                                placeholder="Masukkan password Anda"
+                                autocomplete="off"
+                                required
+                            >
+                            <button type="button" class="toggle-password" id="togglePassword">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Captcha -->
+                    <div class="form-group">
+                        <label for="captchaInput">
+                            <i class="fas fa-shield-alt"></i> Kode Keamanan (Captcha)
+                        </label>
+                        <div class="captcha-wrapper">
+                            <div class="captcha-box" id="captchaBox">
+                                <canvas id="captchaCanvas"></canvas>
+                            </div>
+                            <button type="button" class="refresh-captcha" id="refreshCaptcha" title="Refresh Captcha">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                            <input 
+                                type="text" 
+                                id="captchaInput" 
+                                class="form-control captcha-input" 
+                                placeholder="Masukkan kode di atas"
+                                maxlength="5"
+                                autocomplete="off"
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <!-- Tombol Login -->
+                    <div class="form-group">
+                        <button type="submit" class="btn-login" id="btnLogin">
+                            <i class="fas fa-sign-in-alt"></i> MASUK
+                        </button>
+                    </div>
+
+                    <!-- Loading -->
+                    <div class="loading" id="loading" style="display: none;">
+                        <div class="spinner"></div>
+                        <span>Sedang memproses...</span>
+                    </div>
+                </form>
+
+                <!-- Belum punya akun -->
+                <div class="auth-switch">
+                    <span>Belum memiliki akun?</span>
+                    <a href="daftar.html"><i class="fas fa-user-plus"></i> Daftar Sekarang</a>
+                </div>
+            </div>
+
+            <div class="panel-footer">
+                <div class="footer-links">
+                    <a href="#"><i class="fas fa-question-circle"></i> Bantuan</a>
+                    <span class="separator">|</span>
+                    <a href="mailto:riansetya@outlook.co.id"><i class="fas fa-envelope"></i> Hubungi Admin</a>
+                    <span class="separator">|</span>
+                    <a href="#"><i class="fas fa-download"></i> Panduan</a>
+                </div>
+                <div class="footer-text">
+                    <p>&copy; 2026 Politeknik Negeri Bandung</p>
+                    <p>Jurusan Akuntansi</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifikasi -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="js/script.js"></script>
+</body>
+</html>

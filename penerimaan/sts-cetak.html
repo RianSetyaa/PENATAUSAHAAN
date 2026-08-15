@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cetak STS - SIM-TKD</title>
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ===== Toolbar cetak ===== */
+        .print-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        /* ===== Dokumen STS ===== */
+        .sts-sheet {
+            max-width: none;
+            width: 100%;
+            box-sizing: border-box;
+            margin: 0 auto;
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 40px 48px;
+            box-shadow: 0 8px 30px rgba(15, 23, 42, 0.06);
+            color: #0f172a;
+            line-height: 1.7;
+            position: relative;
+        }
+        .sts-head {
+            text-align: center;
+            margin-bottom: 26px;
+        }
+        .sts-head .logo {
+            width: 68px;
+            height: 68px;
+            object-fit: contain;
+            margin: 0 auto 10px;
+            display: block;
+        }
+        .sts-head .instansi {
+            font-size: 15px;
+            font-weight: 700;
+            color: #0f172a;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .sts-head .title {
+            font-size: 22px;
+            font-weight: 800;
+            color: #0f172a;
+            margin-top: 4px;
+            letter-spacing: 1px;
+        }
+        .sts-head .nomor {
+            font-size: 13px;
+            color: #5a6c7d;
+            margin-top: 6px;
+        }
+        .sts-head .divider {
+            height: 3px;
+            background: #1a3a6b;
+            width: 180px;
+            margin: 12px auto 0;
+            border-radius: 3px;
+        }
+        .sts-field {
+            display: flex;
+            margin-bottom: 10px;
+            font-size: 14px;
+            line-height: 1.7;
+        }
+        .sts-field .flabel {
+            width: 200px;
+            flex-shrink: 0;
+            font-weight: 600;
+            color: #0f172a;
+        }
+        .sts-field .fval {
+            flex: 1;
+            color: #0f172a;
+        }
+        .sts-field .fval.amount {
+            font-weight: 700;
+        }
+        .sts-rincian-title {
+            margin-top: 24px;
+            font-weight: 700;
+            font-size: 14px;
+            color: #0f172a;
+        }
+        .sts-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        .sts-table th,
+        .sts-table td {
+            border: 1px solid #1e293b;
+            padding: 10px 12px;
+            font-size: 13px;
+            text-align: left;
+            color: #0f172a;
+        }
+        .sts-table th {
+            background: #f1f5f9;
+            font-weight: 700;
+        }
+        .sts-table td.num {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+        .sts-footer {
+            margin-top: 44px;
+            display: flex;
+            justify-content: flex-end;
+        }
+        .sts-sign {
+            text-align: center;
+            min-width: 240px;
+        }
+        .sts-sign .role {
+            margin-bottom: 70px;
+            font-size: 13px;
+            color: #5a6c7d;
+        }
+        .sts-sign .name {
+            font-weight: 700;
+            text-decoration: underline;
+            font-size: 14px;
+        }
+        .sts-notfound {
+            max-width: 820px;
+            margin: 0 auto;
+        }
+
+        /* ===== Saat mencetak: hanya dokumen, landscape ===== */
+        @page {
+            size: A4 landscape;
+            margin: 12mm;
+        }
+        @media print {
+            .sidebar, .topbar, .footer, .overlay, .print-toolbar { display: none !important; }
+            .main-wrapper { margin-left: 0 !important; }
+            .content { padding: 0 !important; margin: 0 !important; }
+            body { background: #ffffff !important; }
+            .sts-sheet {
+                box-shadow: none;
+                border: none;
+                border-radius: 0;
+                padding: 0;
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ================= SIDEBAR ================= -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <img src="../img/Logo Polban.png" alt="Logo POLBAN">
+                <div class="sidebar-title">
+                    <span class="title-main">SIM-TKD</span>
+                    <span class="title-sub">Modul Edukasi</span>
+                </div>
+            </div>
+            <button class="sidebar-toggle" id="sidebarToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+
+        <div class="sidebar-user">
+            <div class="user-avatar">
+                <i class="fas fa-user-tie"></i>
+            </div>
+            <div class="user-info">
+                <span class="user-name" id="sidebarUserName">Admin Dinas</span>
+                <span class="user-role" id="sidebarUserRole">Dinas Kepemudaan dan Olahraga</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-menu">
+            <span class="menu-label">MENU UTAMA</span>
+
+            <a href="../dashboard/dashboard.html" class="menu-item">
+                <i class="fas fa-th-large"></i>
+                <span>Dashboard</span>
+            </a>
+
+            <!-- Penerimaan (dropdown utama) -->
+            <div class="menu-group open" data-menu="penerimaan">
+                <a href="#" class="menu-item has-submenu active">
+                    <i class="fas fa-arrow-down"></i>
+                    <span>Penerimaan</span>
+                    <i class="fas fa-chevron-down submenu-arrow"></i>
+                </a>
+                <div class="submenu">
+                    <!-- Rekening -->
+                    <div class="menu-group" data-menu="rekening">
+                        <a href="#" class="menu-item has-submenu">
+                            <i class="fas fa-university"></i>
+                            <span>Rekening</span>
+                            <i class="fas fa-chevron-down submenu-arrow"></i>
+                        </a>
+                        <div class="submenu">
+                            <a href="permohonan.html" class="menu-item submenu-item"><i class="fas fa-file-signature"></i><span>Permohonan</span></a>
+                        </div>
+                    </div>
+
+                    <!-- STBP -->
+                    <a href="stbp-pembuatan.html" class="menu-item">
+                        <i class="fas fa-file-invoice"></i>
+                        <span>STBP</span>
+                    </a>
+
+                    <!-- STS (aktif) -->
+                    <a href="sts-pembuatan.html" class="menu-item active">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                        <span>STS</span>
+                    </a>
+
+                    <!-- Laporan -->
+                    <div class="menu-group" data-menu="laporan">
+                        <a href="#" class="menu-item has-submenu">
+                            <i class="fas fa-file-alt"></i>
+                            <span>Laporan</span>
+                            <i class="fas fa-chevron-down submenu-arrow"></i>
+                        </a>
+                        <div class="submenu">
+                            <a href="#" class="menu-item submenu-item"><i class="fas fa-sun"></i><span>Laporan Harian</span></a>
+                            <a href="#" class="menu-item submenu-item"><i class="fas fa-calendar-alt"></i><span>Laporan Bulanan</span></a>
+                            <a href="#" class="menu-item submenu-item"><i class="fas fa-chart-pie"></i><span>Rekap Penerimaan</span></a>
+                            <a href="bku-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-book"></i><span>BKU Penerimaan</span></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <a href="../belanja/index.html" class="menu-item">
+                <i class="fas fa-arrow-up"></i>
+                <span>Belanja</span>
+            </a>
+            <a href="../akuntansi/akuntansi.html" class="menu-item">
+                <i class="fas fa-book"></i>
+                <span>Akuntansi</span>
+            </a>
+
+            <!-- Pengaturan -->
+            <div class="menu-group" data-menu="pengaturan">
+                <a href="#" class="menu-item has-submenu">
+                    <i class="fas fa-cog"></i>
+                    <span>Pengaturan</span>
+                    <i class="fas fa-chevron-down submenu-arrow"></i>
+                </a>
+                <div class="submenu">
+                    <a href="../pengaturan/akun-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-coins"></i><span>Akun Penerimaan</span></a>
+                </div>
+            </div>
+
+            <span class="menu-label">AKUN</span>
+            <a href="../api/logout.php" class="menu-item menu-logout" id="logoutLink">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Keluar</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <span>&copy; 2026 SIM-TKD POLBAN</span>
+        </div>
+    </aside>
+
+    <!-- ================= OVERLAY (mobile) ================= -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- ================= MAIN ================= -->
+    <div class="main-wrapper">
+
+        <!-- Topbar -->
+        <header class="topbar">
+            <div class="topbar-left">
+                <button class="topbar-toggle" id="topbarToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="breadcrumb">
+                    <i class="fas fa-home"></i>
+                    <span>Beranda</span>
+                    <i class="fas fa-chevron-right"></i>
+                    <span>Penerimaan</span>
+                    <i class="fas fa-chevron-right"></i>
+                    <span>STS</span>
+                    <i class="fas fa-chevron-right"></i>
+                    <span class="current">Cetak</span>
+                </div>
+            </div>
+            <div class="topbar-right">
+                <div class="topbar-item notification">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge">3</span>
+                </div>
+                <div class="topbar-item">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span id="currentDate">--</span>
+                </div>
+                <div class="topbar-item user">
+                    <div class="user-avatar small">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <span id="topbarUserName">Admin Dinas</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Content -->
+        <main class="content">
+            <div class="print-toolbar">
+                <button class="btn btn-outline" onclick="history.back();"><i class="fas fa-arrow-left"></i> Kembali</button>
+                <button class="btn btn-success" id="btnCetak" onclick="window.print();"><i class="fas fa-print"></i> Cetak Sekarang</button>
+            </div>
+
+            <!-- Status Dokumen Tidak Ditemukan -->
+            <div class="card sts-notfound" id="stsNotFound" style="display:none;">
+                <div class="empty-state">
+                    <div class="empty-illustration">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                    </div>
+                    <h3>Dokumen Tidak Tersedia</h3>
+                    <p>STS yang Anda cari tidak ditemukan. Silakan buat STS terlebih dahulu atau kembali ke daftar.</p>
+                    <div class="empty-actions">
+                        <a href="sts-pembuatan.html" class="btn btn-outline"><i class="fas fa-arrow-left"></i> Kembali ke Daftar</a>
+                        <a href="sts-tambah.html" class="btn btn-primary"><i class="fas fa-plus"></i> Buat STS</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dokumen STS -->
+            <div class="sts-sheet" id="stsSheet">
+                <div class="sts-head">
+                    <img src="../img/Logo Polban.png" alt="Logo" class="logo">
+                    <div class="instansi" id="docInstansi">PEMERINTAH DAERAH</div>
+                    <div class="title">SURAT TANDA SETORAN</div>
+                    <div class="nomor" id="docNomor">Nomor: -</div>
+                    <div class="divider"></div>
+                </div>
+
+                <div class="sts-field"><span class="flabel">a. Nama Penyetor</span><span class="fval" id="fPenyetor">-</span></div>
+                <div class="sts-field"><span class="flabel">b. Tanggal STS</span><span class="fval" id="fTanggal">-</span></div>
+                <div class="sts-field"><span class="flabel">c. Tanggal Acuan</span><span class="fval" id="fAcuan">-</span></div>
+                <div class="sts-field"><span class="flabel">d. Mengetahui</span><span class="fval" id="fMengetahui">-</span></div>
+                <div class="sts-field"><span class="flabel">e. Di Bank</span><span class="fval" id="fBank">-</span></div>
+                <div class="sts-field"><span class="flabel">f. Nomor Rekening</span><span class="fval" id="fNoRek">-</span></div>
+                <div class="sts-field"><span class="flabel">g. Nama Rekening</span><span class="fval" id="fNamaRek">-</span></div>
+                <div class="sts-field"><span class="flabel">h. Keterangan</span><span class="fval" id="fKet">-</span></div>
+                <div class="sts-field"><span class="flabel">i. Total Setoran</span><span class="fval amount" id="fTotal">-</span></div>
+
+                <div class="sts-rincian-title">Dengan rincian STBP sebagai berikut:</div>
+                <table class="sts-table">
+                    <thead>
+                        <tr>
+                            <th style="width:40px;">No</th>
+                            <th>Nomor STBP</th>
+                            <th>Tanggal</th>
+                            <th style="width:170px;">Jumlah (Rp)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rincianBody">
+                        <tr><td colspan="4" style="text-align:center;color:#9098a5;">Memuat...</td></tr>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="3" style="text-align:right;font-weight:700;">TOTAL</td>
+                            <td class="num" id="totalCell" style="font-weight:700;">-</td>
+                        </tr>
+                    </tfoot>
+                </table>
+
+                <div class="sts-footer">
+                    <div class="sts-sign">
+                        <div class="role">Bendahara Penerimaan,<br><span id="signRole">Dinas Kepemudaan dan Olahraga</span></div>
+                        <div class="name" id="signName">(______________________)</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <span>&copy; 2026 SIM-TKD - Sistem Informasi Manajemen Tata Kelola Daerah (Modul Edukasi) | Politeknik Negeri Bandung</span>
+        </footer>
+    </div>
+
+    <script src="../js/dashboard.js"></script>
+    <script>
+        // ==========================================
+        // Halaman Cetak STS
+        // ==========================================
+        (function () {
+            'use strict';
+
+            function escapeHtml(str) {
+                const div = document.createElement('div');
+                div.textContent = String(str || '');
+                return div.innerHTML;
+            }
+
+            function formatRupiah(v) {
+                return 'Rp ' + Number(v || 0).toLocaleString('id-ID');
+            }
+
+            function formatTanggal(s) {
+                if (!s) return '-';
+                const p = String(s).split('-');
+                const b = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+                           'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+                return parseInt(p[2], 10) + ' ' + b[parseInt(p[1], 10) - 1] + ' ' + p[0];
+            }
+
+            const params = new URLSearchParams(window.location.search);
+            const id = params.get('id');
+
+            function showNotFound() {
+                document.getElementById('stsNotFound').style.display = 'block';
+                document.getElementById('stsSheet').style.display = 'none';
+            }
+
+            if (!id) {
+                showNotFound();
+                return;
+            }
+
+            fetch('../api/sts.php?id=' + encodeURIComponent(id))
+                .then(function (res) { return res.json(); })
+                .then(function (data) {
+                    if (!data || !data.success || !data.sts) {
+                        showNotFound();
+                        return;
+                    }
+                    const s = data.sts;
+                    const rows = data.detail || [];
+
+                    document.getElementById('docInstansi').textContent = (s.skpd || 'PEMERINTAH DAERAH').toUpperCase();
+                    document.getElementById('docNomor').textContent = 'Nomor: ' + (s.nomor_sts || '-');
+                    document.getElementById('fPenyetor').textContent = s.nama_penyetor || '-';
+                    document.getElementById('fTanggal').textContent = formatTanggal(s.tanggal_sts);
+                    document.getElementById('fAcuan').textContent =
+                        (formatTanggal(s.tanggal_acuan_dari) + ' s.d. ' + formatTanggal(s.tanggal_acuan_akhir)).replace(/^- s\.d\. -$/, '-');
+                    document.getElementById('fMengetahui').textContent = s.mengetahui || '-';
+                    document.getElementById('fBank').textContent = s.nama_bank || '-';
+                    document.getElementById('fNoRek').textContent = s.nomor_rekening || '-';
+                    document.getElementById('fNamaRek').textContent = s.nama_rekening || '-';
+                    document.getElementById('fKet').textContent = s.keterangan || '-';
+                    document.getElementById('fTotal').textContent = formatRupiah(s.total);
+                    document.getElementById('signRole').textContent = s.skpd || 'Dinas';
+                    document.getElementById('signName').textContent = s.dibuat_oleh || '(______________________)';
+
+                    const tbody = document.getElementById('rincianBody');
+                    if (!rows.length) {
+                        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#9098a5;">Tidak ada rincian.</td></tr>';
+                    } else {
+                        tbody.innerHTML = rows.map(function (r, i) {
+                            return '<tr>' +
+                                '<td>' + (i + 1) + '</td>' +
+                                '<td>' + escapeHtml(r.nomor_stbp || '-') + '</td>' +
+                                '<td>' + formatTanggal(r.tanggal) + '</td>' +
+                                '<td class="num">' + Number(r.jumlah || 0).toLocaleString('id-ID') + '</td>' +
+                            '</tr>';
+                        }).join('');
+                    }
+                    document.getElementById('totalCell').textContent = Number(s.total || 0).toLocaleString('id-ID');
+                })
+                .catch(function () {
+                    showNotFound();
+                });
+        })();
+    </script>
+</body>
+</html>

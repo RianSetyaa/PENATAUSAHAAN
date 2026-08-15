@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - SIM-TKD | Sistem Informasi Manajemen Tata Kelola Daerah</title>
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- ================= SIDEBAR ================= -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <img src="img/Logo Polban.png" alt="Logo POLBAN">
+                <div class="sidebar-title">
+                    <span class="title-main">SIM-TKD</span>
+                    <span class="title-sub">Modul Edukasi</span>
+                </div>
+            </div>
+            <button class="sidebar-toggle" id="sidebarToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+
+        <div class="sidebar-user">
+            <div class="user-avatar">
+                <i class="fas fa-user-tie"></i>
+            </div>
+            <div class="user-info">
+                <span class="user-name" id="sidebarUserName">Admin Dinas</span>
+                <span class="user-role" id="sidebarUserRole">Dinas Kepemudaan dan Olahraga</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-menu">
+            <span class="menu-label">MENU UTAMA</span>
+            <a href="dashboard.html" class="menu-item active">
+                <i class="fas fa-th-large"></i>
+                <span>Dashboard</span>
+            </a>
+
+            <!-- Penerimaan (dropdown utama) -->
+            <div class="menu-group" data-menu="penerimaan">
+                <a href="#" class="menu-item has-submenu">
+                    <i class="fas fa-arrow-down"></i>
+                    <span>Penerimaan</span>
+                    <i class="fas fa-chevron-down submenu-arrow"></i>
+                </a>
+                <div class="submenu">
+                    <!-- Rekening -->
+                    <div class="menu-group" data-menu="rekening">
+                        <a href="#" class="menu-item has-submenu">
+                            <i class="fas fa-university"></i>
+                            <span>Rekening</span>
+                            <i class="fas fa-chevron-down submenu-arrow"></i>
+                        </a>
+                        <div class="submenu">
+                            <a href="penerimaan/permohonan.html" class="menu-item submenu-item"><i class="fas fa-file-signature"></i><span>Permohonan</span></a>
+                        </div>
+                    </div>
+
+            <a href="penerimaan/stbp-pembuatan.html" class="menu-item">
+                <i class="fas fa-file-invoice"></i>
+                <span>STBP</span>
+            </a>
+
+            <a href="penerimaan/sts-pembuatan.html" class="menu-item">
+                <i class="fas fa-file-invoice-dollar"></i>
+                <span>STS</span>
+            </a>
+
+                    <!-- Laporan -->
+                    <div class="menu-group" data-menu="laporan">
+                        <a href="#" class="menu-item has-submenu">
+                            <i class="fas fa-file-alt"></i>
+                            <span>Laporan</span>
+                            <i class="fas fa-chevron-down submenu-arrow"></i>
+                        </a>
+                        <div class="submenu">
+                            <a href="#" class="menu-item submenu-item"><i class="fas fa-sun"></i><span>Laporan Harian</span></a>
+                            <a href="#" class="menu-item submenu-item"><i class="fas fa-calendar-alt"></i><span>Laporan Bulanan</span></a>
+                            <a href="#" class="menu-item submenu-item"><i class="fas fa-chart-pie"></i><span>Rekap Penerimaan</span></a>
+                            <a href="penerimaan/bku-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-book"></i><span>BKU Penerimaan</span></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <a href="belanja/index.html" class="menu-item">
+                <i class="fas fa-arrow-up"></i>
+                <span>Belanja</span>
+            </a>
+            <a href="akuntansi/akuntansi.html" class="menu-item">
+                <i class="fas fa-book"></i>
+                <span>Akuntansi</span>
+            </a>
+            <!-- Pengaturan (dropdown) -->
+            <div class="menu-group" data-menu="pengaturan">
+                <a href="#" class="menu-item has-submenu">
+                    <i class="fas fa-cog"></i>
+                    <span>Pengaturan</span>
+                    <i class="fas fa-chevron-down submenu-arrow"></i>
+                </a>
+                <div class="submenu">
+                    <a href="pengaturan/akun-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-coins"></i><span>Akun Penerimaan</span></a>
+                </div>
+            </div>
+
+            <span class="menu-label">AKUN</span>
+            <a href="api/logout.php" class="menu-item menu-logout" id="logoutLink">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Keluar</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <span>&copy; 2026 SIM-TKD POLBAN</span>
+        </div>
+    </aside>
+
+    <!-- ================= OVERLAY (mobile) ================= -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- ================= MAIN ================= -->
+    <div class="main-wrapper">
+
+        <!-- Topbar -->
+        <header class="topbar">
+            <div class="topbar-left">
+                <button class="topbar-toggle" id="topbarToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="breadcrumb">
+                    <i class="fas fa-home"></i>
+                    <span>Beranda</span>
+                    <i class="fas fa-chevron-right"></i>
+                    <span class="current">Dashboard</span>
+                </div>
+            </div>
+            <div class="topbar-right">
+                <div class="topbar-item notification">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge">3</span>
+                </div>
+                <div class="topbar-item">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span id="currentDate">--</span>
+                </div>
+                <div class="topbar-item user">
+                    <div class="user-avatar small">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <span id="topbarUserName">Admin Dinas</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Content -->
+        <main class="content">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title" id="pageTitle">Ringkasan APBD Dinas Kepemudaan Dan Olahraga</h1>
+                    <p class="page-subtitle" id="pageSubtitle">Tahun Anggaran --</p>
+                </div>
+                <div class="page-actions">
+                    <button class="btn btn-outline"><i class="fas fa-print"></i> Cetak</button>
+                    <button class="btn btn-primary"><i class="fas fa-download"></i> Ekspor</button>
+                </div>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="cards-grid">
+                <!-- Belanja Daerah -->
+                <div class="card summary-card">
+                    <div class="card-icon icon-expense">
+                        <i class="fas fa-receipt"></i>
+                    </div>
+                    <div class="card-body">
+                        <span class="card-label">Belanja Daerah</span>
+                        <h3 class="card-value" id="cardBelanjaValue">Rp 0</h3>
+                        <div class="card-trend trend-warn" id="cardBelanjaTrend">
+                            <i class="fas fa-arrow-up"></i> 0%
+                            <span>dari pagu</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pagu Anggaran -->
+                <div class="card summary-card">
+                    <div class="card-icon icon-finance">
+                        <i class="fas fa-hand-holding-usd"></i>
+                    </div>
+                    <div class="card-body">
+                        <span class="card-label">Pagu Anggaran</span>
+                        <h3 class="card-value" id="cardPaguValue">Rp 0</h3>
+                        <div class="card-trend trend-up" id="cardPaguTrend">
+                            <i class="fas fa-arrow-up"></i> 0%
+                            <span>sisa pagu</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Jumlah Kegiatan -->
+                <div class="card summary-card">
+                    <div class="card-icon icon-finance-out">
+                        <i class="fas fa-money-bill-wave"></i>
+                    </div>
+                    <div class="card-body">
+                        <span class="card-label">Jumlah Kegiatan</span>
+                        <h3 class="card-value" id="cardKegiatanValue">0</h3>
+                        <div class="card-trend trend-down" id="cardKegiatanTrend">
+                            <i class="fas fa-arrow-down"></i> --
+                            <span>tahun berjalan</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts & Jadwal -->
+            <div class="content-grid">
+                <!-- Grafik APBD -->
+                <div class="card chart-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-chart-bar"></i> Grafik APBD</h3>
+                        <div class="chart-tools" id="chartTools"></div>
+                    </div>
+                    <div class="card-body chart-body">
+                        <div class="chart-legend" id="chartLegend">
+                            <span><i class="legend-dot dot-blue"></i> Pagu</span>
+                            <span><i class="legend-dot dot-orange"></i> Realisasi</span>
+                        </div>
+                        <canvas id="apbdChart" height="100"></canvas>
+                    </div>
+                </div>
+
+                <!-- Jadwal -->
+                <div class="card schedule-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-calendar-check"></i> Jadwal</h3>
+                        <span class="badge-schedule">Sedang Berjalan</span>
+                    </div>
+                    <div class="card-body schedule-body">
+                        <div class="schedule-progress">
+                            <div class="progress-ring" id="progressRing" style="--p: 0">
+                                <span id="progressValue">0%</span>
+                            </div>
+                            <div class="schedule-info">
+                                <span class="schedule-title" id="scheduleTitle">Realisasi APBD</span>
+                                <span class="schedule-desc">Persentase realisasi terhadap pagu anggaran tahun berjalan</span>
+                                <div class="schedule-stats">
+                                    <div class="stat">
+                                        <span class="stat-value" id="statRealisasi">0%</span>
+                                        <span class="stat-label">Realisasi</span>
+                                    </div>
+                                    <div class="stat">
+                                        <span class="stat-value" id="statPagu">Rp 0</span>
+                                        <span class="stat-label">Total Pagu</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="schedule-footer">
+                        <button class="btn btn-sm"><i class="fas fa-eye"></i> Lihat Rincian</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Daftar Kegiatan -->
+            <div class="card table-card">
+                <div class="card-header">
+                    <h3><i class="fas fa-list"></i> Daftar Kegiatan Tahun <span id="tableTitleYear">--</span></h3>
+                    <a href="#" class="link-more">Lihat Semua <i class="fas fa-arrow-right"></i></a>
+                </div>
+                <div class="card-body table-body">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>No.</th>
+                                <th>Nama Kegiatan</th>
+                                <th>Pagu (Rp)</th>
+                                <th>Realisasi (Rp)</th>
+                                <th>% Realisasi</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="kegiatanTableBody">
+                            <tr>
+                                <td colspan="6" style="text-align:center; color:#9098a5;">Memuat data...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <span>&copy; 2026 SIM-TKD - Sistem Informasi Manajemen Tata Kelola Daerah (Modul Edukasi) | Politeknik Negeri Bandung</span>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+</html>

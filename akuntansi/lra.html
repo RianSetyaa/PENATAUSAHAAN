@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laporan Realisasi Anggaran - AKLAP</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ============================================================
+           AKLAP - Laporan Realisasi Anggaran (LRA)
+           Halaman standalone (domain terpisah dari SIM-TKD).
+           ============================================================ */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --navy: #16305a;
+            --navy-dark: #0e2140;
+            --navy-mid: #1d3a6e;
+            --blue: #1f6feb;
+            --red: #dc2626;
+            --green: #16a34a;
+            --bg: #eef1f6;
+            --card: #ffffff;
+            --border: #d8dee9;
+            --text: #1f2937;
+            --muted: #6b7280;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* ---------- Topbar ---------- */
+        .topbar {
+            background: var(--navy);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            height: 58px;
+            box-shadow: 0 2px 6px rgba(0,0,0,.2);
+            position: relative;
+            z-index: 20;
+        }
+        .topbar-left { display: flex; align-items: center; gap: 12px; }
+        .topbar-left .logo-badge {
+            width: 38px; height: 38px; border-radius: 50%;
+            background: #fff; color: var(--navy);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px;
+        }
+        .topbar-left .brand { line-height: 1.15; }
+        .topbar-left .brand b { font-size: 15px; letter-spacing: .3px; display: block; }
+        .topbar-left .brand span { font-size: 11.5px; opacity: .85; display: block; }
+
+        .topbar-right { display: flex; align-items: center; gap: 14px; }
+        .topbar-right .region { text-align: right; line-height: 1.15; }
+        .topbar-right .region b { font-size: 12.5px; display: block; }
+        .topbar-right .region span { font-size: 11px; opacity: .85; display: block; }
+        .topbar-user { display: flex; align-items: center; gap: 8px; }
+        .topbar-user .avatar {
+            width: 32px; height: 32px; border-radius: 50%;
+            background: #fff; color: var(--navy);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 15px; font-weight: 700;
+        }
+
+        /* ---------- Body layout ---------- */
+        .body-wrap { display: flex; flex: 1; min-height: 0; }
+
+        /* ---------- Sidebar ---------- */
+        .sidebar {
+            width: 236px;
+            background: var(--navy-dark);
+            color: #cbd5e1;
+            flex-shrink: 0;
+            overflow-y: auto;
+            padding: 10px 0 20px;
+        }
+        .side-title {
+            font-size: 10.5px; letter-spacing: 1.4px; text-transform: uppercase;
+            color: #7d8db1; padding: 14px 18px 6px;
+        }
+        .side-link {
+            display: flex; align-items: center; gap: 11px;
+            padding: 10px 18px; color: #cbd5e1; text-decoration: none;
+            font-size: 13.5px; border-left: 3px solid transparent;
+        }
+        .side-link i { width: 18px; text-align: center; font-size: 14px; }
+        .side-link:hover { background: rgba(255,255,255,.06); color: #fff; }
+        .side-link.active { background: var(--navy-mid); color: #fff; border-left-color: #4c9aff; }
+        .side-group .side-link { cursor: pointer; }
+        .side-arrow { margin-left: auto; font-size: 11px; transition: transform .2s; color: #7d8db1; }
+        .side-group.open .side-arrow { transform: rotate(90deg); }
+        .side-sub { display: none; padding-left: 10px; }
+        .side-sub.open { display: block; }
+        .side-sub .side-link { padding: 8px 16px; font-size: 13px; color: #9fb0d3; }
+        .side-sub .side-link i { font-size: 12px; }
+        .side-sub .side-link:hover { color: #fff; }
+        .side-sub .side-link.active { color: #fff; background: var(--navy-mid); border-left-color: #4c9aff; }
+
+        /* ---------- Main ---------- */
+        .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+        .breadcrumb-bar {
+            background: #fff; border-bottom: 1px solid var(--border);
+            padding: 10px 22px; display: flex; align-items: center; justify-content: space-between;
+            gap: 10px; flex-wrap: wrap;
+        }
+        .breadcrumb-bar .crumb { font-size: 13px; color: var(--muted); }
+        .breadcrumb-bar .crumb i { font-size: 11px; margin: 0 7px; color: #9aa4b2; }
+        .crumb a { color: var(--blue); text-decoration: none; }
+        .crumb .current { color: var(--text); font-weight: 600; }
+        .btn-back {
+            background: var(--navy); color: #fff; border: none;
+            padding: 7px 14px; border-radius: 6px; cursor: pointer;
+            font-size: 12.5px; display: inline-flex; align-items: center; gap: 7px;
+            text-decoration: none;
+        }
+        .btn-back:hover { background: var(--navy-mid); }
+
+        .content { padding: 20px 22px; flex: 1; }
+
+        .page-head { margin-bottom: 16px; }
+        .page-head h1 { font-size: 19px; color: var(--navy); }
+        .page-head p { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+
+        /* ---------- Controls card ---------- */
+        .card {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 10px; box-shadow: 0 1px 3px rgba(16,24,40,.06);
+            margin-bottom: 18px;
+        }
+        .card-head {
+            padding: 12px 18px; border-bottom: 1px solid var(--border);
+            font-weight: 700; font-size: 13.5px; color: var(--navy);
+            display: flex; align-items: center; gap: 8px;
+        }
+        .card-body { padding: 16px 18px; }
+
+        .ctl-grid {
+            display: grid; grid-template-columns: 1fr 1fr 1.4fr auto auto;
+            gap: 14px; align-items: end;
+        }
+        .ctl-field { display: flex; flex-direction: column; gap: 5px; }
+        .ctl-field label { font-size: 11.5px; color: var(--muted); font-weight: 600; }
+        .ctl-field select, .ctl-field input {
+            height: 36px; border: 1px solid var(--border); border-radius: 6px;
+            padding: 0 10px; font-size: 13px; background: #fff; color: var(--text);
+            width: 100%;
+        }
+        .ctl-field input:focus, .ctl-field select:focus { outline: 2px solid #bfdbfe; border-color: var(--blue); }
+        .ctl-actions { display: flex; gap: 8px; align-items: end; }
+
+        .btn {
+            border: none; border-radius: 6px; padding: 9px 16px; cursor: pointer;
+            font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 7px;
+            height: 36px; white-space: nowrap;
+        }
+        .btn-primary { background: var(--blue); color: #fff; }
+        .btn-primary:hover { background: #1a5fd0; }
+        .btn-danger { background: var(--red); color: #fff; }
+        .btn-danger:hover { background: #b91c1c; }
+        .btn-success { background: var(--green); color: #fff; }
+        .btn-success:hover { background: #15803d; }
+        .dropdown { position: relative; display: inline-block; }
+        .dropdown-menu {
+            display: none; position: absolute; right: 0; top: calc(100% + 4px);
+            background: #fff; border: 1px solid var(--border); border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0,0,0,.14); min-width: 170px; z-index: 30; padding: 5px;
+        }
+        .dropdown-menu.open { display: block; }
+        .dropdown-item {
+            display: flex; align-items: center; gap: 8px; width: 100%;
+            border: none; background: none; padding: 8px 10px; border-radius: 6px;
+            font-size: 12.5px; color: var(--text); cursor: pointer; text-align: left;
+        }
+        .dropdown-item:hover { background: #f1f5f9; color: var(--navy); }
+
+        /* ---------- Report sheet ---------- */
+        .sheet {
+            background: #fff; border: 1px solid var(--border); border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(16,24,40,.06); padding: 28px 30px;
+            overflow-x: auto;
+        }
+        .sheet-head { text-align: center; margin-bottom: 20px; }
+        .sheet-head .instansi { font-size: 13px; font-weight: 600; }
+        .sheet-head .skpd { font-size: 12.5px; font-weight: 600; margin-top: 2px; }
+        .sheet-head .judul { font-size: 15px; font-weight: 700; margin-top: 12px; text-transform: uppercase; }
+        .sheet-head .tahun { font-size: 13px; font-weight: 600; margin-top: 2px; }
+        .sheet-head .periode { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+        table.lra { width: 100%; border-collapse: collapse; font-size: 12px; }
+        table.lra th {
+            background: var(--navy); color: #fff; text-align: center;
+            padding: 8px 10px; border: 1px solid #12264a; font-size: 11.5px;
+            white-space: nowrap;
+        }
+        table.lra td { padding: 7px 10px; border: 1px solid #c9d2e0; vertical-align: top; }
+        table.lra td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+        table.lra td.kode { white-space: nowrap; text-align: center; }
+        tr.r-section td { background: #e8edf6; font-weight: 700; }
+        tr.r-total td { font-weight: 700; background: #f3f6fb; }
+        tr.r-detail:hover { background: #f8fafc; }
+
+        /* ---------- Footer ---------- */
+        .footer {
+            text-align: center; padding: 14px; font-size: 12px;
+            color: var(--muted); border-top: 1px solid var(--border); background: #fff;
+        }
+
+        /* ---------- Toast ---------- */
+        #toast {
+            position: fixed; bottom: 24px; right: 24px; z-index: 99;
+            background: var(--navy-dark); color: #fff; padding: 12px 18px;
+            border-radius: 8px; font-size: 13px; box-shadow: 0 6px 18px rgba(0,0,0,.25);
+            opacity: 0; transform: translateY(12px); transition: all .25s ease; pointer-events: none;
+        }
+        #toast.show { opacity: 1; transform: translateY(0); }
+
+        /* ---------- Print ---------- */
+        @page { size: A4 landscape; margin: 12mm; }
+        @media print {
+            .topbar, .sidebar, .breadcrumb-bar, .page-head, .controls-card, .footer, #toast { display: none !important; }
+            body { background: #fff; }
+            .content { padding: 0; }
+            .sheet { border: none; box-shadow: none; border-radius: 0; padding: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ================= TOPBAR ================= -->
+    <header class="topbar">
+        <div class="topbar-left">
+            <div class="logo-badge"><i class="fas fa-landmark"></i></div>
+            <div class="brand">
+                <b>AKLAP</b>
+                <span>Aplikasi Laporan Akuntansi Pemerintahan</span>
+            </div>
+        </div>
+        <div class="topbar-right">
+            <div class="region">
+                <b>Provinsi Sulawesi Barat</b>
+                <span>Tahun Anggaran 2024</span>
+            </div>
+            <div class="topbar-user">
+                <div class="avatar">H</div>
+                <span style="font-size:13px;">HASMIATI</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="body-wrap">
+
+        <!-- ================= SIDEBAR ================= -->
+        <aside class="sidebar" id="sidebar">
+            <div class="side-title">Menu Utama</div>
+            <a href="akuntansi.html" class="side-link"><i class="fas fa-th-large"></i> Dashboard</a>
+            <a href="#" class="side-link"><i class="fas fa-file-import"></i> Input Transaksi Non Anggaran</a>
+            <a href="#" class="side-link"><i class="fas fa-book"></i> Jurnal Umum</a>
+            <div class="side-group" id="sideGroupToApprove">
+                <a href="#" class="side-link" id="sideLinkToApprove"><i class="fas fa-check-double"></i> Jurnal To Approve <i class="fas fa-chevron-right side-arrow"></i></a>
+                <div class="side-sub" id="sideSubToApprove">
+                    <a href="akuntansi.html" class="side-link"><i class="fas fa-coins"></i> Anggaran</a>
+                    <a href="akuntansi.html" class="side-link"><i class="fas fa-arrow-down"></i> Pendapatan</a>
+                    <a href="akuntansi.html" class="side-link"><i class="fas fa-arrow-up"></i> Belanja</a>
+                    <a href="akuntansi.html" class="side-link"><i class="fas fa-file-import"></i> Transaksi Non Anggaran</a>
+                    <a href="akuntansi.html" class="side-link"><i class="fas fa-list"></i> Umum</a>
+                    <a href="akuntansi.html" class="side-link"><i class="fas fa-rotate-left"></i> Pembalik</a>
+                    <a href="akuntansi.html" class="side-link"><i class="fas fa-lock"></i> Penutup</a>
+                </div>
+            </div>
+            <a href="#" class="side-link"><i class="fas fa-book-open"></i> Buku Jurnal</a>
+            <a href="#" class="side-link"><i class="fas fa-table-list"></i> Buku Besar</a>
+            <a href="#" class="side-link"><i class="fas fa-right-left"></i> Laporan Mutasi Rekening</a>
+            <a href="#" class="side-link"><i class="fas fa-building-columns"></i> Buku Besar Pembantu Bank</a>
+            <a href="#" class="side-link"><i class="fas fa-scale-balanced"></i> Neraca Saldo</a>
+            <div class="side-group open" id="sideGroupKeuangan">
+                <a href="#" class="side-link active" id="sideLinkKeuangan"><i class="fas fa-chart-line"></i> Laporan Keuangan <i class="fas fa-chevron-right side-arrow"></i></a>
+                <div class="side-sub open" id="sideSubKeuangan">
+                    <a href="#" class="side-link"><i class="fas fa-scale-balanced"></i> Neraca</a>
+                    <a href="lra.html" class="side-link active"><i class="fas fa-chart-column"></i> LRA</a>
+                    <a href="#" class="side-link"><i class="fas fa-chart-pie"></i> LO</a>
+                    <a href="#" class="side-link"><i class="fas fa-wallet"></i> LPE</a>
+                    <a href="#" class="side-link"><i class="fas fa-bullseye"></i> Prognosis</a>
+                    <a href="#" class="side-link"><i class="fas fa-layer-group"></i> LRA Per Program</a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ================= MAIN ================= -->
+        <main class="main">
+            <div class="breadcrumb-bar">
+                <div class="crumb">
+                    <i class="fas fa-house"></i> <a href="akuntansi.html">Home</a>
+                    <i class="fas fa-chevron-right"></i> Laporan Keuangan
+                    <i class="fas fa-chevron-right"></i> <span class="current">LRA</span>
+                </div>
+                <a href="../dashboard/dashboard.html" class="btn-back"><i class="fas fa-arrow-left"></i> Kembali ke Penatausahaan</a>
+            </div>
+
+            <div class="content">
+                <div class="page-head">
+                    <h1>Laporan Realisasi Anggaran</h1>
+                    <p>Laporan Realisasi Anggaran Pendapatan dan Belanja Daerah (LRA) - Tahun Anggaran 2024.</p>
+                </div>
+
+                <!-- Kontrol -->
+                <div class="card controls-card">
+                    <div class="card-head"><i class="fas fa-sliders"></i> Pengaturan Laporan</div>
+                    <div class="card-body">
+                        <div class="ctl-grid">
+                            <div class="ctl-field">
+                                <label>Tanggal Awal</label>
+                                <input type="date" id="tglAwal" value="2024-01-01">
+                            </div>
+                            <div class="ctl-field">
+                                <label>Tanggal Akhir</label>
+                                <input type="date" id="tglAkhir" value="2024-03-31">
+                            </div>
+                            <div class="ctl-field">
+                                <label>Konsolidasi SKPD</label>
+                                <select id="konsolidasi">
+                                    <option>SKPD dan Unit</option>
+                                    <option>SKPD Saja</option>
+                                    <option>Unit Saja</option>
+                                </select>
+                            </div>
+                            <div class="ctl-actions">
+                                <button class="btn btn-primary" id="btnTerapkan"><i class="fas fa-check"></i> Terapkan</button>
+                                <button class="btn btn-danger" id="btnReset"><i class="fas fa-rotate-left"></i> Reset</button>
+                            </div>
+                            <div class="ctl-actions">
+                                <div class="dropdown">
+                                    <button class="btn btn-success" id="btnCetak"><i class="fas fa-print"></i> Cetak <i class="fas fa-chevron-down"></i></button>
+                                    <div class="dropdown-menu" id="menuCetak">
+                                        <button class="dropdown-item" data-act="print"><i class="fas fa-print"></i> Cetak LRA</button>
+                                        <button class="dropdown-item" data-act="pdf"><i class="fas fa-file-pdf"></i> Ekspor PDF</button>
+                                        <button class="dropdown-item" data-act="xls"><i class="fas fa-file-excel"></i> Ekspor Excel</button>
+                                    </div>
+                                </div>
+                                <button class="btn btn-primary" id="btnImport"><i class="fas fa-file-import"></i> Import</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Laporan -->
+                <div class="sheet" id="sheet">
+                    <div class="sheet-head">
+                        <div class="instansi">PEMERINTAHAN PROVINSI SULAWESI BARAT</div>
+                        <div class="skpd">DINAS KEPEMUDAAN DAN OLAHRAGA</div>
+                        <div class="judul">LAPORAN REALISASI ANGGARAN PENDAPATAN DAN BELANJA DAERAH</div>
+                        <div class="tahun">TAHUN ANGGARAN 2024</div>
+                        <div class="periode" id="periodeText">Periode : 01 Januari 2024 Sampai 31 Maret 2024</div>
+                    </div>
+                    <table class="lra">
+                        <thead>
+                            <tr>
+                                <th style="width:130px;">Kode Rekening</th>
+                                <th>URAIAN</th>
+                                <th style="width:130px;" class="num">ANGGARAN 2024</th>
+                                <th style="width:130px;" class="num">REALISASI 2024</th>
+                                <th style="width:90px;" class="num">% 2024</th>
+                                <th style="width:130px;" class="num">REALISASI 2023</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lraBody">
+                            <!-- diisi JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <footer class="footer">
+                &copy; 2026 AKLAP - Modul Edukasi SIM-TKD | Politeknik Negeri Bandung (Jurusan Akuntansi)
+            </footer>
+        </main>
+    </div>
+
+    <div id="toast"></div>
+
+    <script>
+        (function () {
+            'use strict';
+
+            var DATA = [
+                // ==================== PENDAPATAN DAERAH ====================
+                { type: 'section', level: 0, kode: '4', uraian: 'PENDAPATAN DAERAH', anggaran: 44130000000, realisasi: 16965000000, r2023: 0 },
+
+                // 4.1 Pendapatan Asli Daerah
+                { type: 'section', level: 1, kode: '4.1', uraian: 'PENDAPATAN ASLI DAERAH (PAD)', anggaran: 12230000000, realisasi: 4265000000, r2023: 0 },
+                { type: 'detail', level: 2, kode: '4.1.1', uraian: 'Pendapatan Pajak Daerah', anggaran: 8650000000, realisasi: 2980000000, r2023: 0 },
+                { type: 'detail', level: 3, kode: '4.1.1.01', uraian: 'Pajak Hotel', anggaran: 2500000000, realisasi: 850000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '4.1.1.01.01', uraian: 'Hotel Bintang Berlian', anggaran: 500000000, realisasi: 200000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '4.1.1.01.02', uraian: 'Hotel Bintang Lima', anggaran: 450000000, realisasi: 150000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '4.1.1.01.03', uraian: 'Hotel Bintang Empat', anggaran: 400000000, realisasi: 120000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '4.1.1.01.04', uraian: 'Hotel Bintang Tiga', anggaran: 350000000, realisasi: 110000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '4.1.1.01.05', uraian: 'Hotel Bintang Dua', anggaran: 300000000, realisasi: 100000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '4.1.1.01.06', uraian: 'Hotel Bintang Satu', anggaran: 250000000, realisasi: 90000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '4.1.1.01.07', uraian: 'Hotel Melati Tiga', anggaran: 250000000, realisasi: 80000000, r2023: 0 },
+                { type: 'detail', level: 3, kode: '4.1.1.02', uraian: 'Pajak Restoran', anggaran: 2000000000, realisasi: 700000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '4.1.1.02.01', uraian: 'Restoran', anggaran: 800000000, realisasi: 280000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '4.1.1.02.02', uraian: 'Rumah Makan', anggaran: 600000000, realisasi: 210000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '4.1.1.02.03', uraian: 'Kafe', anggaran: 400000000, realisasi: 140000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '4.1.1.02.04', uraian: 'Kantin', anggaran: 200000000, realisasi: 70000000, r2023: 0 },
+                { type: 'detail', level: 3, kode: '4.1.1.03', uraian: 'Pajak Hiburan', anggaran: 1500000000, realisasi: 500000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '4.1.1.03.01', uraian: 'Tontonan Film/Bioskop', anggaran: 500000000, realisasi: 180000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '4.1.1.03.02', uraian: 'Pameran', anggaran: 400000000, realisasi: 130000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '4.1.1.03.03', uraian: 'Diskotek', anggaran: 400000000, realisasi: 120000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '4.1.1.03.04', uraian: 'Pacuan Kuda', anggaran: 200000000, realisasi: 70000000, r2023: 0 },
+                { type: 'detail', level: 3, kode: '4.1.1.04', uraian: 'Pajak Reklame', anggaran: 1200000000, realisasi: 420000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '4.1.1.04.01', uraian: 'Reklame Papan/Billboard', anggaran: 600000000, realisasi: 220000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '4.1.1.04.02', uraian: 'Reklame Kain', anggaran: 400000000, realisasi: 140000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '4.1.1.04.09', uraian: 'Reklame Film/Slide', anggaran: 200000000, realisasi: 60000000, r2023: 0 },
+                { type: 'detail', level: 3, kode: '4.1.1.05', uraian: 'Penerangan Jalan Umum', anggaran: 800000000, realisasi: 300000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '4.1.1.05.01', uraian: 'Pajak Penerangan Jalan PLN', anggaran: 800000000, realisasi: 300000000, r2023: 0 },
+                { type: 'detail', level: 3, kode: '4.1.1.08', uraian: 'Pajak Air Bawah Tanah', anggaran: 300000000, realisasi: 100000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '4.1.1.08.01', uraian: 'Pajak Air Bawah Tanah', anggaran: 300000000, realisasi: 100000000, r2023: 0 },
+                { type: 'detail', level: 3, kode: '4.1.1.09', uraian: 'Pajak Sarang Burung Walet', anggaran: 150000000, realisasi: 50000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '4.1.1.09.01', uraian: 'Pajak Sarang Burung Walet', anggaran: 150000000, realisasi: 50000000, r2023: 0 },
+                { type: 'detail', level: 3, kode: '4.1.1.10', uraian: 'Pajak Lingkungan', anggaran: 200000000, realisasi: 60000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '4.1.1.10.01', uraian: 'Pajak Lingkungan', anggaran: 200000000, realisasi: 60000000, r2023: 0 },
+
+                { type: 'detail', level: 2, kode: '4.1.2', uraian: 'Pendapatan Retribusi Daerah', anggaran: 1200000000, realisasi: 390000000, r2023: 0 },
+                { type: 'detail', level: 3, kode: '4.1.2.01', uraian: 'Retribusi Jasa Usaha', anggaran: 1200000000, realisasi: 390000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '4.1.2.01.01', uraian: 'Retribusi Pemakaian Kekayaan Daerah', anggaran: 500000000, realisasi: 180000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '4.1.2.01.02', uraian: 'Retribusi Parkir', anggaran: 400000000, realisasi: 120000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '4.1.2.01.03', uraian: 'Retribusi Sewa Pasar Tradisional', anggaran: 300000000, realisasi: 90000000, r2023: 0 },
+
+                { type: 'detail', level: 2, kode: '4.1.3', uraian: 'Hasil Pengelolaan Kekayaan Daerah yang Dipisahkan', anggaran: 1850000000, realisasi: 690000000, r2023: 0 },
+                { type: 'detail', level: 3, kode: '4.1.3.01', uraian: 'Bagian Laba atas Penyertaan Modal Pemerintah Daerah', anggaran: 1500000000, realisasi: 550000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '4.1.3.01.01', uraian: 'BUMD - A', anggaran: 1000000000, realisasi: 400000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '4.1.3.01.02', uraian: 'PT - B', anggaran: 500000000, realisasi: 150000000, r2023: 0 },
+                { type: 'detail', level: 3, kode: '4.1.3.04', uraian: 'Pendapatan Bunga Obligasi pada BUMN', anggaran: 350000000, realisasi: 140000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '4.1.3.04.01', uraian: 'BUMN - A', anggaran: 200000000, realisasi: 80000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '4.1.3.04.02', uraian: 'BUMN - B', anggaran: 150000000, realisasi: 60000000, r2023: 0 },
+
+                { type: 'detail', level: 2, kode: '4.1.4', uraian: 'Lain-Lain Pendapatan Asli Daerah yang Sah', anggaran: 530000000, realisasi: 205000000, r2023: 0 },
+                { type: 'detail', level: 3, kode: '4.1.4.01', uraian: 'Hasil Penjualan Aset Daerah yang Tidak Dipisahkan', anggaran: 300000000, realisasi: 120000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '4.1.4.01.01', uraian: 'Pelepasan Hak atas Tanah', anggaran: 300000000, realisasi: 120000000, r2023: 0 },
+                { type: 'detail', level: 3, kode: '4.1.4.02', uraian: 'Penerimaan Jasa Giro', anggaran: 50000000, realisasi: 20000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '4.1.4.02.03', uraian: 'Jasa Giro Dana Cadangan', anggaran: 50000000, realisasi: 20000000, r2023: 0 },
+                { type: 'detail', level: 3, kode: '4.1.4.03', uraian: 'Pendapatan Bunga Deposito', anggaran: 100000000, realisasi: 40000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '4.1.4.03.01', uraian: 'Rekening Deposito pada Bank', anggaran: 100000000, realisasi: 40000000, r2023: 0 },
+                { type: 'detail', level: 3, kode: '4.1.4.06.03', uraian: 'Denda Keterlambatan Pekerjaan Bidang PU', anggaran: 50000000, realisasi: 15000000, r2023: 0 },
+                { type: 'detail', level: 3, kode: '4.1.4.13', uraian: 'Tuntutan Ganti Kerugian Daerah', anggaran: 30000000, realisasi: 10000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '4.1.4.13.03', uraian: 'Kerugian Uang', anggaran: 30000000, realisasi: 10000000, r2023: 0 },
+                { type: 'total', level: 1, kode: '', uraian: 'JUMLAH PENDAPATAN ASLI DAERAH (4.1)', anggaran: 12230000000, realisasi: 4265000000, r2023: 0 },
+
+                // 4.2 Dana Perimbangan
+                { type: 'section', level: 1, kode: '4.2', uraian: 'DANA PERIMBANGAN', anggaran: 28050000000, realisasi: 11190000000, r2023: 0 },
+                { type: 'detail', level: 2, kode: '4.2.1', uraian: 'Bagi Hasil Pajak / Bagi Hasil Bukan Pajak', anggaran: 3050000000, realisasi: 1190000000, r2023: 0 },
+                { type: 'detail', level: 3, kode: '4.2.1.01', uraian: 'Bagi Hasil Pajak', anggaran: 2600000000, realisasi: 1020000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '4.2.1.01.01', uraian: 'Bagi Hasil PBB', anggaran: 1500000000, realisasi: 600000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '4.2.1.01.02', uraian: 'Bagi Hasil BPHTB', anggaran: 300000000, realisasi: 120000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '4.2.1.01.03', uraian: 'Bagi Hasil PPh Psl 25 dan Psl 29 WPOPDN dan PPh Psl 21', anggaran: 800000000, realisasi: 300000000, r2023: 0 },
+                { type: 'detail', level: 3, kode: '4.2.1.02', uraian: 'Bagi Hasil Sumber Daya Alam', anggaran: 450000000, realisasi: 170000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '4.2.1.02.01', uraian: 'Bagi Hasil Iuran Hak Penguasaan Hutan', anggaran: 200000000, realisasi: 80000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '4.2.1.02.02', uraian: 'Bagi Hasil Provinsi Sumber Daya Hutan', anggaran: 150000000, realisasi: 50000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '4.2.1.02.03', uraian: 'Bagi Hasil Dana Reboisasi', anggaran: 100000000, realisasi: 40000000, r2023: 0 },
+                { type: 'detail', level: 2, kode: '4.2.2', uraian: 'Dana Alokasi Umum', anggaran: 20000000000, realisasi: 8000000000, r2023: 0 },
+                { type: 'detail', level: 3, kode: '4.2.2.01', uraian: 'Dana Alokasi Umum', anggaran: 20000000000, realisasi: 8000000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '4.2.2.01.01', uraian: 'Dana Alokasi Umum', anggaran: 20000000000, realisasi: 8000000000, r2023: 0 },
+                { type: 'detail', level: 2, kode: '4.2.3', uraian: 'Dana Alokasi Khusus', anggaran: 5000000000, realisasi: 2000000000, r2023: 0 },
+                { type: 'detail', level: 3, kode: '4.2.3.01', uraian: 'Dana Alokasi Khusus', anggaran: 5000000000, realisasi: 2000000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '4.2.3.01.01', uraian: 'Dana Alokasi Khusus', anggaran: 5000000000, realisasi: 2000000000, r2023: 0 },
+                { type: 'total', level: 1, kode: '', uraian: 'JUMLAH DANA PERIMBANGAN (4.2)', anggaran: 28050000000, realisasi: 11190000000, r2023: 0 },
+
+                // 4.3 Lain-Lain Pendapatan Daerah yang Sah
+                { type: 'section', level: 1, kode: '4.3', uraian: 'LAIN-LAIN PENDAPATAN DAERAH YANG SAH', anggaran: 3850000000, realisasi: 1510000000, r2023: 0 },
+                { type: 'detail', level: 2, kode: '4.3.1', uraian: 'Pendapatan Hibah', anggaran: 800000000, realisasi: 300000000, r2023: 0 },
+                { type: 'detail', level: 3, kode: '4.3.1.01', uraian: 'Pendapatan Hibah dari Pemerintah', anggaran: 500000000, realisasi: 200000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '4.3.1.01.01', uraian: 'Pendapatan Hibah dari Pemerintah', anggaran: 500000000, realisasi: 200000000, r2023: 0 },
+                { type: 'detail', level: 3, kode: '4.3.1.02', uraian: 'Pendapatan Hibah dari Pemerintah Daerah Lainnya', anggaran: 300000000, realisasi: 100000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '4.3.1.02.01', uraian: 'Pendapatan Hibah dari Pemerintah Daerah Lainnya', anggaran: 300000000, realisasi: 100000000, r2023: 0 },
+                { type: 'detail', level: 2, kode: '4.3.2', uraian: 'Pendapatan Dana Darurat', anggaran: 0, realisasi: 0, r2023: 0 },
+                { type: 'detail', level: 3, kode: '4.3.2.01', uraian: 'Penanggulangan Korban', anggaran: 0, realisasi: 0, r2023: 0 },
+                { type: 'detail', level: 4, kode: '4.3.2.01.01', uraian: 'Korban/Kerusakan Akibat Bencana Alam', anggaran: 0, realisasi: 0, r2023: 0 },
+                { type: 'detail', level: 2, kode: '4.3.3', uraian: 'Dana Bagi Hasil Pajak dari Provinsi dan Pemda Lainnya', anggaran: 1550000000, realisasi: 610000000, r2023: 0 },
+                { type: 'detail', level: 3, kode: '4.3.3.01', uraian: 'Dana Bagi Hasil Pajak dari Provinsi', anggaran: 1400000000, realisasi: 550000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '4.3.3.01.01', uraian: 'Bagi Hasil Pajak Kendaraan Bermotor', anggaran: 800000000, realisasi: 300000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '4.3.3.01.03', uraian: 'Bagi Hasil dari Bea Balik Nama Kendaraan Bermotor', anggaran: 600000000, realisasi: 250000000, r2023: 0 },
+                { type: 'detail', level: 3, kode: '4.3.3.02', uraian: 'Dana Bagi Hasil Pajak dari Provinsi Lainnya', anggaran: 100000000, realisasi: 40000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '4.3.3.02.01', uraian: 'Bagi Hasil Pajak dari Provinsi Lainnya', anggaran: 100000000, realisasi: 40000000, r2023: 0 },
+                { type: 'detail', level: 3, kode: '4.3.3.03', uraian: 'Dana Bagi Hasil Pajak dari Kabupaten dari Provinsi Lainnya', anggaran: 50000000, realisasi: 20000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '4.3.3.03.01', uraian: 'Dana Bagi Hasil Pajak dari Kabupaten dari Provinsi Lainnya', anggaran: 50000000, realisasi: 20000000, r2023: 0 },
+                { type: 'detail', level: 2, kode: '4.3.4', uraian: 'Dana Penyesuaian dan Otonomi Khusus', anggaran: 1000000000, realisasi: 400000000, r2023: 0 },
+                { type: 'detail', level: 3, kode: '4.3.4.02', uraian: 'Dana Otonomi Khusus', anggaran: 1000000000, realisasi: 400000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '4.3.4.02.01', uraian: 'Dana Otonomi Khusus', anggaran: 1000000000, realisasi: 400000000, r2023: 0 },
+                { type: 'detail', level: 2, kode: '4.3.5', uraian: 'Bantuan Keuangan dari Pemerintah Provinsi atau Pemda Lain', anggaran: 500000000, realisasi: 200000000, r2023: 0 },
+                { type: 'detail', level: 3, kode: '4.3.5.01', uraian: 'Bantuan Keuangan Provinsi', anggaran: 500000000, realisasi: 200000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '4.3.5.01.01', uraian: 'Bantuan Keuangan dari Provinsi Setempat', anggaran: 500000000, realisasi: 200000000, r2023: 0 },
+                { type: 'total', level: 1, kode: '', uraian: 'JUMLAH LAIN-LAIN PENDAPATAN DAERAH YANG SAH (4.3)', anggaran: 3850000000, realisasi: 1510000000, r2023: 0 },
+                { type: 'total', level: 0, kode: '', uraian: 'JUMLAH PENDAPATAN (4)', anggaran: 44130000000, realisasi: 16965000000, r2023: 0 },
+
+                // ==================== BELANJA DAERAH ====================
+                { type: 'section', level: 0, kode: '5', uraian: 'BELANJA DAERAH', anggaran: 33830000000, realisasi: 12000000000, r2023: 0 },
+
+                // 5.1 Belanja Operasi (Tidak Langsung)
+                { type: 'section', level: 1, kode: '5.1', uraian: 'BELANJA OPERASI', anggaran: 21900000000, realisasi: 10350000000, r2023: 0 },
+                { type: 'detail', level: 2, kode: '5.1.1', uraian: 'Belanja Pegawai', anggaran: 13500000000, realisasi: 6700000000, r2023: 0 },
+                { type: 'detail', level: 3, kode: '5.1.1.01', uraian: 'Gaji dan Tunjangan', anggaran: 11000000000, realisasi: 5500000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '5.1.1.01.01', uraian: 'Gaji Pokok', anggaran: 8000000000, realisasi: 4000000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '5.1.1.01.02', uraian: 'Tunjangan Keluarga', anggaran: 1000000000, realisasi: 500000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '5.1.1.01.03', uraian: 'Tunjangan Fungsional', anggaran: 1500000000, realisasi: 750000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '5.1.1.01.04', uraian: 'Tunjangan Fungsional Umum', anggaran: 500000000, realisasi: 250000000, r2023: 0 },
+                { type: 'detail', level: 3, kode: '5.1.1.02', uraian: 'Tambahan Penghasilan PNS', anggaran: 2500000000, realisasi: 1200000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '5.1.1.02.01', uraian: 'Tambahan Penghasilan Berdasarkan Beban Kerja', anggaran: 2000000000, realisasi: 1000000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '5.1.1.02.04', uraian: 'Tambahan Penghasilan Berdasarkan Kelangkaan Profesi', anggaran: 500000000, realisasi: 200000000, r2023: 0 },
+                { type: 'detail', level: 2, kode: '5.1.2', uraian: 'Belanja Bunga', anggaran: 500000000, realisasi: 200000000, r2023: 0 },
+                { type: 'detail', level: 3, kode: '5.1.2.01', uraian: 'Bunga Utang Pinjaman', anggaran: 500000000, realisasi: 200000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '5.1.2.01.01', uraian: 'Bunga Utang Pinjaman kepada Pemerintah Pusat', anggaran: 300000000, realisasi: 120000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '5.1.2.01.02', uraian: 'Bunga Utang Pinjaman kepada Pemerintah Daerah Lainnya', anggaran: 200000000, realisasi: 80000000, r2023: 0 },
+                { type: 'detail', level: 3, kode: '5.1.2.02', uraian: 'Bunga Utang Obligasi', anggaran: 0, realisasi: 0, r2023: 0 },
+                { type: 'detail', level: 4, kode: '5.1.2.02.01', uraian: 'Bunga Utang Obligasi', anggaran: 0, realisasi: 0, r2023: 0 },
+                { type: 'detail', level: 2, kode: '5.1.3', uraian: 'Belanja Subsidi', anggaran: 1000000000, realisasi: 500000000, r2023: 0 },
+                { type: 'detail', level: 3, kode: '5.1.3.01', uraian: 'Belanja Subsidi kepada Perusahaan/Lembaga', anggaran: 1000000000, realisasi: 500000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '5.1.3.01.01', uraian: 'Belanja Subsidi kepada PDAM', anggaran: 800000000, realisasi: 400000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '5.1.3.01.02', uraian: 'Belanja Subsidi kepada Lembaga Masyarakat', anggaran: 200000000, realisasi: 100000000, r2023: 0 },
+                { type: 'detail', level: 2, kode: '5.1.4', uraian: 'Belanja Hibah', anggaran: 1900000000, realisasi: 950000000, r2023: 0 },
+                { type: 'detail', level: 3, kode: '5.1.4.02', uraian: 'Belanja Hibah kepada Pemerintah Daerah Lainnya', anggaran: 500000000, realisasi: 250000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '5.1.4.02.01', uraian: 'dalam Provinsi', anggaran: 300000000, realisasi: 150000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '5.1.4.02.02', uraian: 'luar Provinsi', anggaran: 200000000, realisasi: 100000000, r2023: 0 },
+                { type: 'detail', level: 3, kode: '5.1.4.03', uraian: 'Belanja Hibah kepada Pemerintah Desa', anggaran: 1000000000, realisasi: 500000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '5.1.4.03.01', uraian: 'Pemerintah Desa', anggaran: 1000000000, realisasi: 500000000, r2023: 0 },
+                { type: 'detail', level: 3, kode: '5.1.4.06', uraian: 'Belanja Hibah kepada Kelompok/Anggota Masyarakat', anggaran: 400000000, realisasi: 200000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '5.1.4.06.01', uraian: 'Kepada Kelompok Masyarakat', anggaran: 400000000, realisasi: 200000000, r2023: 0 },
+                { type: 'detail', level: 2, kode: '5.1.5', uraian: 'Belanja Bantuan Sosial', anggaran: 1000000000, realisasi: 500000000, r2023: 0 },
+                { type: 'detail', level: 3, kode: '5.1.5.01', uraian: 'Belanja Bantuan Sosial kepada Organisasi Sosial', anggaran: 300000000, realisasi: 150000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '5.1.5.01.01', uraian: 'Organisasi Sosial Kemasyarakatan Agama', anggaran: 300000000, realisasi: 150000000, r2023: 0 },
+                { type: 'detail', level: 3, kode: '5.1.5.04', uraian: 'Belanja Bantuan kepada Partai Politik', anggaran: 700000000, realisasi: 350000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '5.1.5.04.01', uraian: 'PAN', anggaran: 100000000, realisasi: 50000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '5.1.5.04.02', uraian: 'PKB', anggaran: 100000000, realisasi: 50000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '5.1.5.04.03', uraian: 'GOLKAR', anggaran: 100000000, realisasi: 50000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '5.1.5.04.04', uraian: 'PDIP', anggaran: 100000000, realisasi: 50000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '5.1.5.04.05', uraian: 'DEMOKRAT', anggaran: 100000000, realisasi: 50000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '5.1.5.04.06', uraian: 'PKS', anggaran: 100000000, realisasi: 50000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '5.1.5.04.07', uraian: 'PBB', anggaran: 100000000, realisasi: 50000000, r2023: 0 },
+                { type: 'detail', level: 2, kode: '5.1.6', uraian: 'Belanja Bagi Hasil', anggaran: 1000000000, realisasi: 500000000, r2023: 0 },
+                { type: 'detail', level: 3, kode: '5.1.6.03', uraian: 'Belanja Bagi Hasil Pajak Daerah kepada Pemerintah Desa', anggaran: 600000000, realisasi: 300000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '5.1.6.03.01', uraian: 'Desa A', anggaran: 300000000, realisasi: 150000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '5.1.6.03.02', uraian: 'Desa B', anggaran: 300000000, realisasi: 150000000, r2023: 0 },
+                { type: 'detail', level: 3, kode: '5.1.6.05', uraian: 'Belanja Bagi Hasil Retribusi Daerah kepada Pemerintah Desa', anggaran: 400000000, realisasi: 200000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '5.1.6.05.01', uraian: 'Desa A', anggaran: 200000000, realisasi: 100000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '5.1.6.05.02', uraian: 'Desa B', anggaran: 200000000, realisasi: 100000000, r2023: 0 },
+                { type: 'detail', level: 2, kode: '5.1.7', uraian: 'Belanja Bantuan Keuangan', anggaran: 2000000000, realisasi: 1000000000, r2023: 0 },
+                { type: 'detail', level: 3, kode: '5.1.7.03', uraian: 'Belanja Bantuan Keuangan kepada Desa', anggaran: 2000000000, realisasi: 1000000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '5.1.7.03.01', uraian: 'Desa A', anggaran: 1000000000, realisasi: 500000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '5.1.7.03.02', uraian: 'Desa B', anggaran: 1000000000, realisasi: 500000000, r2023: 0 },
+                { type: 'detail', level: 2, kode: '5.1.8', uraian: 'Belanja Tidak Terduga', anggaran: 1000000000, realisasi: 0, r2023: 0 },
+                { type: 'detail', level: 3, kode: '5.1.8.01', uraian: 'Belanja Tidak Terduga', anggaran: 1000000000, realisasi: 0, r2023: 0 },
+                { type: 'detail', level: 4, kode: '5.1.8.01.01', uraian: 'Belanja Tidak Terduga', anggaran: 1000000000, realisasi: 0, r2023: 0 },
+                { type: 'total', level: 1, kode: '', uraian: 'JUMLAH BELANJA OPERASI (5.1)', anggaran: 21900000000, realisasi: 10350000000, r2023: 0 },
+
+                // 5.2 Belanja Langsung
+                { type: 'section', level: 1, kode: '5.2', uraian: 'BELANJA LANGSUNG', anggaran: 11930000000, realisasi: 1650000000, r2023: 0 },
+                { type: 'detail', level: 2, kode: '5.2.1', uraian: 'Belanja Pegawai', anggaran: 500000000, realisasi: 200000000, r2023: 0 },
+                { type: 'detail', level: 3, kode: '5.2.1.01', uraian: 'Honorarium PNS', anggaran: 500000000, realisasi: 200000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '5.2.1.01.01', uraian: 'Belanja Honorarium Panitia Pelaksana Kegiatan', anggaran: 500000000, realisasi: 200000000, r2023: 0 },
+                { type: 'detail', level: 2, kode: '5.2.2', uraian: 'Belanja Barang dan Jasa', anggaran: 2130000000, realisasi: 850000000, r2023: 0 },
+                { type: 'detail', level: 3, kode: '5.2.2.01', uraian: 'Belanja Barang dan Jasa', anggaran: 1980000000, realisasi: 790000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '5.2.2.01.01', uraian: 'Belanja Telepon', anggaran: 100000000, realisasi: 40000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '5.2.2.01.02', uraian: 'Belanja Air', anggaran: 80000000, realisasi: 30000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '5.2.2.01.03', uraian: 'Belanja Listrik', anggaran: 200000000, realisasi: 80000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '5.2.2.01.04', uraian: 'Belanja Alat Tulis Kantor', anggaran: 300000000, realisasi: 120000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '5.2.2.01.05', uraian: 'Belanja Perangko, Materai', anggaran: 50000000, realisasi: 20000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '5.2.2.01.06', uraian: 'Belanja Cetak', anggaran: 100000000, realisasi: 40000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '5.2.2.01.07', uraian: 'Belanja Sewa Rumah/Gedung', anggaran: 150000000, realisasi: 60000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '5.2.2.01.09', uraian: 'Belanja Makan Minum Rapat', anggaran: 200000000, realisasi: 80000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '5.2.2.01.11', uraian: 'Belanja Makan Minum Kegiatan', anggaran: 150000000, realisasi: 60000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '5.2.2.01.12', uraian: 'Belanja Dokumen/Administrasi Tender', anggaran: 50000000, realisasi: 20000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '5.2.2.01.14', uraian: 'Belanja Penginapan', anggaran: 100000000, realisasi: 40000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '5.2.2.01.15', uraian: 'Belanja Perjalanan Dinas', anggaran: 200000000, realisasi: 80000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '5.2.2.01.16', uraian: 'Belanja Perjalanan Dinas Luar Daerah', anggaran: 150000000, realisasi: 60000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '5.2.2.07.04', uraian: 'Sewa Rumah Kontrakan Tugas Belajar', anggaran: 50000000, realisasi: 20000000, r2023: 0 },
+                { type: 'detail', level: 4, kode: '5.2.2.16.03', uraian: 'Belanja Beasiswa Tugas Belajar S2', anggaran: 150000000, realisasi: 60000000, r2023: 0 },
+                { type: 'detail', level: 3, kode: '5.2.2.21.13', uraian: 'Belanja Jasa Konsultan Akuntansi dan Keuangan', anggaran: 150000000, realisasi: 60000000, r2023: 0 },
+                { type: 'detail', level: 2, kode: '5.2.3', uraian: 'Belanja Modal', anggaran: 9300000000, realisasi: 600000000, r2023: 0 },
+                { type: 'detail', level: 3, kode: '5.2.3.00.01', uraian: 'Belanja Modal - Tanah', anggaran: 1000000000, realisasi: 0, r2023: 0 },
+                { type: 'detail', level: 3, kode: '5.2.3.00.02', uraian: 'Belanja Modal - Peralatan & Mesin', anggaran: 2000000000, realisasi: 500000000, r2023: 0 },
+                { type: 'detail', level: 3, kode: '5.2.3.00.03', uraian: 'Belanja Modal - Gedung & Bangunan', anggaran: 3000000000, realisasi: 0, r2023: 0 },
+                { type: 'detail', level: 3, kode: '5.2.3.00.04', uraian: 'Belanja Modal - Jalan, Irigasi & Jaringan', anggaran: 2500000000, realisasi: 0, r2023: 0 },
+                { type: 'detail', level: 3, kode: '5.2.3.00.05', uraian: 'Belanja Modal - Aset Tetap Lainnya', anggaran: 500000000, realisasi: 0, r2023: 0 },
+                { type: 'detail', level: 3, kode: '5.2.3.00.12', uraian: 'Belanja Perangkat Lunak (software)', anggaran: 300000000, realisasi: 100000000, r2023: 0 },
+                { type: 'total', level: 1, kode: '', uraian: 'JUMLAH BELANJA LANGSUNG (5.2)', anggaran: 11930000000, realisasi: 1650000000, r2023: 0 },
+                { type: 'total', level: 0, kode: '', uraian: 'JUMLAH BELANJA (5)', anggaran: 33830000000, realisasi: 12000000000, r2023: 0 },
+
+                { type: 'total', level: 0, kode: '', uraian: 'SURPLUS / DEFISIT', anggaran: 10300000000, realisasi: 4965000000, r2023: 0 }
+            ];
+
+            function fmtN(v) {
+                if (v === 0 || v === null || v === undefined) return '0';
+                return Number(v).toLocaleString('id-ID');
+            }
+            function esc(t) {
+                var d = document.createElement('div');
+                d.textContent = String(t || '');
+                return d.innerHTML;
+            }
+
+            function render() {
+                var html = DATA.map(function (r) {
+                    var pct = r.anggaran > 0 ? (r.realisasi / r.anggaran * 100) : 0;
+                    var cls = r.type === 'section' ? 'r-section' : (r.type === 'total' ? 'r-total' : 'r-detail');
+                    var pad = (r.level || 0) * 14;
+                    return '<tr class="' + cls + '">' +
+                        '<td class="kode">' + esc(r.kode) + '</td>' +
+                        '<td style="padding-left:' + pad + 'px;">' + esc(r.uraian) + '</td>' +
+                        '<td class="num">' + fmtN(r.anggaran) + '</td>' +
+                        '<td class="num">' + fmtN(r.realisasi) + '</td>' +
+                        '<td class="num">' + (r.anggaran > 0 ? pct.toFixed(2) : '-') + '</td>' +
+                        '<td class="num">' + fmtN(r.r2023) + '</td>' +
+                    '</tr>';
+                }).join('');
+                document.getElementById('lraBody').innerHTML = html;
+            }
+
+            var BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+            function fmtTglIndo(s) {
+                if (!s) return '-';
+                var p = String(s).split('-');
+                return p[2] + ' ' + BULAN[parseInt(p[1], 10) - 1] + ' ' + p[0];
+            }
+
+            function toast(msg) {
+                var t = document.getElementById('toast');
+                t.textContent = msg;
+                t.classList.add('show');
+                clearTimeout(toast._t);
+                toast._t = setTimeout(function () { t.classList.remove('show'); }, 2400);
+            }
+
+            // Terapkan
+            document.getElementById('btnTerapkan').addEventListener('click', function () {
+                var a = document.getElementById('tglAwal').value;
+                var b = document.getElementById('tglAkhir').value;
+                document.getElementById('periodeText').textContent =
+                    'Periode : ' + fmtTglIndo(a) + ' Sampai ' + fmtTglIndo(b);
+                toast('Laporan diterapkan untuk periode terpilih.');
+            });
+
+            // Reset
+            document.getElementById('btnReset').addEventListener('click', function () {
+                document.getElementById('tglAwal').value = '2024-01-01';
+                document.getElementById('tglAkhir').value = '2024-03-31';
+                document.getElementById('konsolidasi').value = 'SKPD dan Unit';
+                document.getElementById('periodeText').textContent =
+                    'Periode : 01 Januari 2024 Sampai 31 Maret 2024';
+                toast('Pengaturan direset ke default.');
+            });
+
+            // Cetak dropdown
+            document.getElementById('btnCetak').addEventListener('click', function (e) {
+                e.stopPropagation();
+                document.getElementById('menuCetak').classList.toggle('open');
+            });
+            document.getElementById('menuCetak').addEventListener('click', function (e) {
+                var it = e.target.closest('.dropdown-item');
+                if (!it) return;
+                var act = it.getAttribute('data-act');
+                this.classList.remove('open');
+                if (act === 'print') { window.print(); }
+                else if (act === 'pdf') { toast('Ekspor PDF (demo).'); }
+                else if (act === 'xls') { toast('Ekspor Excel (demo).'); }
+            });
+            // Tutup dropdown saat klik di luar
+            document.addEventListener('click', function (e) {
+                if (!e.target.closest('.dropdown')) {
+                    document.querySelectorAll('.dropdown-menu.open').forEach(function (m) { m.classList.remove('open'); });
+                }
+            });
+
+            // Import
+            document.getElementById('btnImport').addEventListener('click', function () {
+                toast('Import data (demo).');
+            });
+
+            // Sidebar submenu toggle
+            document.getElementById('sideLinkToApprove').addEventListener('click', function (e) {
+                e.preventDefault();
+                document.getElementById('sideGroupToApprove').classList.toggle('open');
+                document.getElementById('sideSubToApprove').classList.toggle('open');
+            });
+            document.getElementById('sideLinkKeuangan').addEventListener('click', function (e) {
+                e.preventDefault();
+                document.getElementById('sideGroupKeuangan').classList.toggle('open');
+                document.getElementById('sideSubKeuangan').classList.toggle('open');
+            });
+
+            render();
+        })();
+    </script>
+</body>
+</html>
