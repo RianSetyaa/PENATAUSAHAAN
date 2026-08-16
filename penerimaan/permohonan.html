@@ -256,11 +256,6 @@
                         <label for="bank">Bank</label>
                         <select id="bank" class="form-control" required>
                             <option value="">Pilih salah satu bank disini ...</option>
-                            <option value="Bank Rakyat Indonesia (BRI)">Bank Rakyat Indonesia (BRI)</option>
-                            <option value="Bank Mandiri">Bank Mandiri</option>
-                            <option value="Bank Negara Indonesia (BNI)">Bank Negara Indonesia (BNI)</option>
-                            <option value="Bank Tabungan Negara (BTN)">Bank Tabungan Negara (BTN)</option>
-                            <option value="Bank BJB">Bank BJB</option>
                         </select>
                     </div>
 
@@ -285,6 +280,7 @@
     </div>
 
     <script src="../js/dashboard.js"></script>
+    <script src="../js/daftar-bank.js"></script>
     <script>
         // ==========================================
         // Halaman Permohonan - List & Modal
@@ -312,6 +308,14 @@
             // ---------- State ----------
             let allData = [];
             let currentPage = 1;
+
+            // ---------- Daftar bank (master dari github.com/riod94/list-bank-indonesia) ----------
+            (window.DAFTAR_BANK || []).forEach(function (b) {
+                const opt = document.createElement('option');
+                opt.value = b.name;
+                opt.textContent = b.name + (b.code ? ' (' + b.code + ')' : '');
+                document.getElementById('bank').appendChild(opt);
+            });
 
             // ---------- Toast ----------
             function showToast(message, type) {

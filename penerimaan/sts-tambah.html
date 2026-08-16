@@ -394,21 +394,36 @@
                 })
                 .catch(function () { /* biarkan */ });
 
-            // ---------- Daftar bank (statis) ----------
-            const BANK_LIST = [
-                'Bank Mandiri',
-                'Bank Rakyat Indonesia (BRI)',
-                'Bank Negara Indonesia (BNI)',
-                'Bank Tabungan Negara (BTN)',
-                'Bank BJB'
-            ];
+            // ---------- Bank tujuan: dari permohonan rekening yang sudah diverifikasi ----------
             const bankSelect = document.getElementById('namaBank');
-            BANK_LIST.forEach(function (bank) {
-                const opt = document.createElement('option');
-                opt.value = bank;
-                opt.textContent = bank;
-                bankSelect.appendChild(opt);
-            });
+            function loadBankVerified() {
+                bankSelect.innerHTML = '<option value="">Pilih Bank</option>';
+                fetch('../api/permohonan.php?aktif=1')
+                    .then(function (res) { return res.json(); })
+                    .then(function (data) {
+                        const verified = (data && data.success) ? (data.data || []) : [];
+                        verified.forEach(function (r) {
+                            const opt = document.createElement('option');
+                            opt.value = r.bank + '|' + (r.nomor_rekening || '');
+                            opt.textContent = r.bank + (r.nomor_rekening ? ' - ' + r.nomor_rekening : '');
+                            bankSelect.appendChild(opt);
+                        });
+                        if (verified.length === 1) {
+                            bankSelect.value = verified[0].bank + '|' + (verified[0].nomor_rekening || '');
+                            applyBank();
+                        }
+                    })
+                    .catch(function () {});
+            }
+            function applyBank() {
+                const val = bankSelect.value;
+                document.getElementById('nomorRekening').value = '';
+                if (!val) return;
+                const nomor = val.split('|')[1] || '';
+                if (nomor) document.getElementById('nomorRekening').value = nomor;
+            }
+            bankSelect.addEventListener('change', applyBank);
+            loadBankVerified();
 
             // ---------- STBP terpilih ----------
             let selectedStbp = [];
@@ -600,7 +615,7 @@
                         tanggal_acuan_dari: document.getElementById('tanggalDari').value,
                         tanggal_acuan_akhir: document.getElementById('tanggalAkhir').value,
                         mengetahui: document.getElementById('mengetahui').value,
-                        nama_bank: document.getElementById('namaBank').value,
+                        nama_bank: document.getElementById('namaBank').value.split('|')[0],
                         nomor_rekening: document.getElementById('nomorRekening').value.trim(),
                         nama_rekening: document.getElementById('namaRekening').value.trim(),
                         keterangan: document.getElementById('keterangan').value.trim(),
