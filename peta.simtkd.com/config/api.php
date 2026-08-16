@@ -10,3 +10,7 @@
 declare(strict_types=1);
 
 define('API_TOKEN', 'ce82dba3fa012a233bb69e325acc9593');
+
+// Username akun yang profilnya ditampilkan di header AKLAP (provinsi, kota, nama).
+// Sesuaikan dengan akun yang terdaftar (hasil pendaftaran).
+define('AKLAP_USERNAME', 'admin');

@@ -77,19 +77,6 @@
             max-width: 220px; cursor: pointer; margin-bottom: 2px;
         }
         .region-select option { color: #1f2937; }
-        .pw-wrap { position: relative; }
-        .pw-region { margin-bottom: 2px; }
-        .region-input { width: 200px; }
-        .pw-list {
-            display: none; position: absolute; top: calc(100% + 4px); right: 0; z-index: 90;
-            background: #fff; border: 1px solid var(--border); border-radius: 8px;
-            box-shadow: 0 8px 24px rgba(0,0,0,.18); max-height: 240px; overflow-y: auto;
-            padding: 5px; min-width: 240px; text-align: left;
-        }
-        .pw-list.open { display: block; }
-        .pw-item { padding: 8px 10px; font-size: 12.5px; cursor: pointer; border-radius: 6px; color: var(--text); }
-        .pw-item:hover { background: #eef2f9; color: var(--navy); }
-        .pw-empty { padding: 8px 10px; font-size: 12px; color: #94a3b8; }
 
         /* ---------- Body layout ---------- */
         .body-wrap { display: flex; flex: 1; min-height: 0; }
@@ -258,19 +245,12 @@
         </div>
         <div class="topbar-right">
             <div class="region">
-                <select id="provWilayah" class="region-select">
-                    <option value="">-- Pilih Provinsi --</option>
-                </select>
-                <div class="pw-wrap pw-region">
-                    <input type="text" id="kotaWilayahInput" class="region-select region-input" placeholder="Kota/Kabupaten..." autocomplete="off">
-                    <input type="hidden" id="kotaWilayah" value="">
-                    <div class="pw-list" id="kotaWilayahList"></div>
-                </div>
-                <span>Tahun Anggaran 2024</span>
+                <b id="regionProvinsi">-</b>
+                <span id="regionKota">-</span>
             </div>
             <div class="topbar-user">
-                <div class="avatar">H</div>
-                <span style="font-size:13px;">HASMIATI</span>
+                <div class="avatar" id="regionAvatar">?</div>
+                <span id="regionNama" style="font-size:13px;">-</span>
             </div>
         </div>
     </header>
@@ -409,18 +389,26 @@
     <div id="toast"></div>
 
     <script src="js/config.js"></script>
-    <script src="js/daftar-kota.js"></script>
-    <script src="js/pilih-wilayah.js"></script>
     <script>
-        // Wilayah: pilih Provinsi -> Kota (cascading + searchable)
-        initPilihWilayah({
-            provinsiId: 'provWilayah',
-            kotaId: 'kotaWilayah',
-            kotaInputId: 'kotaWilayahInput',
-            kotaListId: 'kotaWilayahList',
-            defaultProvinsi: 'Sulawesi Barat',
-            defaultKota: 'Kabupaten Mamuju'
-        });
+        // Profil akun dari database (pendaftaran) - tanpa dropdown
+        (function () {
+            function set(txt, id) { var el = document.getElementById(id); if (el) el.textContent = (txt && txt !== '') ? txt : '-'; }
+            var url = SIMTKD_API.endpoint + '?token=' + encodeURIComponent(SIMTKD_API.token) + '&action=profil';
+            fetch(url)
+                .then(function (res) { return res.json(); })
+                .then(function (d) {
+                    if (!(d && d.success) || !d.user) return;
+                    var u = d.user;
+                    set(u.provinsi, 'regionProvinsi');
+                    set(u.kota ? ('Kota/Kab: ' + u.kota) : '', 'regionKota');
+                    var nama = u.nama || u.username || '';
+                    set(nama, 'regionNama');
+                    var init = nama.trim().charAt(0).toUpperCase() || '?';
+                    var av = document.getElementById('regionAvatar');
+                    if (av) av.textContent = init;
+                })
+                .catch(function () {});
+        })();
     </script>
     <script>
         (function () {

@@ -130,6 +130,28 @@ if ($action === 'lra_rekap') {
 }
 
 // ============================================
+// 2b. Profil akun AKLAP (dari data pendaftaran)
+// ============================================
+if ($action === 'profil') {
+    $stmt = $pdo->prepare("SELECT nama_lengkap, username, instansi, kota, provinsi, peran FROM users WHERE username = ? LIMIT 1");
+    $stmt->execute([AKLAP_USERNAME]);
+    $u = $stmt->fetch();
+    if (!$u) {
+        echo json_encode(['success' => false, 'message' => 'Akun AKLAP tidak ditemukan.'], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+    echo json_encode(['success' => true, 'user' => [
+        'nama'      => (string) ($u['nama_lengkap'] ?? ''),
+        'username'  => (string) ($u['username'] ?? ''),
+        'instansi'  => (string) ($u['instansi'] ?? ''),
+        'kota'      => (string) ($u['kota'] ?? ''),
+        'provinsi'  => (string) ($u['provinsi'] ?? ''),
+        'peran'     => (string) ($u['peran'] ?? ''),
+    ]], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+// ============================================
 // 3. Rekap ringkasan (untuk dashboard/index)
 // ============================================
 if ($action === 'rekap') {
