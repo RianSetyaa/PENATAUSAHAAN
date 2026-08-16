@@ -11,9 +11,9 @@ declare(strict_types=1);
 // Konfigurasi database
 // >>> PRODUKSI (cPanel) <<<
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'simtkd');
-define('DB_USER', 'root');
-define('DB_PASS', '');
+define('DB_NAME', 'simtkdco_sipd');
+define('DB_USER', 'simtkdco_user');
+define('DB_PASS', '@Admin21345');
 
 // Cegah akses langsung ke file ini
 if (basename($_SERVER['PHP_SELF'] ?? '') === 'db.php') {
