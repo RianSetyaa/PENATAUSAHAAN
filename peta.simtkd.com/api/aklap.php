@@ -57,10 +57,9 @@ if ($action === 'jurnal') {
     $st->execute($stParams);
     $st = $st->fetchAll();
     foreach ($st as $r) {
-        $status = 'Belum Approve';
-        if (in_array($r['status'], ['sudah_diverifikasi', 'sudah_diotorisasi', 'sudah_divalidasi'], true)) {
-            $status = 'Sudah Approve';
-        }
+        // Persetujuan jurnal tersimpan di DB (jurnal_status) - TIDAK client-side.
+        $jstat = (string) ($r['jurnal_status'] ?? 'belum_approve');
+        $status = ($jstat === 'sudah_approve') ? 'Sudah Approve' : (($jstat === 'ditolak') ? 'Ditolak' : 'Belum Approve');
         $rows[] = [
             'no'        => 'JRN-' . ($r['nomor_stbp'] ?: 'STBP-' . $r['id']),
             'dok'       => $r['nomor_stbp'] ?: '',
@@ -69,6 +68,7 @@ if ($action === 'jurnal') {
             'nilai'     => (float) ($r['jumlah'] ?? 0),
             'ket'       => $r['uraian'] ?: '',
             'status'    => $status,
+            'jurnal_status' => $jstat,
             'transaksi' => 'Penerimaan',
             'sumber'    => 'stbp',
             'id'        => (int) $r['id'],
@@ -87,6 +87,8 @@ if ($action === 'jurnal') {
     $st2->execute($st2Params);
     $st2 = $st2->fetchAll();
     foreach ($st2 as $r) {
+        $jstat = (string) ($r['jurnal_status'] ?? 'belum_approve');
+        $status = ($jstat === 'sudah_approve') ? 'Sudah Approve' : (($jstat === 'ditolak') ? 'Ditolak' : 'Belum Approve');
         $rows[] = [
             'no'        => 'JRN-' . ($r['nomor_sts'] ?: 'STS-' . $r['id']),
             'dok'       => $r['nomor_sts'] ?: '',
@@ -94,7 +96,8 @@ if ($action === 'jurnal') {
             'tglAkhir'  => $r['tanggal_acuan_akhir'] ?: ($r['tanggal_sts'] ?: ''),
             'nilai'     => (float) ($r['total'] ?? 0),
             'ket'       => $r['keterangan'] ?: '',
-            'status'    => 'Belum Approve',
+            'status'    => $status,
+            'jurnal_status' => $jstat,
             'transaksi' => 'Penyetoran',
             'sumber'    => 'sts',
             'id'        => (int) $r['id'],
@@ -118,11 +121,59 @@ if ($action === 'jurnal') {
 }
 
 // ============================================
+// 1b. Approve / Reject jurnal (persisten, multi-tenant)
+// ============================================
+if ($action === 'approve' || $action === 'reject') {
+    $newStatus = ($action === 'approve') ? 'sudah_approve' : 'ditolak';
+    $items = $_GET['items'] ?? $_POST['items'] ?? '';
+    $arr = [];
+    if (is_array($items)) {
+        $arr = $items;
+    } elseif (is_string($items) && trim($items) !== '') {
+        $arr = explode(',', (string) $items);
+    }
+    if (count($arr) === 0) {
+        http_response_code(422);
+        echo json_encode(['success' => false, 'message' => 'Tidak ada jurnal yang dipilih.'], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+    $updated = 0;
+    foreach ($arr as $item) {
+        $item = trim((string) $item);
+        if ($item === '') continue;
+        $parts = explode(':', $item, 2);
+        $sumber = strtolower((string) ($parts[0] ?? ''));
+        $id = (int) ($parts[1] ?? 0);
+        if ($id <= 0) continue;
+        if ($sumber === 'sts') {
+            $table = 'sts';
+            $statusCond = "status = 'aktif'";
+        } else {
+            $table = 'stbp';
+            $statusCond = "status = 'sudah_divalidasi'";
+        }
+        $sql = "UPDATE {$table} SET jurnal_status = ? WHERE id = ? AND {$statusCond}";
+        $params = [$newStatus, $id];
+        if ($skpdUser !== '') { $sql .= " AND skpd = ?"; $params[] = $skpdUser; }
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        $updated += $stmt->rowCount();
+    }
+    echo json_encode([
+        'success' => true,
+        'message' => ($newStatus === 'sudah_approve' ? $updated . ' jurnal di-approve.' : $updated . ' jurnal ditolak.'),
+        'updated' => $updated,
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+// ============================================
 // 2. LRA - realisasi per akun (dari STBP) + pagu (dari kegiatan)
 // ============================================
 if ($action === 'lra_rekap') {
     $realisasiByAkun = [];
-    $stSql    = "SELECT akun_kode, SUM(jumlah) AS total FROM stbp WHERE status != 'dihapus' AND akun_kode <> ''";
+    // Laporan keuangan (LRA) hanya memakai jurnal yang SUDAH di-approve
+    $stSql    = "SELECT akun_kode, SUM(jumlah) AS total FROM stbp WHERE status != 'dihapus' AND akun_kode <> '' AND jurnal_status = 'sudah_approve'";
     $stParams = [];
     if ($skpdUser !== '') { $stSql .= " AND skpd = ?"; $stParams[] = $skpdUser; }
     $stSql .= " GROUP BY akun_kode";
@@ -184,7 +235,7 @@ if ($action === 'rekap') {
             'kegiatan'     => $count('kegiatan', $skpdCond),
             'akun'         => $count('akun_penerimaan', $skpdCond),
             'total_pagu'   => (float) $pdo->query("SELECT COALESCE(SUM(pagu),0) FROM kegiatan WHERE {$skpdCond}")->fetchColumn(),
-            'total_penerimaan' => (float) $pdo->query("SELECT COALESCE(SUM(jumlah),0) FROM stbp WHERE status != 'dihapus' AND {$skpdCond}")->fetchColumn(),
+            'total_penerimaan' => (float) $pdo->query("SELECT COALESCE(SUM(jumlah),0) FROM stbp WHERE status != 'dihapus' AND jurnal_status = 'sudah_approve' AND {$skpdCond}")->fetchColumn(),
         ],
     ], JSON_UNESCAPED_UNICODE);
     exit;

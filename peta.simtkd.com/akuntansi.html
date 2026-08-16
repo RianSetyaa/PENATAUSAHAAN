@@ -572,18 +572,32 @@
                 if (cb) { cb.checked = false; cb.disabled = true; }
             }
 
-            // Approve massal (baris yang dicentang)
+            // Approve/Reject ke server (persisten, bukan client-side) lalu muat ulang
+            function callApprove(items, act) {
+                var action = act === 'reject' ? 'reject' : 'approve';
+                var url = SIMTKD_API.endpoint + '?token=' + encodeURIComponent(SIMTKD_API.getToken()) +
+                          '&action=' + action + '&items=' + encodeURIComponent(items.join(','));
+                fetch(url)
+                    .then(function (res) { return res.json(); })
+                    .then(function (d) {
+                        toast((d && d.message) || (d && d.success ? 'Berhasil.' : 'Gagal.'));
+                        if (d && d.success) loadData();
+                    })
+                    .catch(function () { toast('Gagal terhubung ke server API.'); });
+            }
+
+            // Approve massal (baris yang dicentang) - tersimpan di server
             document.getElementById('btnApprove').addEventListener('click', function () {
                 var checks = tbody.querySelectorAll('.row-check:checked');
                 if (!checks.length) { toast('Pilih minimal satu jurnal yang belum di-approve.'); return; }
-                var n = 0;
+                var items = [];
                 checks.forEach(function (c) {
                     var tr = c.closest('tr');
                     var no = tr.children[1].textContent;
-                    setRowStatus(tr, no, 'Sudah Approve');
-                    n++;
+                    var d = DATA.filter(function (x) { return x.no === no; })[0];
+                    if (d) items.push(d.sumber + ':' + d.id);
                 });
-                toast(n + ' jurnal berhasil di-approve.');
+                callApprove(items, 'approve');
             });
 
             // Check all
@@ -636,12 +650,9 @@
                     var tr = item.closest('tr');
                     var no = tr.children[1].textContent;
                     var act = item.getAttribute('data-act');
-                    if (act === 'approve') {
-                        setRowStatus(tr, no, 'Sudah Approve');
-                        toast('Jurnal "' + no + '" berhasil di-approve.');
-                    } else if (act === 'reject') {
-                        setRowStatus(tr, no, 'Ditolak');
-                        toast('Jurnal "' + no + '" ditolak (reject).');
+                    if (act === 'approve' || act === 'reject') {
+                        var d = DATA.filter(function (x) { return x.no === no; })[0];
+                        if (d) callApprove([d.sumber + ':' + d.id], act);
                     } else if (act === 'lihat') {
                         toast('Lihat jurnal "' + no + '".');
                     }
