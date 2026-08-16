@@ -4,254 +4,557 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SIM-TKD - Sistem Informasi Manajemen Tata Kelola Daerah</title>
-    <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* ============ Laman Utama (Landing) ============ */
-        .welcome-panel {
+        :root {
+            --primary: #16325c;
+            --primary-dark: #0d2140;
+            --primary-light: #23477e;
+            --accent: #f5b301;
+            --accent-soft: #fff6dd;
+            --ink: #1e293b;
+            --muted: #64748b;
+            --soft: #f4f7fc;
+            --line: #e5ebf4;
+            --radius: 16px;
+            --shadow: 0 12px 40px rgba(13, 33, 64, 0.10);
+            --shadow-lg: 0 24px 60px rgba(13, 33, 64, 0.16);
+            --grad: linear-gradient(135deg, #16325c 0%, #1d3a6e 45%, #2c5aa0 100%);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            color: var(--ink);
             background: #ffffff;
-            border-radius: var(--radius);
-            box-shadow: 0 8px 32px rgba(26, 58, 107, 0.12);
-            overflow: hidden;
-            margin-top: 32px;
-        }
-
-        .welcome-head {
-            text-align: center;
-            padding: 38px 32px 8px;
-        }
-
-        .welcome-head i {
-            font-size: 46px;
-            color: var(--primary);
-            margin-bottom: 10px;
-            display: inline-block;
-        }
-
-        .welcome-head h2 {
-            font-size: 24px;
-            color: var(--primary-dark);
-            margin: 0 0 8px;
-        }
-
-        .welcome-head p {
-            color: var(--text-secondary);
-            font-size: 14px;
-            max-width: 640px;
-            margin: 0 auto;
             line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
         }
 
-        .welcome-features {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 16px;
-            padding: 28px 32px;
-        }
+        a { text-decoration: none; color: inherit; }
+        ul { list-style: none; }
+        img { max-width: 100%; display: block; }
 
-        .feature-card {
-            background: #f7f9fc;
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 22px 18px;
-            text-align: center;
-            transition: all var(--transition);
-        }
+        .container { width: min(1160px, 92%); margin: 0 auto; }
 
-        .feature-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 6px 18px rgba(26, 58, 107, 0.12);
-            border-color: var(--primary);
+        /* ============ BUTTONS ============ */
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+            font-weight: 700; font-size: 14.5px; border-radius: 12px; cursor: pointer;
+            padding: 12px 22px; border: 1.5px solid transparent; transition: all .25s ease;
+            white-space: nowrap;
         }
+        .btn-lg { padding: 15px 30px; font-size: 16px; border-radius: 14px; }
+        .btn-primary { background: var(--accent); color: var(--primary-dark); box-shadow: 0 8px 22px rgba(245, 179, 1, .35); }
+        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(245, 179, 1, .45); }
+        .btn-outline { border-color: rgba(255,255,255,.55); color: #fff; background: rgba(255,255,255,.06); backdrop-filter: blur(6px); }
+        .btn-outline:hover { background: rgba(255,255,255,.16); transform: translateY(-3px); }
+        .btn-ghost { border-color: var(--line); color: var(--primary); background: #fff; }
+        .btn-ghost:hover { border-color: var(--primary); transform: translateY(-3px); box-shadow: var(--shadow); }
 
-        .feature-card i {
-            font-size: 26px;
-            color: var(--primary);
-            margin-bottom: 10px;
+        /* ============ NAVBAR ============ */
+        .navbar {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            background: rgba(255,255,255,.85); backdrop-filter: blur(14px);
+            border-bottom: 1px solid var(--line); transition: box-shadow .3s ease;
         }
+        .navbar.scrolled { box-shadow: 0 6px 24px rgba(13,33,64,.08); }
+        .nav-container { width: min(1160px, 92%); margin: 0 auto; display: flex; align-items: center; justify-content: space-between; height: 72px; }
+        .brand { display: flex; align-items: center; gap: 11px; }
+        .brand img { width: 42px; height: 42px; border-radius: 10px; }
+        .brand-text { display: flex; flex-direction: column; line-height: 1.15; }
+        .brand-text strong { font-size: 17px; color: var(--primary); letter-spacing: .5px; }
+        .brand-text small { font-size: 11px; color: var(--muted); font-weight: 600; letter-spacing: .6px; text-transform: uppercase; }
+        .nav-links { display: flex; gap: 30px; }
+        .nav-links a { font-size: 14.5px; font-weight: 600; color: var(--ink); position: relative; padding: 6px 0; transition: color .2s; }
+        .nav-links a::after { content: ""; position: absolute; left: 0; bottom: -2px; width: 0; height: 2.5px; border-radius: 2px; background: var(--accent); transition: width .25s; }
+        .nav-links a:hover { color: var(--primary); }
+        .nav-links a:hover::after { width: 100%; }
+        .nav-actions { display: flex; gap: 10px; }
+        .nav-actions .btn { padding: 10px 18px; font-size: 13.5px; border-radius: 10px; }
+        .nav-actions .btn-primary { box-shadow: none; }
+        .nav-actions .btn-outline { border-color: var(--primary); color: var(--primary); background: #fff; }
+        .nav-actions .btn-outline:hover { background: var(--accent-soft); }
+        .nav-toggle { display: none; background: none; border: none; font-size: 24px; color: var(--primary); cursor: pointer; }
 
-        .feature-card h4 {
-            font-size: 14px;
-            color: var(--primary-dark);
-            margin: 0 0 6px;
+        /* ============ HERO ============ */
+        .hero { position: relative; overflow: hidden; background: var(--grad); padding: 150px 0 90px; color: #fff; }
+        .hero::before, .hero::after { content: ""; position: absolute; border-radius: 50%; filter: blur(2px); opacity: .35; }
+        .hero::before { width: 520px; height: 520px; background: radial-gradient(circle, #3b6cb8 0%, transparent 70%); top: -180px; right: -120px; }
+        .hero::after { width: 420px; height: 420px; background: radial-gradient(circle, #f5b301 0%, transparent 70%); bottom: -180px; left: -120px; opacity: .18; }
+        .hero-grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px); background-size: 44px 44px; }
+        .hero-content { position: relative; z-index: 2; display: grid; grid-template-columns: 1.15fr .85fr; gap: 48px; align-items: center; }
+        .hero-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.22); padding: 7px 14px; border-radius: 999px; font-size: 12.5px; font-weight: 600; letter-spacing: .4px; margin-bottom: 20px; }
+        .hero h1 { font-size: clamp(34px, 5vw, 56px); line-height: 1.12; font-weight: 800; letter-spacing: -.5px; margin-bottom: 18px; }
+        .hero h1 span { color: var(--accent); }
+        .hero p { font-size: 17px; color: rgba(255,255,255,.85); max-width: 540px; margin-bottom: 30px; }
+        .hero-actions { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 34px; }
+        .hero-stats { display: flex; gap: 28px; flex-wrap: wrap; }
+        .hero-stat { display: flex; flex-direction: column; }
+        .hero-stat b { font-size: 22px; color: var(--accent); }
+        .hero-stat span { font-size: 12.5px; color: rgba(255,255,255,.7); font-weight: 500; }
+
+        /* Hero visual - mock dashboard */
+        .hero-visual { position: relative; }
+        .mock-card { background: #fff; color: var(--ink); border-radius: 18px; box-shadow: var(--shadow-lg); padding: 22px; transform: perspective(1200px) rotateY(-6deg) rotateX(2deg); transition: transform .4s ease; }
+        .mock-card:hover { transform: perspective(1200px) rotateY(0deg) rotateX(0deg); }
+        .mock-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+        .mock-head h4 { font-size: 14px; color: var(--primary); }
+        .mock-head .pill { background: #e6f6ee; color: #12835c; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 999px; }
+        .mock-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px; }
+        .mock-stat { background: var(--soft); border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
+        .mock-stat b { display: block; font-size: 18px; color: var(--primary); }
+        .mock-stat span { font-size: 11.5px; color: var(--muted); font-weight: 600; }
+        .mock-bar { height: 8px; border-radius: 6px; background: #eef2f9; overflow: hidden; margin-top: 6px; }
+        .mock-bar i { display: block; height: 100%; border-radius: 6px; background: var(--grad); }
+        .mock-list { display: flex; flex-direction: column; gap: 10px; }
+        .mock-row { display: flex; align-items: center; gap: 11px; font-size: 12.5px; }
+        .mock-dot { width: 30px; height: 30px; border-radius: 9px; background: var(--accent-soft); color: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 13px; }
+        .mock-row span { flex: 1; font-weight: 600; color: var(--ink); }
+        .mock-row em { font-style: normal; font-weight: 700; color: var(--primary); }
+        .float-chip { position: absolute; background: #fff; border-radius: 12px; box-shadow: var(--shadow); padding: 10px 14px; font-size: 12.5px; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 8px; animation: floaty 4s ease-in-out infinite; }
+        .float-chip.c1 { top: -18px; right: -6px; }
+        .float-chip.c2 { bottom: -16px; left: -10px; animation-delay: 1.6s; }
+        .float-chip i { color: var(--accent); }
+        @keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
+
+        /* ============ SECTIONS ============ */
+        .section { padding: 92px 0; }
+        .section-head { text-align: center; max-width: 640px; margin: 0 auto 48px; }
+        .section-tag { display: inline-block; background: var(--accent-soft); color: #b38300; font-weight: 700; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; padding: 6px 14px; border-radius: 999px; margin-bottom: 14px; }
+        .section-head h2 { font-size: clamp(26px, 3.4vw, 38px); color: var(--primary); letter-spacing: -.4px; margin-bottom: 12px; }
+        .section-head p { color: var(--muted); font-size: 15.5px; }
+
+        /* Features */
+        .features { background: var(--soft); }
+        .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+        .feature-card { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 28px 24px; transition: all .3s ease; position: relative; overflow: hidden; }
+        .feature-card::before { content: ""; position: absolute; inset: 0 auto auto 0; width: 100%; height: 4px; background: var(--grad); transform: scaleX(0); transform-origin: left; transition: transform .35s ease; }
+        .feature-card:hover { transform: translateY(-6px); box-shadow: var(--shadow); }
+        .feature-card:hover::before { transform: scaleX(1); }
+        .feature-icon { width: 54px; height: 54px; border-radius: 14px; background: var(--grad); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 18px; box-shadow: 0 8px 18px rgba(22,50,92,.25); }
+        .feature-card h3 { font-size: 17px; color: var(--primary); margin-bottom: 8px; }
+        .feature-card p { font-size: 13.5px; color: var(--muted); }
+
+        /* Modul band */
+        .modul-band { background: var(--grad); color: #fff; }
+        .modul-band .section-head h2 { color: #fff; }
+        .modul-band .section-head p { color: rgba(255,255,255,.75); }
+        .modul-band .section-tag { background: rgba(245,179,1,.18); color: var(--accent); }
+        .modul-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+        .modul-card { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.16); border-radius: var(--radius); padding: 26px 22px; text-align: center; transition: all .3s ease; backdrop-filter: blur(6px); }
+        .modul-card:hover { background: rgba(255,255,255,.16); transform: translateY(-6px); }
+        .modul-card i { font-size: 30px; color: var(--accent); margin-bottom: 14px; }
+        .modul-card h3 { font-size: 16px; margin-bottom: 6px; }
+        .modul-card p { font-size: 12.5px; color: rgba(255,255,255,.7); }
+
+        /* Steps */
+        .steps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; counter-reset: step; }
+        .step-card { text-align: center; padding: 10px 18px; }
+        .step-num { width: 64px; height: 64px; margin: 0 auto 18px; border-radius: 50%; background: var(--accent-soft); color: var(--primary); border: 2px dashed #e8c55a; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; }
+        .step-card h3 { font-size: 17px; color: var(--primary); margin-bottom: 8px; }
+        .step-card p { font-size: 13.5px; color: var(--muted); max-width: 260px; margin: 0 auto; }
+
+        /* About */
+        .about { background: var(--soft); }
+        .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
+        .about-copy .section-tag { margin-bottom: 14px; }
+        .about-copy h2 { font-size: clamp(24px, 3vw, 34px); color: var(--primary); margin-bottom: 16px; }
+        .about-copy p { color: var(--muted); margin-bottom: 20px; font-size: 15px; }
+        .about-list { display: flex; flex-direction: column; gap: 14px; }
+        .about-list li { display: flex; gap: 12px; align-items: flex-start; background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+        .about-list i { color: var(--accent); font-size: 17px; margin-top: 2px; }
+        .about-list b { display: block; font-size: 14.5px; color: var(--primary); }
+        .about-list span { font-size: 13px; color: var(--muted); }
+        .about-card { background: #fff; border-radius: 20px; box-shadow: var(--shadow-lg); padding: 30px; }
+        .about-card .badge-polban { display: flex; align-items: center; gap: 12px; padding-bottom: 18px; border-bottom: 1px solid var(--line); margin-bottom: 18px; }
+        .about-card .badge-polban img { width: 54px; height: 54px; border-radius: 12px; }
+        .about-card h4 { font-size: 16px; color: var(--primary); }
+        .about-card small { color: var(--muted); font-size: 12.5px; }
+        .about-card ul { display: flex; flex-direction: column; gap: 13px; }
+        .about-card ul li { display: flex; gap: 11px; font-size: 13.5px; color: var(--muted); }
+        .about-card ul i { color: var(--primary); margin-top: 3px; }
+
+        /* CTA */
+        .cta { text-align: center; padding: 80px 0; position: relative; overflow: hidden; }
+        .cta::before { content: ""; position: absolute; inset: 0; background: var(--accent-soft); z-index: -1; }
+        .cta h2 { font-size: clamp(26px, 3.4vw, 40px); color: var(--primary); margin-bottom: 14px; }
+        .cta p { color: var(--muted); font-size: 16px; margin-bottom: 30px; }
+        .cta-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+        .cta-actions .btn-primary { box-shadow: 0 10px 26px rgba(245,179,1,.4); }
+        .cta-actions .btn-ghost { border-color: var(--primary); color: var(--primary); }
+
+        /* Footer */
+        .footer { background: var(--primary-dark); color: rgba(255,255,255,.75); padding: 56px 0 30px; }
+        .footer-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 36px; margin-bottom: 40px; }
+        .footer h5 { color: #fff; font-size: 14px; margin-bottom: 16px; letter-spacing: .5px; }
+        .footer .brand { margin-bottom: 14px; }
+        .footer .brand-text strong { color: #fff; }
+        .footer .brand-text small { color: rgba(255,255,255,.55); }
+        .footer-desc { font-size: 13px; max-width: 300px; }
+        .footer ul li { margin-bottom: 10px; }
+        .footer ul a { font-size: 13.5px; color: rgba(255,255,255,.7); transition: color .2s; }
+        .footer ul a:hover { color: var(--accent); }
+        .footer-bottom { border-top: 1px solid rgba(255,255,255,.12); padding-top: 22px; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; font-size: 13px; }
+        .footer-bottom i { color: var(--accent); }
+
+        /* Reveal animation */
+        .reveal { opacity: 0; transform: translateY(26px); transition: opacity .7s ease, transform .7s ease; }
+        .reveal.visible { opacity: 1; transform: none; }
+
+        /* Responsive */
+        @media (max-width: 980px) {
+            .hero-content { grid-template-columns: 1fr; }
+            .hero-visual { max-width: 460px; }
+            .features-grid { grid-template-columns: repeat(2, 1fr); }
+            .modul-grid { grid-template-columns: repeat(2, 1fr); }
+            .about-grid { grid-template-columns: 1fr; }
+            .footer-grid { grid-template-columns: 1fr 1fr; }
         }
-
-        .feature-card p {
-            font-size: 12px;
-            color: var(--text-muted);
-            margin: 0;
-            line-height: 1.45;
-        }
-
-        .welcome-actions {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 14px;
-            padding: 6px 32px 26px;
-        }
-
-        .welcome-btn {
-            width: 180px;
-            margin-top: 0;
-            text-decoration: none;
-        }
-
-        .btn-welcome-outline {
-            width: 180px;
-            padding: 14px;
-            font-size: 15px;
-            font-weight: 700;
-            letter-spacing: 1px;
-            color: var(--primary);
-            background: #ffffff;
-            border: 2px solid var(--primary);
-            border-radius: var(--radius);
-            cursor: pointer;
-            transition: all var(--transition);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            text-decoration: none;
-        }
-
-        .btn-welcome-outline:hover {
-            background: rgba(26, 58, 107, 0.06);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 18px rgba(26, 58, 107, 0.18);
-        }
-
-        .welcome-note {
-            text-align: center;
-            font-size: 12px;
-            color: var(--text-muted);
-            padding: 0 32px 26px;
-            margin: 0;
-        }
-
-        .welcome-note i {
-            margin-right: 5px;
-            color: var(--primary);
-        }
-
-        @media (max-width: 900px) {
-            .welcome-features { grid-template-columns: repeat(2, 1fr); }
-        }
-
-        @media (max-width: 560px) {
-            .welcome-features { grid-template-columns: 1fr; }
-            .welcome-actions { flex-direction: column; }
+        @media (max-width: 760px) {
+            .nav-links, .nav-actions { display: none; }
+            .nav-toggle { display: block; }
+            .nav-links.open { display: flex; flex-direction: column; position: absolute; top: 72px; left: 0; right: 0; background: #fff; padding: 18px 6%; border-bottom: 1px solid var(--line); box-shadow: var(--shadow); gap: 16px; }
+            .nav-actions.open { display: flex; flex-direction: column; position: absolute; top: 230px; left: 0; right: 0; background: #fff; padding: 0 6% 20px; }
+            .features-grid, .modul-grid, .steps-grid { grid-template-columns: 1fr; }
+            .hero { padding: 130px 0 70px; }
         }
     </style>
 </head>
 <body>
-    <!-- Background -->
-    <div class="bg-pattern"></div>
 
-    <!-- Container Utama -->
-    <div class="main-container">
-
-        <!-- Header / Banner -->
-        <div class="header-banner">
-            <div class="header-content">
-                <div class="header-left">
-                    <div class="logo-container">
-                        <img src="img/Logo Polban.png" class="logo-polban" alt="Logo POLBAN">
-                    </div>
-                    <div class="header-text">
-                        <h1>SISTEM INFORMASI MANAJEMEN</h1>
-                        <h2>TATA KELOLA DAERAH (MODUL EDUKASI)</h2>
-                    </div>
-                </div>
-                <div class="header-right">
-                    <div class="logo-container">
-                        <img src="img/Logo Polban.png" class="logo-polban logo-polban-right" alt="Logo POLBAN">
-                    </div>
-                </div>
+    <!-- ============ NAVBAR ============ -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="#beranda" class="brand">
+                <img src="img/Logo Polban.png" alt="Logo POLBAN">
+                <span class="brand-text">
+                    <strong>SIM-TKD</strong>
+                    <small>Modul Edukasi</small>
+                </span>
+            </a>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="#beranda">Beranda</a></li>
+                <li><a href="#fitur">Fitur</a></li>
+                <li><a href="#modul">Modul</a></li>
+                <li><a href="#tentang">Tentang</a></li>
+            </ul>
+            <div class="nav-actions" id="navActions">
+                <a href="login.html" class="btn btn-outline"><i class="fas fa-sign-in-alt"></i> Masuk</a>
+                <a href="daftar.html" class="btn btn-primary"><i class="fas fa-user-plus"></i> Daftar</a>
             </div>
+            <button class="nav-toggle" id="navToggle"><i class="fas fa-bars"></i></button>
         </div>
+    </nav>
 
-        <!-- Panel Selamat Datang -->
-        <div class="welcome-panel">
-            <div class="welcome-head">
-                <i class="fas fa-university"></i>
-                <h2>Selamat Datang di SIM-TKD</h2>
+    <!-- ============ HERO ============ -->
+    <header class="hero" id="beranda">
+        <div class="hero-grid"></div>
+        <div class="container hero-content">
+            <div class="hero-copy">
+                <span class="hero-badge"><i class="fas fa-university"></i> Politeknik Negeri Bandung · Jurusan Akuntansi</span>
+                <h1>Sistem Informasi Manajemen <br><span>Tata Kelola Daerah</span></h1>
                 <p>
-                    Sistem Informasi Manajemen Tata Kelola Daerah (Modul Edukasi) —
-                    aplikasi penatausahaan keuangan daerah berbasis SIPD/AKLAP
-                    untuk pengelolaan Penerimaan, Belanja, Akuntansi, dan Pelaporan.
+                    SIM-TKD merupakan modul edukasi penatausahaan keuangan daerah berbasis SIPD/AKLAP.
+                    Kelola <b>Penerimaan</b>, <b>Belanja</b>, <b>Akuntansi</b>, dan <b>Pelaporan</b>
+                    dalam satu aplikasi yang mudah digunakan.
                 </p>
+                <div class="hero-actions">
+                    <a href="login.html" class="btn btn-primary btn-lg"><i class="fas fa-sign-in-alt"></i> Masuk Aplikasi</a>
+                    <a href="daftar.html" class="btn btn-outline btn-lg"><i class="fas fa-user-plus"></i> Buat Akun</a>
+                </div>
+                <div class="hero-stats">
+                    <div class="hero-stat"><b>4+</b><span>Modul Utama</span></div>
+                    <div class="hero-stat"><b>12</b><span>Jenis Pendapatan</span></div>
+                    <div class="hero-stat"><b>78+</b><span>Rekening Akun</span></div>
+                    <div class="hero-stat"><b>100%</b><span>Modul Edukasi</span></div>
+                </div>
             </div>
 
-            <div class="welcome-features">
-                <div class="feature-card">
+            <div class="hero-visual">
+                <div class="mock-card">
+                    <div class="mock-head">
+                        <h4><i class="fas fa-th-large" style="margin-right:8px;"></i>Ringkasan APBD</h4>
+                        <span class="pill"><i class="fas fa-check-circle"></i> Aktif</span>
+                    </div>
+                    <div class="mock-stats">
+                        <div class="mock-stat">
+                            <b>Rp 2,4 M</b><span>Pagu Anggaran</span>
+                            <div class="mock-bar"><i style="width:74%;"></i></div>
+                        </div>
+                        <div class="mock-stat">
+                            <b>Rp 1,6 M</b><span>Realisasi</span>
+                            <div class="mock-bar"><i style="width:58%;"></i></div>
+                        </div>
+                    </div>
+                    <div class="mock-list">
+                        <div class="mock-row"><span class="mock-dot"><i class="fas fa-arrow-down"></i></span><span>Penerimaan STBP</span><em>Rp 850 rb</em></div>
+                        <div class="mock-row"><span class="mock-dot"><i class="fas fa-arrow-up"></i></span><span>Belanja SPP</span><em>Rp 420 rb</em></div>
+                        <div class="mock-row"><span class="mock-dot"><i class="fas fa-book"></i></span><span>Jurnal Approve</span><em>12</em></div>
+                    </div>
+                </div>
+                <div class="float-chip c1"><i class="fas fa-check-circle"></i> Data Real-time</div>
+                <div class="float-chip c2"><i class="fas fa-shield-alt"></i> Aman &amp; Multi-Dinas</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ============ FITUR ============ -->
+    <section class="section features" id="fitur">
+        <div class="container">
+            <div class="section-head reveal">
+                <span class="section-tag">Fitur Unggulan</span>
+                <h2>Kelola Penatausahaan Daerah Lebih Mudah</h2>
+                <p>Fitur lengkap yang dirancang menyerupai sistem SIPD/AKLAP untuk mendukung pembelajaran akuntansi pemerintahan.</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card reveal">
+                    <div class="feature-icon"><i class="fas fa-arrow-down"></i></div>
+                    <h3>Penerimaan</h3>
+                    <p>Kelola permohonan rekening, pembuatan STBP, STS, dan BKU Penerimaan secara terstruktur.</p>
+                </div>
+                <div class="feature-card reveal">
+                    <div class="feature-icon"><i class="fas fa-arrow-up"></i></div>
+                    <h3>Belanja</h3>
+                    <p>Kelola pengeluaran daerah melalui mekanisme SPP/SPM dengan pencatatan yang rapi.</p>
+                </div>
+                <div class="feature-card reveal">
+                    <div class="feature-icon"><i class="fas fa-book"></i></div>
+                    <h3>Akuntansi</h3>
+                    <p>Proses jurnal approve (Anggaran, Pendapatan, Belanja, hingga Penutup) dan laporan keuangan.</p>
+                </div>
+                <div class="feature-card reveal">
+                    <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+                    <h3>Pelaporan</h3>
+                    <p>Sajikan Laporan Realisasi Anggaran (LRA) dan laporan lainnya siap cetak A4 landscape.</p>
+                </div>
+                <div class="feature-card reveal">
+                    <div class="feature-icon"><i class="fas fa-cogs"></i></div>
+                    <h3>Konfigurasi OPD</h3>
+                    <p>Atur akun penerimaan tiap dinas dengan metode input pilihan (harian, bulanan, per wajib).</p>
+                </div>
+                <div class="feature-card reveal">
+                    <div class="feature-icon"><i class="fas fa-users-cog"></i></div>
+                    <h3>Multi-Dinas</h3>
+                    <p>Setiap dinas/OPD memiliki data terpisah dan aman berkat pemisahan data antar instansi.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ MODUL ============ -->
+    <section class="section modul-band" id="modul">
+        <div class="container">
+            <div class="section-head reveal">
+                <span class="section-tag">Modul Aplikasi</span>
+                <h2>Empat Pilar Penatausahaan Daerah</h2>
+                <p>Alur kerja mengikuti standar penatausahaan keuangan daerah dari penerimaan hingga pelaporan.</p>
+            </div>
+            <div class="modul-grid">
+                <a href="login.html" class="modul-card reveal">
                     <i class="fas fa-arrow-down"></i>
-                    <h4>Penerimaan</h4>
-                    <p>Permohonan rekening, STBP, STS, dan BKU Penerimaan.</p>
-                </div>
-                <div class="feature-card">
+                    <h3>Penerimaan</h3>
+                    <p>STBP, STS, permohonan rekening, dan BKU penerimaan</p>
+                </a>
+                <a href="login.html" class="modul-card reveal">
                     <i class="fas fa-arrow-up"></i>
-                    <h4>Belanja</h4>
-                    <p>Pengelolaan pengeluaran daerah (SPP/SPM).</p>
-                </div>
-                <div class="feature-card">
+                    <h3>Belanja</h3>
+                    <p>SPP/SPM dan pengelolaan pengeluaran daerah</p>
+                </a>
+                <a href="login.html" class="modul-card reveal">
                     <i class="fas fa-book"></i>
-                    <h4>Akuntansi</h4>
-                    <p>Jurnal Approve dan Laporan Realisasi Anggaran.</p>
-                </div>
-                <div class="feature-card">
+                    <h3>Akuntansi</h3>
+                    <p>Jurnal approve dan laporan keuangan (AKLAP)</p>
+                </a>
+                <a href="login.html" class="modul-card reveal">
                     <i class="fas fa-chart-line"></i>
-                    <h4>Pelaporan</h4>
-                    <p>Laporan realisasi dan laporan keuangan daerah.</p>
+                    <h3>Pelaporan</h3>
+                    <p>LRA dan laporan realisasi anggaran siap cetak</p>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ CARA MENGGUNAKAN ============ -->
+    <section class="section">
+        <div class="container">
+            <div class="section-head reveal">
+                <span class="section-tag">Cara Menggunakan</span>
+                <h2>Tiga Langkah Mudah</h2>
+                <p>Mulai belajar penatausahaan keuangan daerah dengan cepat.</p>
+            </div>
+            <div class="steps-grid">
+                <div class="step-card reveal">
+                    <div class="step-num">1</div>
+                    <h3>Daftar &amp; Masuk</h3>
+                    <p>Buat akun pengguna, lalu masuk menggunakan username, password, dan tahun anggaran.</p>
+                </div>
+                <div class="step-card reveal">
+                    <div class="step-num">2</div>
+                    <h3>Kelola Transaksi</h3>
+                    <p>Atur akun penerimaan, buat STBP/STS, dan proses jurnal sesuai alur penatausahaan.</p>
+                </div>
+                <div class="step-card reveal">
+                    <div class="step-num">3</div>
+                    <h3>Lihat Laporan</h3>
+                    <p>Pantau BKU, LRA, dan laporan keuangan lainnya — siap dicetak dan diekspor.</p>
                 </div>
             </div>
-
-            <div class="welcome-actions">
-                <a href="login.html" class="btn-login welcome-btn">
-                    <i class="fas fa-sign-in-alt"></i> MASUK
-                </a>
-                <a href="daftar.html" class="btn-welcome-outline">
-                    <i class="fas fa-user-plus"></i> DAFTAR
-                </a>
-            </div>
-
-            <p class="welcome-note">
-                <i class="fas fa-info-circle"></i>
-                Sudah memiliki akun? Klik <b>Masuk</b>. Jika sesi Anda aktif, Anda akan dialihkan otomatis ke dashboard.
-            </p>
         </div>
+    </section>
 
-        <!-- Footer -->
-        <div class="panel-footer">
-            <div class="footer-links">
-                <a href="#"><i class="fas fa-question-circle"></i> Bantuan</a>
-                <span class="separator">|</span>
-                <a href="mailto:riansetya@outlook.co.id"><i class="fas fa-envelope"></i> Hubungi Admin</a>
-                <span class="separator">|</span>
-                <a href="#"><i class="fas fa-download"></i> Panduan</a>
+    <!-- ============ TENTANG ============ -->
+    <section class="section about" id="tentang">
+        <div class="container about-grid">
+            <div class="about-copy reveal">
+                <span class="section-tag">Tentang Aplikasi</span>
+                <h2>Belajar Akuntansi Pemerintahan Sesuai Standar</h2>
+                <p>
+                    SIM-TKD (Modul Edukasi) dibangun sebagai media pembelajaran penatausahaan keuangan daerah
+                    yang meniru alur kerja SIPD dan AKLAP Kementerian Dalam Negeri — mulai dari penerimaan,
+                    belanja, akuntansi, hingga pelaporan realisasi anggaran.
+                </p>
+                <ul class="about-list">
+                    <li>
+                        <i class="fas fa-check-circle"></i>
+                        <div><b>Bagan Akun Standar</b><span>Pendapatan (4.x) dan Belanja (5.x) sesuai Permendagri.</span></div>
+                    </li>
+                    <li>
+                        <i class="fas fa-check-circle"></i>
+                        <div><b>Alur Penatausahaan</b><span>Dari permohonan rekening → STBP/STS → jurnal → laporan.</span></div>
+                    </li>
+                    <li>
+                        <i class="fas fa-check-circle"></i>
+                        <div><b>Multi-Pengguna</b><span>Data terisolasi antar dinas/OPD untuk simulasi realistis.</span></div>
+                    </li>
+                </ul>
             </div>
-            <div class="footer-text">
-                <p>&copy; 2026 Politeknik Negeri Bandung</p>
-                <p>Jurusan Akuntansi</p>
+            <div class="about-card reveal">
+                <div class="badge-polban">
+                    <img src="img/Logo Polban.png" alt="Logo POLBAN">
+                    <div>
+                        <h4>Politeknik Negeri Bandung</h4>
+                        <small>Jurusan Akuntansi · Prodi Akuntansi</small>
+                    </div>
+                </div>
+                <ul>
+                    <li><i class="fas fa-graduation-cap"></i> Media pembelajaran praktik akuntansi pemerintahan daerah.</li>
+                    <li><i class="fas fa-file-invoice"></i> Berbasis modul Informasi Umum SKPKD dan Permendagri 112/2018.</li>
+                    <li><i class="fas fa-mobile-alt"></i> Tampilan responsif, ramah pengguna, tanpa framework.</li>
+                    <li><i class="fas fa-lock"></i> Keamanan sesi login, captcha, dan otorisasi pengguna.</li>
+                </ul>
             </div>
         </div>
-    </div>
+    </section>
+
+    <!-- ============ CTA ============ -->
+    <section class="cta">
+        <div class="container">
+            <h2 class="reveal">Siap Memulai Pembelajaran?</h2>
+            <p class="reveal">Masuk ke aplikasi untuk mengelola penatausahaan keuangan daerah Anda.</p>
+            <div class="cta-actions reveal">
+                <a href="login.html" class="btn btn-primary btn-lg"><i class="fas fa-sign-in-alt"></i> Masuk Sekarang</a>
+                <a href="daftar.html" class="btn btn-ghost btn-lg"><i class="fas fa-user-plus"></i> Daftar Akun</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ FOOTER ============ -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div>
+                    <a href="#beranda" class="brand">
+                        <img src="img/Logo Polban.png" alt="Logo POLBAN">
+                        <span class="brand-text">
+                            <strong>SIM-TKD</strong>
+                            <small>Modul Edukasi</small>
+                        </span>
+                    </a>
+                    <p class="footer-desc">
+                        Sistem Informasi Manajemen Tata Kelola Daerah (Modul Edukasi)
+                        — media pembelajaran penatausahaan keuangan daerah berbasis SIPD/AKLAP.
+                    </p>
+                </div>
+                <div>
+                    <h5>Navigasi</h5>
+                    <ul>
+                        <li><a href="#beranda">Beranda</a></li>
+                        <li><a href="#fitur">Fitur</a></li>
+                        <li><a href="#modul">Modul</a></li>
+                        <li><a href="#tentang">Tentang</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h5>Akses</h5>
+                    <ul>
+                        <li><a href="login.html">Masuk Aplikasi</a></li>
+                        <li><a href="daftar.html">Daftar Akun</a></li>
+                        <li><a href="#">Panduan Pengguna</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h5>Kontak</h5>
+                    <ul>
+                        <li><a href="mailto:riansetya@outlook.co.id"><i class="fas fa-envelope"></i> riansetya@outlook.co.id</a></li>
+                        <li><a href="#"><i class="fas fa-question-circle"></i> Bantuan</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <span>&copy; 2026 Politeknik Negeri Bandung · Jurusan Akuntansi</span>
+                <span>Dibuat dengan <i class="fas fa-heart"></i> untuk pembelajaran</span>
+            </div>
+        </div>
+    </footer>
 
     <script>
         // ==========================================
-        // Laman Utama - redirect otomatis ke dashboard
-        // bila pengguna sudah login (sesi aktif).
+        // Laman Utama SIM-TKD
+        // 1) Redirect otomatis ke dashboard bila sesi aktif
+        // 2) Navbar shadow saat scroll
+        // 3) Menu mobile
+        // 4) Animasi reveal saat scroll
         // ==========================================
         (function () {
+            // 1) Redirect otomatis bila sudah login
             fetch('api/session.php')
                 .then(function (res) { return res.json(); })
                 .then(function (d) {
-                    if (d && d.success) {
-                        window.location.replace('dashboard/dashboard.html');
-                    }
+                    if (d && d.success) window.location.replace('dashboard/dashboard.html');
                 })
                 .catch(function () { /* bukan via server -> tampilkan landing */ });
+
+            // 2) Navbar shadow
+            var navbar = document.getElementById('navbar');
+            function onScroll() { navbar.classList.toggle('scrolled', window.scrollY > 20); }
+            window.addEventListener('scroll', onScroll);
+            onScroll();
+
+            // 3) Menu mobile
+            var toggle = document.getElementById('navToggle');
+            var links = document.getElementById('navLinks');
+            var actions = document.getElementById('navActions');
+            toggle.addEventListener('click', function () {
+                links.classList.toggle('open');
+                actions.classList.toggle('open');
+            });
+
+            // 4) Reveal on scroll
+            var reveals = document.querySelectorAll('.reveal');
+            if ('IntersectionObserver' in window) {
+                var io = new IntersectionObserver(function (entries) {
+                    entries.forEach(function (en) {
+                        if (en.isIntersecting) { en.target.classList.add('visible'); io.unobserve(en.target); }
+                    });
+                }, { threshold: 0.12 });
+                reveals.forEach(function (el) { io.observe(el); });
+            } else {
+                reveals.forEach(function (el) { el.classList.add('visible'); });
+            }
         })();
     </script>
 </body>
