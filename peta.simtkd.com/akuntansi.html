@@ -433,19 +433,13 @@
 
     <div id="toast"></div>
 
+    <script src="js/config.js"></script>
     <script>
         (function () {
             'use strict';
 
-            var DATA = [
-                // 1. Penerimaan (dari STBP - kode dokumen 41.0)
-                { no: 'JRN-2024-03-000006', dok: '76.00/41.0/000006/2.19.0.00.0.00.01.0000/4/2024', tgl: '2024-03-08', tglAkhir: '2024-03-08', nilai: 100000, ket: 'Penerimaan Sumbangan Pihak Ketiga dari CV.Hotel Berkah pada Dinas Kepemudaan dan Olahraga Prov.Sulbar', status: 'Belum Approve', transaksi: 'Penerimaan' },
-                { no: 'JRN-2024-03-000008', dok: '76.00/41.0/000007/2.19.0.00.0.00.01.0000/4/2024', tgl: '2024-03-18', tglAkhir: '2024-03-18', nilai: 350000, ket: 'Penerimaan Sumbangan Pihak Ketiga dari Aflah Hotel dan PT. Mutira Infosarana pada Dinas Kepemudaan dan Olahraga Prov.Sulbar', status: 'Belum Approve', transaksi: 'Penerimaan' },
-                { no: 'JRN-2024-03-000010', dok: '76.00/41.0/000008/2.19.0.00.0.00.01.0000/4/2024', tgl: '2024-03-25', tglAkhir: '2024-03-25', nilai: 200000, ket: 'Penerimaan Retribusi Pelayanan Persampahan pada Dinas Kepemudaan dan Olahraga Prov.Sulbar', status: 'Sudah Approve', transaksi: 'Penerimaan' },
-                // 2. Penyetoran (dari STS - kode dokumen 42.0)
-                { no: 'JRN-2024-03-000007', dok: '76.00/42.0/000006/2.19.0.00.0.00.01.0000/4/2024', tgl: '2024-03-08', tglAkhir: '2024-03-08', nilai: 100000, ket: 'Setor Penerimaan Sumbangan Pihak Ketiga dari CV.Hotel Berkah pada Dinas Kepemudaan dan Olahraga Prov.Sulbar', status: 'Belum Approve', transaksi: 'Penyetoran' },
-                { no: 'JRN-2024-03-000009', dok: '76.00/42.0/000007/2.19.0.00.0.00.01.0000/4/2024', tgl: '2024-03-18', tglAkhir: '2024-03-18', nilai: 350000, ket: 'Setor Penerimaan Sumbangan Pihak Ketiga dari Aflah Hotel dan PT. Mutira Infosarana pada Dinas Kepemudaan dan Olahraga Prov.Sulbar', status: 'Belum Approve', transaksi: 'Penyetoran' }
-            ];
+            // Data diisi dari API (data asli database) - lihat loadData()
+            var DATA = [];
 
             var BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 
@@ -631,8 +625,30 @@
                 }
             });
 
+            // Muat data asli dari API (dilindungi token), lalu render
+            function loadData() {
+                var url = SIMTKD_API.endpoint + '?token=' + encodeURIComponent(SIMTKD_API.token) + '&action=jurnal';
+                fetch(url)
+                    .then(function (res) { return res.json(); })
+                    .then(function (data) {
+                        if (data && data.success) {
+                            DATA = data.data || [];
+                        } else {
+                            DATA = [];
+                            toast((data && data.message) || 'Gagal memuat data.');
+                        }
+                        applyFilter();
+                    })
+                    .catch(function () {
+                        DATA = [];
+                        toast('Gagal terhubung ke server API. Periksa token & koneksi.');
+                        applyFilter();
+                    });
+            }
+
             // Render awal: terapkan filter default (Transaksi = Penerimaan)
             applyFilter();
+            loadData();
         })();
     </script>
 </body>

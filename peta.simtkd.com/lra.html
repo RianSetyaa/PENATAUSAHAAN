@@ -387,6 +387,7 @@
 
     <div id="toast"></div>
 
+    <script src="js/config.js"></script>
     <script>
         (function () {
             'use strict';
@@ -695,7 +696,59 @@
                 document.getElementById('sideSubKeuangan').classList.toggle('open');
             });
 
+            // Muat data realisasi asli dari API (dilindungi token) dan timpa angka dummy
+            function loadLra() {
+                var url = SIMTKD_API.endpoint + '?token=' + encodeURIComponent(SIMTKD_API.token) + '&action=lra_rekap';
+                fetch(url)
+                    .then(function (res) { return res.json(); })
+                    .then(function (data) {
+                        if (!(data && data.success)) {
+                            toast((data && data.message) || 'Gagal memuat data LRA.');
+                            return;
+                        }
+                        var rekap = data.realisasi_by_akun || {};
+
+                        // Realisasi sebuah kode = jumlah semua rekap yang kodenya sama/lebih rinci
+                        function sumRekap(kode) {
+                            var total = 0;
+                            Object.keys(rekap).forEach(function (k) {
+                                if (k === kode || k.indexOf(kode + '.') === 0) total += (rekap[k] || 0);
+                            });
+                            return total;
+                        }
+
+                        // Anggaran tidak bersumber per akun -> 0; realisasi asli dari DB (agregat sub-pohon per kode)
+                        DATA.forEach(function (r) {
+                            r.anggaran = 0;
+                            r.r2023 = 0;
+                            r.realisasi = r.kode ? sumRekap(r.kode) : 0;
+                        });
+
+                        // Total tanpa kode (JUMLAH ...) mengikuti bagian/section terdekat sebelumnya
+                        DATA.forEach(function (r, i) {
+                            if (r.kode || r.type === 'detail') return;
+                            if (r.uraian.indexOf('SURPLUS') === 0) {
+                                r.realisasi = sumRekap('4') - sumRekap('5');
+                                return;
+                            }
+                            for (var j = i - 1; j >= 0; j--) {
+                                var p = DATA[j];
+                                if (p.level <= r.level && p.kode && (p.type === 'section' || p.type === 'total')) {
+                                    r.realisasi = sumRekap(p.kode);
+                                    break;
+                                }
+                            }
+                        });
+
+                        render();
+                    })
+                    .catch(function () {
+                        toast('Gagal terhubung ke server API. Periksa token & koneksi.');
+                    });
+            }
+
             render();
+            loadLra();
         })();
     </script>
 </body>

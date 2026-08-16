@@ -3,14 +3,162 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mengalihkan ...</title>
-    <meta http-equiv="refresh" content="0; url=akuntansi.html">
-    <script>window.location.replace('akuntansi.html');</script>
+    <title>AKLAP - Modul Akuntansi | peta.simtkd.com</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --navy: #16305a;
+            --navy-dark: #0e2140;
+            --navy-mid: #1d3a6e;
+            --blue: #1f6feb;
+            --green: #16a34a;
+            --bg: #eef1f6;
+            --card: #ffffff;
+            --border: #d8dee9;
+            --text: #1f2937;
+            --muted: #6b7280;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(150deg, var(--navy-dark) 0%, var(--navy) 45%, var(--navy-mid) 100%);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .wrap { width: min(860px, 100%); }
+
+        /* Header */
+        .brand {
+            text-align: center;
+            color: #fff;
+            margin-bottom: 34px;
+        }
+        .brand .logo {
+            width: 64px; height: 64px;
+            background: rgba(255,255,255,.12);
+            border: 1px solid rgba(255,255,255,.25);
+            border-radius: 18px;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 28px; color: #f5b301;
+            margin-bottom: 16px;
+        }
+        .brand h1 { font-size: clamp(24px, 4vw, 34px); font-weight: 800; letter-spacing: .5px; }
+        .brand p { color: rgba(255,255,255,.75); font-size: 14px; margin-top: 8px; }
+        .brand .badge {
+            display: inline-block; margin-top: 12px;
+            background: rgba(245,179,1,.16); border: 1px solid rgba(245,179,1,.4);
+            color: #f5b301; font-size: 12px; font-weight: 700; letter-spacing: 1px;
+            padding: 6px 14px; border-radius: 999px; text-transform: uppercase;
+        }
+
+        /* Grid menu */
+        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        .card {
+            background: #fff; border-radius: 18px; padding: 30px 26px; text-decoration: none; color: inherit;
+            box-shadow: 0 18px 50px rgba(0,0,0,.22);
+            display: flex; flex-direction: column; gap: 14px;
+            transition: transform .25s ease, box-shadow .25s ease;
+            position: relative; overflow: hidden;
+        }
+        .card::before {
+            content: ""; position: absolute; inset: 0 0 auto 0; height: 5px;
+            background: linear-gradient(90deg, var(--navy-mid), var(--blue));
+        }
+        .card:hover { transform: translateY(-6px); box-shadow: 0 26px 60px rgba(0,0,0,.3); }
+        .card .icon {
+            width: 54px; height: 54px; border-radius: 14px;
+            background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%);
+            color: #fff; display: flex; align-items: center; justify-content: center; font-size: 22px;
+        }
+        .card .icon.green { background: linear-gradient(135deg, #12835c, var(--green)); }
+        .card h3 { font-size: 18px; color: var(--navy); }
+        .card p { font-size: 13.5px; color: var(--muted); line-height: 1.55; }
+        .card .go { margin-top: auto; display: inline-flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 700; color: var(--blue); }
+        .card .go i { transition: transform .2s; }
+        .card:hover .go i { transform: translateX(4px); }
+
+        .foot {
+            text-align: center; color: rgba(255,255,255,.55); font-size: 12.5px; margin-top: 30px; line-height: 1.6;
+        }
+
+        /* Statistik data asli */
+        .stats {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 26px;
+        }
+        .stat-box {
+            background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.16);
+            border-radius: 14px; padding: 18px 14px; text-align: center; backdrop-filter: blur(4px);
+        }
+        .stat-box b { display: block; font-size: 24px; color: #f5b301; }
+        .stat-box span { font-size: 11.5px; color: rgba(255,255,255,.72); font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+        .stats-note { text-align: center; color: rgba(255,255,255,.5); font-size: 12px; margin-top: 12px; }
+        .stats-note i { margin-right: 5px; color: #f5b301; }
+
+        @media (max-width: 640px) { .grid { grid-template-columns: 1fr; } .stats { grid-template-columns: repeat(2, 1fr); } }
+    </style>
 </head>
 <body>
-    <p style="font-family:sans-serif;padding:20px;">
-        Mengalihkan ke modul akuntansi ...
-        <a href="akuntansi.html">Klik di sini bila tidak otomatis dialihkan</a>
-    </p>
+    <div class="wrap">
+        <div class="brand">
+            <div class="logo"><i class="fas fa-book"></i></div>
+            <h1>Modul Akuntansi — AKLAP</h1>
+            <p>Sistem Informasi Manajemen Tata Kelola Daerah (SIM-TKD) · Politeknik Negeri Bandung</p>
+            <span class="badge">Aplikasi Laporan Akuntansi Pemerintah</span>
+        </div>
+
+        <div class="grid">
+            <a href="akuntansi.html" class="card">
+                <div class="icon"><i class="fas fa-check-double"></i></div>
+                <h3>Jurnal To Approve</h3>
+                <p>Proses persetujuan jurnal: Anggaran, Pendapatan, Belanja, Transaksi Non Anggaran, Umum, Pembalik, dan Penutup.</p>
+                <span class="go">Buka Modul <i class="fas fa-arrow-right"></i></span>
+            </a>
+            <a href="lra.html" class="card">
+                <div class="icon green"><i class="fas fa-chart-column"></i></div>
+                <h3>Laporan Realisasi Anggaran (LRA)</h3>
+                <p>Laporan realisasi anggaran pendapatan dan belanja daerah — siap cetak format A4 landscape.</p>
+                <span class="go">Buka Modul <i class="fas fa-arrow-right"></i></span>
+            </a>
+        </div>
+
+        <div class="stats">
+            <div class="stat-box"><b id="stStbp">-</b><span>STBP</span></div>
+            <div class="stat-box"><b id="stSts">-</b><span>STS</span></div>
+            <div class="stat-box"><b id="stPermohonan">-</b><span>Permohonan</span></div>
+            <div class="stat-box"><b id="stKegiatan">-</b><span>Kegiatan</span></div>
+        </div>
+        <p class="stats-note"><i class="fas fa-database"></i>Data terkini diambil langsung dari database (dilindungi token API)</p>
+
+        <div class="foot">
+            &copy; 2026 Politeknik Negeri Bandung · Jurusan Akuntansi<br>
+            SIM-TKD (Modul Edukasi) — peta.simtkd.com
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script>
+        // Muat statistik data asli dari API (token)
+        (function () {
+            var url = SIMTKD_API.endpoint + '?token=' + encodeURIComponent(SIMTKD_API.token) + '&action=rekap';
+            fetch(url)
+                .then(function (res) { return res.json(); })
+                .then(function (d) {
+                    if (d && d.success && d.data) {
+                        document.getElementById('stStbp').textContent = d.data.stbp;
+                        document.getElementById('stSts').textContent = d.data.sts;
+                        document.getElementById('stPermohonan').textContent = d.data.permohonan;
+                        document.getElementById('stKegiatan').textContent = d.data.kegiatan;
+                    }
+                })
+                .catch(function () {});
+        })();
+    </script>
 </body>
 </html>
