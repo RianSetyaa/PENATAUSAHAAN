@@ -1,5 +1,7 @@
+# Deployment cPanel -> domain peta.simtkd.com (modul akuntansi)
+# Catatan: sesuaikan DEPLOYPATH dengan Document Root subdomain peta.simtkd.com di cPanel Anda.
 ---
 deployment:
   tasks:
-    - export DEPLOYPATH=/home/loketiqc/sipd.loketiq.com/ 
-    - /bin/cp -R images $DEPLOYPATH
+    - export DEPLOYPATH=/home/simtkdco/public_html/peta.simtkd.com/
+    - /bin/cp -R peta.simtkd.com/. $DEPLOYPATH
