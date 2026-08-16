@@ -398,7 +398,7 @@
         // Profil akun dari database (pendaftaran) - tanpa dropdown
         (function () {
             function set(txt, id) { var el = document.getElementById(id); if (el) el.textContent = (txt && txt !== '') ? txt : '-'; }
-            var url = SIMTKD_API.endpoint + '?token=' + encodeURIComponent(SIMTKD_API.token) + '&action=profil';
+            var url = SIMTKD_API.endpoint + '?token=' + encodeURIComponent(SIMTKD_API.getToken()) + '&action=profil';
             fetch(url)
                 .then(function (res) { return res.json(); })
                 .then(function (d) {
