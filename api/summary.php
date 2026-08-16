@@ -25,10 +25,12 @@ if (!isLoggedIn()) {
 
 $pdo    = db();
 $tahun  = (int) date('Y');
+// Pemisahan data multi-dinas (kegiatan kini per instansi)
+$skpd   = (string) ($_SESSION['instansi'] ?? '');
 
 // Ringkasan tahun berjalan
-$stmt = $pdo->prepare("SELECT SUM(pagu) AS pagu, SUM(realisasi) AS realisasi, COUNT(*) AS jumlah FROM kegiatan WHERE tahun = ?");
-$stmt->execute([$tahun]);
+$stmt = $pdo->prepare("SELECT SUM(pagu) AS pagu, SUM(realisasi) AS realisasi, COUNT(*) AS jumlah FROM kegiatan WHERE tahun = ? AND (? = '' OR skpd = ?)");
+$stmt->execute([$tahun, $skpd, $skpd]);
 $row = $stmt->fetch();
 
 $totalPagu      = (float) ($row['pagu'] ?? 0);
@@ -37,15 +39,17 @@ $jumlahKegiatan = (int) ($row['jumlah'] ?? 0);
 $persen         = $totalPagu > 0 ? round(($totalRealisasi / $totalPagu) * 100, 2) : 0;
 
 // Tahun tersedia untuk grafik
-$years = $pdo->query("SELECT DISTINCT tahun FROM kegiatan ORDER BY tahun DESC")->fetchAll(PDO::FETCH_COLUMN);
+$stmtYears = $pdo->prepare("SELECT DISTINCT tahun FROM kegiatan WHERE (? = '' OR skpd = ?) ORDER BY tahun DESC");
+$stmtYears->execute([$skpd, $skpd]);
+$years = $stmtYears->fetchAll(PDO::FETCH_COLUMN);
 if (empty($years)) {
     $years = [$tahun];
 }
 
 $chart = [];
 foreach ($years as $y) {
-    $stmt = $pdo->prepare("SELECT SUM(pagu) AS pagu, SUM(realisasi) AS realisasi FROM kegiatan WHERE tahun = ?");
-    $stmt->execute([$y]);
+    $stmt = $pdo->prepare("SELECT SUM(pagu) AS pagu, SUM(realisasi) AS realisasi FROM kegiatan WHERE tahun = ? AND (? = '' OR skpd = ?)");
+    $stmt->execute([$y, $skpd, $skpd]);
     $r = $stmt->fetch();
     $chart[$y] = [
         'pagu'      => (float) ($r['pagu'] ?? 0),
@@ -54,8 +58,8 @@ foreach ($years as $y) {
 }
 
 // Daftar kegiatan tahun berjalan
-$stmt = $pdo->prepare("SELECT id, nama_kegiatan, tahun, pagu, realisasi, status FROM kegiatan WHERE tahun = ? ORDER BY pagu DESC LIMIT 10");
-$stmt->execute([$tahun]);
+$stmt = $pdo->prepare("SELECT id, nama_kegiatan, tahun, pagu, realisasi, status FROM kegiatan WHERE tahun = ? AND (? = '' OR skpd = ?) ORDER BY pagu DESC LIMIT 10");
+$stmt->execute([$tahun, $skpd, $skpd]);
 $kegiatan = $stmt->fetchAll();
 
 jsonResponse(true, 'OK', [

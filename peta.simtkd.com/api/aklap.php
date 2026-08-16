@@ -133,9 +133,9 @@ if ($action === 'lra_rekap') {
         $realisasiByAkun[$r['akun_kode']] = (float) $r['total'];
     }
 
-    $totalPagu          = (float) $pdo->query("SELECT COALESCE(SUM(pagu),0) FROM kegiatan")->fetchColumn();
-    $totalRealisasi     = (float) $pdo->query("SELECT COALESCE(SUM(realisasi),0) FROM kegiatan")->fetchColumn();
-    $jumlahKegiatan     = (int)  $pdo->query("SELECT COUNT(*) FROM kegiatan")->fetchColumn();
+    $totalPagu          = (float) $pdo->query("SELECT COALESCE(SUM(pagu),0) FROM kegiatan WHERE " . (($skpdUser !== '') ? ("skpd = " . $pdo->quote($skpdUser)) : '1=1'))->fetchColumn();
+    $totalRealisasi     = (float) $pdo->query("SELECT COALESCE(SUM(realisasi),0) FROM kegiatan WHERE " . (($skpdUser !== '') ? ("skpd = " . $pdo->quote($skpdUser)) : '1=1'))->fetchColumn();
+    $jumlahKegiatan     = (int)  $pdo->query("SELECT COUNT(*) FROM kegiatan WHERE " . (($skpdUser !== '') ? ("skpd = " . $pdo->quote($skpdUser)) : '1=1'))->fetchColumn();
 
     echo json_encode([
         'success'           => true,
@@ -181,9 +181,9 @@ if ($action === 'rekap') {
             'stbp'         => $count('stbp', "status != 'dihapus' AND {$skpdCond}"),
             'sts'          => $count('sts', "status = 'aktif' AND {$skpdCond}"),
             'permohonan'   => $count('permohonan', $skpdCond),
-            'kegiatan'     => $count('kegiatan'),
+            'kegiatan'     => $count('kegiatan', $skpdCond),
             'akun'         => $count('akun_penerimaan', $skpdCond),
-            'total_pagu'   => (float) $pdo->query("SELECT COALESCE(SUM(pagu),0) FROM kegiatan")->fetchColumn(),
+            'total_pagu'   => (float) $pdo->query("SELECT COALESCE(SUM(pagu),0) FROM kegiatan WHERE {$skpdCond}")->fetchColumn(),
             'total_penerimaan' => (float) $pdo->query("SELECT COALESCE(SUM(jumlah),0) FROM stbp WHERE status != 'dihapus' AND {$skpdCond}")->fetchColumn(),
         ],
     ], JSON_UNESCAPED_UNICODE);

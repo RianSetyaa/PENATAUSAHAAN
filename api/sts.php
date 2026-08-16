@@ -163,7 +163,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nomor_rek    = trim((string) ($body['nomor_rekening'] ?? ''));
     $nama_rek     = trim((string) ($body['nama_rekening'] ?? ''));
     $keterangan   = trim((string) ($body['keterangan'] ?? ''));
-    $skpd         = trim((string) ($body['skpd'] ?? $_SESSION['instansi'] ?? ''));
+    // skpd selalu dari sesi (jangan percaya input klien)
+    $skpd         = trim((string) ($_SESSION['instansi'] ?? ''));
     $stbp_ids     = is_array($body['stbp_ids'] ?? null) ? array_map('intval', $body['stbp_ids']) : [];
 
     // Auto-generate nomor STS jika tidak diisi
@@ -207,10 +208,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             INSERT INTO sts_detail (sts_id, stbp_id, nomor_stbp, tanggal, akun_kode, akun_nama, jumlah, uraian)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ");
-        $stmtS = $pdo->prepare("SELECT id, nomor_stbp, tanggal, akun_kode, akun_nama, jumlah, uraian FROM stbp WHERE id = ?");
+        // Hanya pakai STBP milik instansi yang sama (multi-tenant)
+        $stmtS = $pdo->prepare("SELECT id, nomor_stbp, tanggal, akun_kode, akun_nama, jumlah, uraian FROM stbp WHERE id = ? AND (? = '' OR skpd = ?)");
         $total = 0.0;
         foreach ($stbp_ids as $sid) {
-            $stmtS->execute([$sid]);
+            $stmtS->execute([$sid, $skpd, $skpd]);
             $sb = $stmtS->fetch();
             if (!$sb) continue;
             $stmtD->execute([

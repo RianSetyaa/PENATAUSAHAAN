@@ -105,7 +105,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $body   = requestBody();
     $action = $body['action'] ?? 'create';
-    $skpd   = trim((string) ($body['skpd'] ?? $_SESSION['instansi'] ?? ''));
+    // skpd selalu dari sesi (jangan percaya input klien)
+    $skpd   = trim((string) ($_SESSION['instansi'] ?? ''));
 
     // ---------- 1. Simpan satu akun baru ----------
     if ($action === 'create') {

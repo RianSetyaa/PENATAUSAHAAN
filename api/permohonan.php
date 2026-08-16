@@ -94,8 +94,12 @@ if ($method === 'POST') {
         if ($id <= 0) {
             jsonResponse(false, 'ID tidak valid.', [], 422);
         }
-        $stmt = $pdo->prepare("UPDATE permohonan SET status_aktif = ? WHERE id = ?");
-        $stmt->execute([$status, $id]);
+        $skpdS = (string) ($_SESSION['instansi'] ?? ''); // scope multi-dinas
+        $stmt = $pdo->prepare("UPDATE permohonan SET status_aktif = ? WHERE id = ? AND (? = '' OR skpd = ?)");
+        $stmt->execute([$status, $id, $skpdS, $skpdS]);
+        if ($stmt->rowCount() === 0) {
+            jsonResponse(false, 'Data tidak ditemukan atau bukan milik instansi Anda.', [], 404);
+        }
         jsonResponse(true, $status ? 'Rekening diaktifkan.' : 'Rekening dinonaktifkan.');
     }
 
@@ -105,15 +109,20 @@ if ($method === 'POST') {
         if ($id <= 0) {
             jsonResponse(false, 'ID tidak valid.', [], 422);
         }
-        $stmt = $pdo->prepare("UPDATE permohonan SET status_terbit = 1, status_disetujui = 1, status_aktif = 1 WHERE id = ?");
-        $stmt->execute([$id]);
+        $skpdS = (string) ($_SESSION['instansi'] ?? ''); // scope multi-dinas
+        $stmt = $pdo->prepare("UPDATE permohonan SET status_terbit = 1, status_disetujui = 1, status_aktif = 1 WHERE id = ? AND (? = '' OR skpd = ?)");
+        $stmt->execute([$id, $skpdS, $skpdS]);
+        if ($stmt->rowCount() === 0) {
+            jsonResponse(false, 'Data tidak ditemukan atau bukan milik instansi Anda.', [], 404);
+        }
         jsonResponse(true, 'Rekening berhasil diverifikasi dan aktif.');
     }
 
     $bank   = input('bank');
     $nama   = input('nama_rekening');
     $nomor  = input('nomor_rekening');
-    $skpd   = input('skpd', $_SESSION['instansi'] ?? '');
+    // skpd selalu dari sesi (jangan percaya input klien)
+    $skpd   = (string) ($_SESSION['instansi'] ?? '');
 
     if ($bank === '') {
         jsonResponse(false, 'Silakan pilih bank.', ['field' => 'bank'], 422);

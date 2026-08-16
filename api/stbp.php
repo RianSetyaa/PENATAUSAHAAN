@@ -167,7 +167,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nama   = trim((string) ($body['akun_nama'] ?? ''));
     $jumlah = (float) ($body['jumlah'] ?? 0);
     $uraian = trim((string) ($body['uraian'] ?? ''));
-    $skpd   = trim((string) ($body['skpd'] ?? $_SESSION['instansi'] ?? ''));
+    // skpd selalu dari sesi (jangan percaya input klien)
+    $skpd   = trim((string) ($_SESSION['instansi'] ?? ''));
     $payments  = is_array($body['data_pembayaran'] ?? null) ? $body['data_pembayaran'] : [];
     $pendapatan = is_array($body['data_pendapatan'] ?? null) ? $body['data_pendapatan'] : [];
 

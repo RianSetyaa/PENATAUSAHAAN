@@ -195,6 +195,7 @@ if ($submitted) {
             $pdo->exec("
                 CREATE TABLE IF NOT EXISTS kegiatan (
                     id            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                    skpd          VARCHAR(150) DEFAULT NULL,
                     nama_kegiatan VARCHAR(200) NOT NULL,
                     tahun         SMALLINT UNSIGNED NOT NULL,
                     pagu          DECIMAL(18,2) NOT NULL DEFAULT 0,
