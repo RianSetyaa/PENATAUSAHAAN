@@ -34,7 +34,7 @@ $pdo = db();
 
 // Cari pengguna berdasarkan username ATAU email
 $stmt = $pdo->prepare("
-    SELECT id, nama_lengkap, username, email, password, instansi, peran, status
+    SELECT id, nama_lengkap, username, email, password, instansi, kota, provinsi, api_token, peran, status
     FROM users
     WHERE username = ? OR email = ?
     LIMIT 1

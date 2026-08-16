@@ -19,7 +19,11 @@ require_once __DIR__ . '/../config/api.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
-// ---------- Verifikasi token ----------
+$pdo    = db();
+$action = (string) ($_GET['action'] ?? 'jurnal');
+
+// ---------- Verifikasi token (per-user / multi-tenant) ----------
+// Token = api_token milik pengguna di tabel users.
 $token = (string) ($_GET['token'] ?? '');
 if ($token === '') {
     $auth = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
@@ -27,14 +31,16 @@ if ($token === '') {
         $token = trim($m[1]);
     }
 }
-if (!hash_equals(API_TOKEN, $token)) {
+$stmtUser = $pdo->prepare("SELECT id, nama_lengkap, username, email, instansi, kota, provinsi, peran FROM users WHERE api_token = ? LIMIT 1");
+$stmtUser->execute([$token]);
+$user = $stmtUser->fetch();
+if (!$user) {
     http_response_code(401);
     echo json_encode(['success' => false, 'message' => 'Token API tidak valid.'], JSON_UNESCAPED_UNICODE);
     exit;
 }
-
-$pdo    = db();
-$action = (string) ($_GET['action'] ?? 'jurnal');
+// SKPD/instansi pemilik token -> pemisahan data antar dinas (multi-tenant)
+$skpdUser = (string) ($user['instansi'] ?? '');
 
 // ============================================
 // 1. Jurnal Approve (STBP = Penerimaan, STS = Penyetoran)
@@ -43,9 +49,13 @@ if ($action === 'jurnal') {
     $rows = [];
 
     // STBP -> Penerimaan
-    $st = $pdo->query(
-        "SELECT * FROM stbp WHERE status != 'dihapus' ORDER BY tanggal ASC, id ASC"
-    )->fetchAll();
+    $stSql    = "SELECT * FROM stbp WHERE status != 'dihapus'";
+    $stParams = [];
+    if ($skpdUser !== '') { $stSql .= " AND skpd = ?"; $stParams[] = $skpdUser; }
+    $stSql .= " ORDER BY tanggal ASC, id ASC";
+    $st = $pdo->prepare($stSql);
+    $st->execute($stParams);
+    $st = $st->fetchAll();
     foreach ($st as $r) {
         $status = 'Belum Approve';
         if (in_array($r['status'], ['sudah_diverifikasi', 'sudah_diotorisasi', 'sudah_divalidasi'], true)) {
@@ -69,9 +79,13 @@ if ($action === 'jurnal') {
     }
 
     // STS -> Penyetoran
-    $st2 = $pdo->query(
-        "SELECT * FROM sts WHERE status = 'aktif' ORDER BY tanggal_sts ASC, id ASC"
-    )->fetchAll();
+    $st2Sql    = "SELECT * FROM sts WHERE status = 'aktif'";
+    $st2Params = [];
+    if ($skpdUser !== '') { $st2Sql .= " AND skpd = ?"; $st2Params[] = $skpdUser; }
+    $st2Sql .= " ORDER BY tanggal_sts ASC, id ASC";
+    $st2 = $pdo->prepare($st2Sql);
+    $st2->execute($st2Params);
+    $st2 = $st2->fetchAll();
     foreach ($st2 as $r) {
         $rows[] = [
             'no'        => 'JRN-' . ($r['nomor_sts'] ?: 'STS-' . $r['id']),
@@ -108,9 +122,13 @@ if ($action === 'jurnal') {
 // ============================================
 if ($action === 'lra_rekap') {
     $realisasiByAkun = [];
-    $st = $pdo->query(
-        "SELECT akun_kode, SUM(jumlah) AS total FROM stbp WHERE status != 'dihapus' AND akun_kode <> '' GROUP BY akun_kode"
-    )->fetchAll();
+    $stSql    = "SELECT akun_kode, SUM(jumlah) AS total FROM stbp WHERE status != 'dihapus' AND akun_kode <> ''";
+    $stParams = [];
+    if ($skpdUser !== '') { $stSql .= " AND skpd = ?"; $stParams[] = $skpdUser; }
+    $stSql .= " GROUP BY akun_kode";
+    $st = $pdo->prepare($stSql);
+    $st->execute($stParams);
+    $st = $st->fetchAll();
     foreach ($st as $r) {
         $realisasiByAkun[$r['akun_kode']] = (float) $r['total'];
     }
@@ -133,20 +151,13 @@ if ($action === 'lra_rekap') {
 // 2b. Profil akun AKLAP (dari data pendaftaran)
 // ============================================
 if ($action === 'profil') {
-    $stmt = $pdo->prepare("SELECT nama_lengkap, username, instansi, kota, provinsi, peran FROM users WHERE username = ? LIMIT 1");
-    $stmt->execute([AKLAP_USERNAME]);
-    $u = $stmt->fetch();
-    if (!$u) {
-        echo json_encode(['success' => false, 'message' => 'Akun AKLAP tidak ditemukan.'], JSON_UNESCAPED_UNICODE);
-        exit;
-    }
     echo json_encode(['success' => true, 'user' => [
-        'nama'      => (string) ($u['nama_lengkap'] ?? ''),
-        'username'  => (string) ($u['username'] ?? ''),
-        'instansi'  => (string) ($u['instansi'] ?? ''),
-        'kota'      => (string) ($u['kota'] ?? ''),
-        'provinsi'  => (string) ($u['provinsi'] ?? ''),
-        'peran'     => (string) ($u['peran'] ?? ''),
+        'nama'      => (string) ($user['nama_lengkap'] ?? ''),
+        'username'  => (string) ($user['username'] ?? ''),
+        'instansi'  => (string) ($user['instansi'] ?? ''),
+        'kota'      => (string) ($user['kota'] ?? ''),
+        'provinsi'  => (string) ($user['provinsi'] ?? ''),
+        'peran'     => (string) ($user['peran'] ?? ''),
     ]], JSON_UNESCAPED_UNICODE);
     exit;
 }
@@ -155,6 +166,7 @@ if ($action === 'profil') {
 // 3. Rekap ringkasan (untuk dashboard/index)
 // ============================================
 if ($action === 'rekap') {
+    $skpdCond = ($skpdUser !== '') ? ("skpd = " . $pdo->quote($skpdUser)) : '1=1';
     $count = function (string $table, string $where = '1=1') use ($pdo): int {
         try {
             return (int) $pdo->query("SELECT COUNT(*) FROM {$table} WHERE {$where}")->fetchColumn();
@@ -166,13 +178,13 @@ if ($action === 'rekap') {
     echo json_encode([
         'success' => true,
         'data'    => [
-            'stbp'         => $count('stbp', "status != 'dihapus'"),
-            'sts'          => $count('sts', "status = 'aktif'"),
-            'permohonan'   => $count('permohonan'),
+            'stbp'         => $count('stbp', "status != 'dihapus' AND {$skpdCond}"),
+            'sts'          => $count('sts', "status = 'aktif' AND {$skpdCond}"),
+            'permohonan'   => $count('permohonan', $skpdCond),
             'kegiatan'     => $count('kegiatan'),
-            'akun'         => $count('akun_penerimaan'),
+            'akun'         => $count('akun_penerimaan', $skpdCond),
             'total_pagu'   => (float) $pdo->query("SELECT COALESCE(SUM(pagu),0) FROM kegiatan")->fetchColumn(),
-            'total_penerimaan' => (float) $pdo->query("SELECT COALESCE(SUM(jumlah),0) FROM stbp WHERE status != 'dihapus'")->fetchColumn(),
+            'total_penerimaan' => (float) $pdo->query("SELECT COALESCE(SUM(jumlah),0) FROM stbp WHERE status != 'dihapus' AND {$skpdCond}")->fetchColumn(),
         ],
     ], JSON_UNESCAPED_UNICODE);
     exit;

@@ -725,7 +725,7 @@
 
             // Muat data realisasi asli dari API (dilindungi token) dan timpa angka dummy
             function loadLra() {
-                var url = SIMTKD_API.endpoint + '?token=' + encodeURIComponent(SIMTKD_API.token) + '&action=lra_rekap';
+                var url = SIMTKD_API.endpoint + '?token=' + encodeURIComponent(SIMTKD_API.getToken()) + '&action=lra_rekap';
                 fetch(url)
                     .then(function (res) { return res.json(); })
                     .then(function (data) {

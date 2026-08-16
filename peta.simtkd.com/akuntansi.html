@@ -654,7 +654,7 @@
 
             // Muat data asli dari API (dilindungi token), lalu render
             function loadData() {
-                var url = SIMTKD_API.endpoint + '?token=' + encodeURIComponent(SIMTKD_API.token) + '&action=jurnal';
+                var url = SIMTKD_API.endpoint + '?token=' + encodeURIComponent(SIMTKD_API.getToken()) + '&action=jurnal';
                 fetch(url)
                     .then(function (res) { return res.json(); })
                     .then(function (data) {

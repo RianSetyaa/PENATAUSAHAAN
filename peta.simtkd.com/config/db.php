@@ -9,6 +9,7 @@
 declare(strict_types=1);
 
 // Konfigurasi database
+// >>> PRODUKSI (cPanel) <<<
 define('DB_HOST', 'localhost');
 define('DB_NAME', 'simtkdco_sipd');
 define('DB_USER', 'simtkdco_user');

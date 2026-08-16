@@ -75,13 +75,16 @@ if ($stmt->fetchColumn() > 0) {
 // Hash password
 $hashed = password_hash($password, PASSWORD_DEFAULT);
 
+// Token API unik per pengguna (multi-tenant)
+$apiToken = bin2hex(random_bytes(16));
+
 // Simpan pengguna baru (status default: pending -> menunggu verifikasi admin)
 try {
     $stmt = $pdo->prepare("
-        INSERT INTO users (nama_lengkap, username, email, password, instansi, kota, provinsi, peran, status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')
+        INSERT INTO users (nama_lengkap, username, email, password, instansi, kota, provinsi, api_token, peran, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
     ");
-    $stmt->execute([$nama, $username, $email, $hashed, $instansi, $kota, $provinsi, $peran]);
+    $stmt->execute([$nama, $username, $email, $hashed, $instansi, $kota, $provinsi, $apiToken, $peran]);
 
     $userId = (int) $pdo->lastInsertId();
 } catch (PDOException $e) {

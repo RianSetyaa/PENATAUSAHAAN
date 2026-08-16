@@ -488,6 +488,14 @@
                     window.location.href = '../login.html';
                     return null;
                 }
+                // Kirim token API user ke link modul AKLAP (multi-tenant)
+                var apiToken = sessionData.user && sessionData.user.api_token;
+                if (apiToken) {
+                    document.querySelectorAll('a[href*="peta.simtkd.com"]').forEach(function (a) {
+                        var sep = (a.href.indexOf('?') === -1) ? '?' : '&';
+                        a.href = a.href + sep + 'token=' + encodeURIComponent(apiToken);
+                    });
+                }
                 // 2. Ambil data ringkasan
                 return fetch('../api/summary.php').then(function (res) { return res.json(); });
             })

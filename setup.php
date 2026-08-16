@@ -178,13 +178,15 @@ if ($submitted) {
                     instansi      VARCHAR(150)  DEFAULT NULL,
                     kota          VARCHAR(100)  DEFAULT NULL,
                     provinsi      VARCHAR(100)  DEFAULT NULL,
+                    api_token     VARCHAR(64)   DEFAULT NULL,
                     peran         ENUM('Admin Dinas','Operator','Bendahara','Verifikator','Kepala Dinas','Pengguna Umum')
                                   DEFAULT 'Pengguna Umum',
                     status        ENUM('pending','aktif','nonaktif') DEFAULT 'pending',
                     created_at    TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
                     updated_at    TIMESTAMP     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                     INDEX idx_status (status),
-                    INDEX idx_peran (peran)
+                    INDEX idx_peran (peran),
+                    UNIQUE KEY idx_api_token (api_token)
                 ) ENGINE=InnoDB
             ");
             $output[] = '✓ Tabel `users` siap.';

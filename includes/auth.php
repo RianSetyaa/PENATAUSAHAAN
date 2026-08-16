@@ -62,6 +62,7 @@ function setUserSession(array $user): void
     $_SESSION['email']      = $user['email'];
     $_SESSION['instansi']   = $user['instansi'] ?? '';
     $_SESSION['peran']      = $user['peran'];
+    $_SESSION['api_token']  = $user['api_token'] ?? '';
 }
 
 /**
