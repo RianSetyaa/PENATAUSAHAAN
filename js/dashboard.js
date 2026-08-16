@@ -17,6 +17,9 @@
     const toolBtns = document.querySelectorAll('.tool-btn');
     const menuItems = document.querySelectorAll('.menu-item');
 
+    // Token API user (diisi saat sesi berhasil) -> untuk link modul AKLAP
+    let SESSION_API_TOKEN = '';
+
     // ==========================================
     // Format Date (Indonesian)
     // ==========================================
@@ -490,10 +493,11 @@
                 }
                 // Kirim token API user ke link modul AKLAP (multi-tenant)
                 var apiToken = sessionData.user && sessionData.user.api_token;
-                if (apiToken) {
+                SESSION_API_TOKEN = apiToken || '';
+                if (SESSION_API_TOKEN) {
                     document.querySelectorAll('a[href*="peta.simtkd.com"]').forEach(function (a) {
                         var sep = (a.href.indexOf('?') === -1) ? '?' : '&';
-                        a.href = a.href + sep + 'token=' + encodeURIComponent(apiToken);
+                        a.href = a.href + sep + 'token=' + encodeURIComponent(SESSION_API_TOKEN);
                     });
                 }
                 // 2. Ambil data ringkasan
@@ -520,6 +524,16 @@
 
         // Muat data dari backend (cek sesi + ringkasan)
         loadDashboard();
+
+        // Jaring pengaman: tambahkan token saat link AKLAP diklik
+        // bila belum sempat disisipkan saat halaman dimuat.
+        document.addEventListener('click', function (e) {
+            var a = e.target && e.target.closest ? e.target.closest('a[href*="peta.simtkd.com"]') : null;
+            if (!a || !SESSION_API_TOKEN) return;
+            if (a.href.indexOf('token=') !== -1) return;
+            var sep = (a.href.indexOf('?') === -1) ? '?' : '&';
+            a.href = a.href + sep + 'token=' + encodeURIComponent(SESSION_API_TOKEN);
+        }, true);
 
         // Log
         console.log('SIM-TKD Dashboard - Ready');
