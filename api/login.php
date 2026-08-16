@@ -57,6 +57,12 @@ if ($user['status'] === 'nonaktif') {
 }
 
 // Set sesi login
+// Rotasi token API setiap login (keamanan): token lama otomatis tidak berlaku.
+$newToken = bin2hex(random_bytes(16));
+$stmtUp = $pdo->prepare("UPDATE users SET api_token = ? WHERE id = ?");
+$stmtUp->execute([$newToken, (int) $user['id']]);
+$user['api_token'] = $newToken;
+
 setUserSession($user);
 
 jsonResponse(true, 'Login berhasil. Mengalihkan ke dashboard...', [
