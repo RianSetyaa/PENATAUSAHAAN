@@ -29,5 +29,4 @@ jsonResponse(true, 'Autentikasi valid.', [
         'instansi' => $_SESSION['instansi'] ?? '',
         'peran'    => $_SESSION['peran'] ?? '',
     ],
-    'tahun_anggaran' => $_SESSION['tahun_anggaran'] ?? date('Y'),
 ]);

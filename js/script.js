@@ -18,7 +18,6 @@
     const captchaCanvas = document.getElementById('captchaCanvas');
     const captchaInput = document.getElementById('captchaInput');
     const usernameInput = document.getElementById('username');
-    const tahunAnggaran = document.getElementById('tahunAnggaran');
     const toastContainer = document.getElementById('toastContainer');
 
     let captchaCode = '';
@@ -203,19 +202,12 @@
         });
 
         // Get values
-        const tahun = tahunAnggaran.value.trim();
         const username = usernameInput.value.trim();
         const password = passwordInput.value;
         const captcha = captchaInput.value.trim().toUpperCase();
 
         // Validation
         let hasError = false;
-
-        if (!tahun) {
-            tahunAnggaran.style.borderColor = '#e74c3c';
-            showToast('Silakan pilih Tahun Anggaran terlebih dahulu.', 'warning');
-            hasError = true;
-        }
 
         if (!username) {
             if (!hasError) {
@@ -264,8 +256,7 @@
             },
             body: new URLSearchParams({
                 username: username,
-                password: password,
-                tahun_anggaran: tahun
+                password: password
             })
         })
         .then(function (res) {
@@ -332,8 +323,6 @@
     // ==========================================
     function init() {
         generateCaptcha();
-        // Set default tahun
-        tahunAnggaran.value = '2026';
 
         console.log('SIM-TKD - Sistem Informasi Manajemen Tata Kelola Daerah (Modul Edukasi) - Login Page Ready');
         console.log('Demo credentials: username=admin, password=admin123');

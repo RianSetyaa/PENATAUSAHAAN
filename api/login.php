@@ -25,7 +25,6 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 $username = input('username');
 $password = input('password');
-$tahun    = input('tahun_anggaran');
 
 if ($username === '' || $password === '') {
     jsonResponse(false, 'Username dan password wajib diisi.', [], 422);
@@ -59,9 +58,6 @@ if ($user['status'] === 'nonaktif') {
 
 // Set sesi login
 setUserSession($user);
-
-// Simpan tahun anggaran ke sesi
-$_SESSION['tahun_anggaran'] = $tahun !== '' ? $tahun : date('Y');
 
 jsonResponse(true, 'Login berhasil. Mengalihkan ke dashboard...', [
     'redirect' => 'dashboard.html',

@@ -400,7 +400,7 @@
                 .then(function (d) {
                     if (!d.success) { window.location.href = '../login.html'; return; }
                     opdName.textContent = d.user.instansi || 'Perangkat Daerah';
-                    opdCode.textContent = 'Tahun Anggaran ' + (d.tahun_anggaran || '2026');
+                    opdCode.textContent = 'Tahun Anggaran ' + new Date().getFullYear();
                     return fetch('../api/akun_penerimaan.php').then(function (r) { return r.json(); });
                 })
                 .then(function (data) {

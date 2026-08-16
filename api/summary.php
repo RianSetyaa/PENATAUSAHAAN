@@ -24,7 +24,7 @@ if (!isLoggedIn()) {
 }
 
 $pdo    = db();
-$tahun  = (int) ($_SESSION['tahun_anggaran'] ?? date('Y'));
+$tahun  = (int) date('Y');
 
 // Ringkasan tahun berjalan
 $stmt = $pdo->prepare("SELECT SUM(pagu) AS pagu, SUM(realisasi) AS realisasi, COUNT(*) AS jumlah FROM kegiatan WHERE tahun = ?");
