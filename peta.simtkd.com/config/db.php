@@ -1,18 +1,18 @@
 <?php
 /**
- * SIM-TKD (peta.simtkd.com) - Database Connection (PDO)
+ * SIM-TKD - Database Connection (PDO)
  * ============================================
- * Koneksi ke database yang sama dengan aplikasi utama SIM-TKD.
- * Sesuaikan kredensial dengan server produksi bila berbeda.
+ * File ini dibuat otomatis oleh setup.php.
+ * Edit hanya jika diperlukan.
  */
 
 declare(strict_types=1);
 
 // Konfigurasi database
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'simtkd');
-define('DB_USER', 'root');
-define('DB_PASS', '');
+define('DB_NAME', 'simtkdco_sipd');
+define('DB_USER', 'simtkdco_user');
+define('DB_PASS', '@Admin21345');
 
 // Cegah akses langsung ke file ini
 if (basename($_SERVER['PHP_SELF'] ?? '') === 'db.php') {
@@ -40,13 +40,18 @@ function db(): PDO
                 ]
             );
         } catch (PDOException $e) {
+            // Respons JSON jika dipanggil dari API
+            if (strpos($_SERVER['REQUEST_URI'] ?? '', '/api/') !== false) {
+                http_response_code(500);
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Koneksi ke database gagal. Pastikan MySQL aktif dan database sudah dibuat (jalankan setup.php).'
+                ]);
+                exit;
+            }
             http_response_code(500);
-            header('Content-Type: application/json');
-            echo json_encode([
-                'success' => false,
-                'message' => 'Koneksi ke database gagal. Pastikan MySQL aktif.'
-            ]);
-            exit;
+            exit('Koneksi ke database gagal: ' . htmlspecialchars($e->getMessage()));
         }
     }
 
