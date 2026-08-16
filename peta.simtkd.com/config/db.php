@@ -13,7 +13,7 @@ declare(strict_types=1);
 define('DB_HOST', 'localhost');
 define('DB_NAME', 'simtkdco_sipd');
 define('DB_USER', 'simtkdco_user');
-define('DB_PASS', '@Admin21345');
+define('DB_PASS', '@Admin21345@Admin21345');
 
 // Cegah akses langsung ke file ini
 if (basename($_SERVER['PHP_SELF'] ?? '') === 'db.php') {
