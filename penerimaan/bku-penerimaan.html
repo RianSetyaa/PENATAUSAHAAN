@@ -382,10 +382,19 @@
                     </div>
 
                     <!-- STBP -->
-                    <a href="stbp-pembuatan.html" class="menu-item">
-                        <i class="fas fa-file-invoice"></i>
-                        <span>STBP</span>
-                    </a>
+                    <div class="menu-group" data-menu="stbp">
+                        <a href="#" class="menu-item has-submenu">
+                            <i class="fas fa-file-invoice"></i>
+                            <span>STBP</span>
+                            <i class="fas fa-chevron-down submenu-arrow"></i>
+                        </a>
+                        <div class="submenu">
+                            <a href="stbp-pembuatan.html" class="menu-item submenu-item"><i class="fas fa-plus-circle"></i><span>Pembuatan</span></a>
+                            <a href="stbp-pembuatan.html?tahap=sudah_diverifikasi" class="menu-item submenu-item"><i class="fas fa-check"></i><span>Verifikasi</span></a>
+                            <a href="stbp-pembuatan.html?tahap=sudah_diotorisasi" class="menu-item submenu-item"><i class="fas fa-signature"></i><span>Otorisasi</span></a>
+                            <a href="stbp-pembuatan.html?tahap=sudah_divalidasi" class="menu-item submenu-item"><i class="fas fa-stamp"></i><span>Validasi</span></a>
+                        </div>
+                    </div>
 
                     <!-- STS -->
                     <a href="sts-pembuatan.html" class="menu-item">
@@ -401,10 +410,10 @@
                             <i class="fas fa-chevron-down submenu-arrow"></i>
                         </a>
                         <div class="submenu">
-                            <a href="#" class="menu-item submenu-item"><i class="fas fa-sun"></i><span>Laporan Harian</span></a>
-                            <a href="#" class="menu-item submenu-item"><i class="fas fa-calendar-alt"></i><span>Laporan Bulanan</span></a>
-                            <a href="#" class="menu-item submenu-item"><i class="fas fa-chart-pie"></i><span>Rekap Penerimaan</span></a>
                             <a href="bku-penerimaan.html" class="menu-item submenu-item active"><i class="fas fa-book"></i><span>BKU Penerimaan</span></a>
+                            <a href="#" class="menu-item submenu-item"><i class="fas fa-wallet"></i><span>BKU Belanja</span></a>
+                            <a href="#" class="menu-item submenu-item"><i class="fas fa-clipboard-list"></i><span>Register</span></a>
+                            <a href="#" class="menu-item submenu-item"><i class="fas fa-file-invoice-dollar"></i><span>LPJ</span></a>
                         </div>
                     </div>
                 </div>

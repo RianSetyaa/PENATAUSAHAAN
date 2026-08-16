@@ -85,7 +85,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $q      = input('q');
     $status = input('status', 'belum_diverifikasi');
 
-    if (!in_array($status, $STATUS_LIST, true)) {
+    // Status khusus: STBP yang SIAP dimasukkan ke STS & jurnal (SUDAH melalui 3 tahap: verifikasi, otorisasi, validasi)
+    $STS_ELIGIBLE = ['sudah_divalidasi'];
+    $isStsReady = ($status === 'siap_sts');
+
+    if (!$isStsReady && !in_array($status, $STATUS_LIST, true)) {
         $status = 'belum_diverifikasi';
     }
 
@@ -97,6 +101,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $counts[$st] = (int) $stmt->fetchColumn();
     }
 
+    $statusCond = $isStsReady
+        ? "s.status IN ('sudah_diotorisasi','sudah_divalidasi')"
+        : "s.status = ?";
     $sql = "SELECT s.*, u.nama_lengkap AS dibuat_oleh,
                    sp.metode_penyetoran AS metode_penyetoran,
                    sp.nama_penyetor     AS nama_penyetor,
@@ -105,8 +112,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             FROM stbp s
             LEFT JOIN users u ON u.id = s.user_id
             LEFT JOIN stbp_pembayaran sp ON sp.stbp_id = s.id
-            WHERE s.status = ?" . ($skpd !== '' ? " AND s.skpd = ?" : "");
-    $params = $skpd !== '' ? [$status, $skpd] : [$status];
+            WHERE $statusCond" . ($skpd !== '' ? " AND s.skpd = ?" : "");
+    $params = [];
+    if (!$isStsReady) $params[] = $status;
+    if ($skpd !== '') $params[] = $skpd;
 
     if ($q !== '') {
         $sql   .= " AND (s.nomor_stbp LIKE ? OR s.akun_nama LIKE ? OR s.uraian LIKE ? OR s.skpd LIKE ?)";
@@ -156,6 +165,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $body = $_POST;
     }
     $action = $body['action'] ?? 'create';
+
+    // ---------- 0. Majukan tahap status STBP (verifikasi -> otorisasi -> validasi) ----------
+    if ($action === 'update_status') {
+        $id     = (int) ($body['id'] ?? 0);
+        $target = (string) ($body['status'] ?? '');
+        $skpdS  = (string) ($_SESSION['instansi'] ?? '');
+
+        if ($id <= 0) {
+            jsonResponse(false, 'ID tidak valid.', [], 422);
+        }
+
+        $STAGES = ['belum_diverifikasi', 'sudah_diverifikasi', 'sudah_diotorisasi', 'sudah_divalidasi'];
+        if (!in_array($target, $STAGES, true)) {
+            jsonResponse(false, 'Status tahap tidak valid.', [], 422);
+        }
+
+        // Ambil status saat ini (hanya milik instansi yang sama)
+        $sel = $pdo->prepare("SELECT status FROM stbp WHERE id = ?" . ($skpdS !== '' ? " AND skpd = ?" : ""));
+        $sel->execute($skpdS !== '' ? [$id, $skpdS] : [$id]);
+        $cur = $sel->fetchColumn();
+        if ($cur === false) {
+            jsonResponse(false, 'STBP tidak ditemukan atau bukan milik instansi Anda.', [], 404);
+        }
+
+        // Hanya boleh maju SATU tahap secara berurutan
+        $curIdx = array_search((string) $cur, $STAGES, true);
+        $tgtIdx = array_search($target, $STAGES, true);
+        if ($tgtIdx !== $curIdx + 1) {
+            jsonResponse(false, 'Tahap tidak boleh melompat. Majukan status secara berurutan.', [], 422);
+        }
+
+        $upd = $pdo->prepare("UPDATE stbp SET status = ? WHERE id = ?" . ($skpdS !== '' ? " AND skpd = ?" : ""));
+        $upd->execute($skpdS !== '' ? [$target, $id, $skpdS] : [$target, $id]);
+        jsonResponse(true, 'Status STBP berhasil dimajukan ke tahap berikutnya.', ['id' => $id, 'status' => $target]);
+    }
 
     if ($action !== 'create') {
         jsonResponse(false, 'Aksi tidak dikenali.', [], 422);

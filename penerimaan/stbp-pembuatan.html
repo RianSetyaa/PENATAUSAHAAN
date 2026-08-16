@@ -6,6 +6,19 @@
     <title>STBP - Pembuatan | SIM-TKD</title>
     <link rel="stylesheet" href="../css/dashboard.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .stbp-progress { display: flex; flex-direction: column; gap: 3px; min-width: 132px; }
+        .stbp-progress .bar { display: flex; gap: 2px; }
+        .stbp-progress .seg { flex: 1; height: 6px; border-radius: 3px; background: #e2e8f0; }
+        .stbp-progress .seg.done { background: #2f80ed; }
+        .stbp-progress .seg.cur { background: #f0a500; }
+        .stbp-progress .lbl { display: flex; justify-content: space-between; font-size: 9px; color: #8a94a6; margin-top: 1px; }
+        .stbp-progress .lbl b { color: #2f80ed; }
+        .filter-tahap { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .filter-tahap label { font-weight: 600; font-size: 13px; color: #344054; margin: 0; }
+        .filter-tahap select { height: 36px; min-width: 220px; border: 1px solid #d0d5dd; border-radius: 8px; padding: 0 10px; font-size: 13px; background: #fff; }
+        .filter-tahap .tahap-count { font-size: 12px; color: #667085; }
+    </style>
 </head>
 <body>
 
@@ -62,11 +75,20 @@
                         </div>
                     </div>
 
-                    <!-- STBP (aktif) -->
-                    <a href="stbp-pembuatan.html" class="menu-item active">
-                        <i class="fas fa-file-invoice"></i>
-                        <span>STBP</span>
-                    </a>
+                    <!-- STBP (dropdown tahap) -->
+                    <div class="menu-group open" data-menu="stbp">
+                        <a href="#" class="menu-item has-submenu active">
+                            <i class="fas fa-file-invoice"></i>
+                            <span>STBP</span>
+                            <i class="fas fa-chevron-down submenu-arrow"></i>
+                        </a>
+                        <div class="submenu">
+                            <a href="stbp-pembuatan.html" class="menu-item submenu-item"><i class="fas fa-plus-circle"></i><span>Pembuatan</span></a>
+                            <a href="stbp-pembuatan.html?tahap=sudah_diverifikasi" class="menu-item submenu-item"><i class="fas fa-check"></i><span>Verifikasi</span></a>
+                            <a href="stbp-pembuatan.html?tahap=sudah_diotorisasi" class="menu-item submenu-item"><i class="fas fa-signature"></i><span>Otorisasi</span></a>
+                            <a href="stbp-pembuatan.html?tahap=sudah_divalidasi" class="menu-item submenu-item"><i class="fas fa-stamp"></i><span>Validasi</span></a>
+                        </div>
+                    </div>
 
                     <a href="sts-pembuatan.html" class="menu-item">
                         <i class="fas fa-file-invoice-dollar"></i>
@@ -81,10 +103,10 @@
                             <i class="fas fa-chevron-down submenu-arrow"></i>
                         </a>
                         <div class="submenu">
-                            <a href="#" class="menu-item submenu-item"><i class="fas fa-sun"></i><span>Laporan Harian</span></a>
-                            <a href="#" class="menu-item submenu-item"><i class="fas fa-calendar-alt"></i><span>Laporan Bulanan</span></a>
-                            <a href="#" class="menu-item submenu-item"><i class="fas fa-chart-pie"></i><span>Rekap Penerimaan</span></a>
                             <a href="bku-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-book"></i><span>BKU Penerimaan</span></a>
+                            <a href="#" class="menu-item submenu-item"><i class="fas fa-wallet"></i><span>BKU Belanja</span></a>
+                            <a href="#" class="menu-item submenu-item"><i class="fas fa-clipboard-list"></i><span>Register</span></a>
+                            <a href="#" class="menu-item submenu-item"><i class="fas fa-file-invoice-dollar"></i><span>LPJ</span></a>
                         </div>
                     </div>
                 </div>
@@ -209,12 +231,13 @@
                                 <th>Nilai (Rp)</th>
                                 <th>Keterangan</th>
                                 <th>Status</th>
+                                <th>Progres</th>
                                 <th>AKSI</th>
                             </tr>
                         </thead>
                         <tbody id="stbpTableBody">
                             <tr>
-                                <td colspan="7" style="text-align:center; color:#9098a5;">Memuat data...</td>
+                                <td colspan="8" style="text-align:center; color:#9098a5;">Memuat data...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -284,7 +307,10 @@
             // ---------- State ----------
             let allData = [];
             let currentPage = 1;
-            let currentStatus = 'belum_diverifikasi';
+            // Tahap dari sidebar (?tahap=...) -> filter daftar
+            const TAHAP_ALLOWED = ['belum_diverifikasi', 'sudah_diverifikasi', 'sudah_diotorisasi', 'sudah_divalidasi', 'dihapus'];
+            const urlTahap = new URLSearchParams(window.location.search).get('tahap');
+            let currentStatus = TAHAP_ALLOWED.indexOf(urlTahap) !== -1 ? urlTahap : 'belum_diverifikasi';
 
             const STATUS_LABEL = {
                 belum_diverifikasi: 'Belum Diverifikasi',
@@ -337,6 +363,33 @@
                 return '<span class="type-badge ' + m[0] + '">' + m[1] + '</span>';
             }
 
+            // ---------- Progres 3 tahap: Verifikasi -> Otorisasi -> Validasi ----------
+            function progresCell(status) {
+                const done = { belum_diverifikasi: 0, sudah_diverifikasi: 1, sudah_diotorisasi: 2, sudah_divalidasi: 3 };
+                const n = done[status] != null ? done[status] : 0;
+                const segs = [0, 1, 2].map(function (i) {
+                    return '<span class="seg ' + (i < n ? 'done' : (i === n ? 'cur' : '')) + '"></span>';
+                }).join('');
+                const lbls = ['<b>Verifikasi</b>', 'Otorisasi', 'Validasi'];
+                const lbl = lbls.map(function (l, i) {
+                    return i < n ? l : '<span>' + l.replace(/<[^>]+>/g, '') + '</span>';
+                }).join('');
+                return '<div class="stbp-progress"><div class="bar">' + segs + '</div><div class="lbl">' + lbl + '</div></div>';
+            }
+
+            function nextStageBtn(p) {
+                if (p.status === 'belum_diverifikasi') {
+                    return '<button type="button" data-action="verifikasi" data-id="' + p.id + '"><i class="fas fa-check"></i> Verifikasi</button>';
+                }
+                if (p.status === 'sudah_diverifikasi') {
+                    return '<button type="button" data-action="otorisasi" data-id="' + p.id + '"><i class="fas fa-signature"></i> Otorisasi</button>';
+                }
+                if (p.status === 'sudah_diotorisasi') {
+                    return '<button type="button" data-action="validasi" data-id="' + p.id + '"><i class="fas fa-stamp"></i> Validasi</button>';
+                }
+                return '<button type="button" disabled><i class="fas fa-check-double"></i> Siap STS &amp; Jurnal</button>';
+            }
+
             // ---------- Update count tab ----------
             function updateCounts(counts) {
                 const map = {
@@ -350,6 +403,12 @@
                     const el = document.getElementById(map[s]);
                     if (el) el.textContent = (counts && counts[s] != null) ? counts[s] : 0;
                 });
+                // Sinkronkan tab aktif dengan tahap (dari sidebar ?tahap= atau klik tab)
+                if (tabsEl) {
+                    tabsEl.querySelectorAll('.tab-btn').forEach(function (b) {
+                        b.classList.toggle('active', b.getAttribute('data-status') === currentStatus);
+                    });
+                }
             }
 
             // ---------- Render tabel ----------
@@ -386,9 +445,11 @@
                         '<td class="num">' + formatRupiah(p.jumlah) + '</td>' +
                         '<td>' + escapeHtml(p.uraian || '-') + '</td>' +
                         '<td>' + statusBadge(p.status) + '</td>' +
+                        '<td>' + progresCell(p.status) + '</td>' +
                         '<td><div class="action-dropdown" data-id="' + p.id + '">' +
                             '<button type="button" class="action-dropdown-btn">Aksi <i class="fas fa-chevron-down"></i></button>' +
                             '<div class="action-dropdown-menu">' +
+                                nextStageBtn(p) +
                                 '<button type="button" data-action="update" data-id="' + p.id + '"><i class="fas fa-pen"></i> Perbarui Data STBP</button>' +
                                 '<button type="button" data-action="delete" data-id="' + p.id + '"><i class="fas fa-trash"></i> Hapus</button>' +
                                 '<button type="button" data-action="print" data-id="' + p.id + '"><i class="fas fa-print"></i> Cetak</button>' +
@@ -406,7 +467,7 @@
 
             // ---------- Ambil data dari backend ----------
             function loadStbp() {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#9098a5;">Memuat data...</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:#9098a5;">Memuat data...</td></tr>';
 
                 fetch('../api/stbp.php?status=' + encodeURIComponent(currentStatus) + '&q=' + encodeURIComponent(searchInput.value.trim()))
                     .then(function (res) { return res.json(); })
@@ -487,6 +548,9 @@
                 const id = item.getAttribute('data-id');
                 const action = item.getAttribute('data-action');
                 tbody.querySelectorAll('.action-dropdown.open').forEach(function (d) { d.classList.remove('open'); });
+                if (action === 'verifikasi') { advanceStatus(id, 'sudah_diverifikasi'); return; }
+                if (action === 'otorisasi') { advanceStatus(id, 'sudah_diotorisasi'); return; }
+                if (action === 'validasi') { advanceStatus(id, 'sudah_divalidasi'); return; }
                 if (action === 'print') {
                     window.location.href = 'stbp-cetak.html?id=' + id;
                 } else if (action === 'update') {
@@ -500,6 +564,21 @@
             document.addEventListener('click', function () {
                 tbody.querySelectorAll('.action-dropdown.open').forEach(function (d) { d.classList.remove('open'); });
             });
+
+            // ---------- Majukan tahap status STBP ----------
+            function advanceStatus(id, status) {
+                fetch('../api/stbp.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'update_status', id: id, status: status })
+                })
+                .then(function (res) { return res.json(); })
+                .then(function (d) {
+                    showToast(d.message || (d.success ? 'Status dimajukan.' : 'Gagal.'), d.success ? 'success' : 'error');
+                    if (d.success) loadStbp();
+                })
+                .catch(function () { showToast('Gagal memproses permintaan.', 'error'); });
+            }
 
             // ---------- Init ----------
             loadStbp();

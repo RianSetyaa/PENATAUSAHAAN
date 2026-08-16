@@ -179,6 +179,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         jsonResponse(false, 'Pilih minimal satu STBP.', [], 422);
     }
 
+    // Validasi (server-side): STBP yang dipilih harus SUDAH divalidasi (tahap 3)
+    $in = implode(',', array_fill(0, count($stbp_ids), '?'));
+    $chkParams = $stbp_ids;
+    if ($skpd !== '') $chkParams[] = $skpd;
+    $chk = $pdo->prepare("SELECT COUNT(*) FROM stbp WHERE id IN ($in) AND status = 'sudah_divalidasi'" . ($skpd !== '' ? " AND skpd = ?" : ""));
+    $chk->execute($chkParams);
+    if ((int) $chk->fetchColumn() !== count($stbp_ids)) {
+        jsonResponse(false, 'Ada STBP yang belum divalidasi (tahap 3) sehingga tidak dapat dimasukkan ke STS.', [], 422);
+    }
+
     $pdo->beginTransaction();
     try {
         $stmt = $pdo->prepare("
@@ -208,8 +218,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             INSERT INTO sts_detail (sts_id, stbp_id, nomor_stbp, tanggal, akun_kode, akun_nama, jumlah, uraian)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ");
-        // Hanya pakai STBP milik instansi yang sama (multi-tenant)
-        $stmtS = $pdo->prepare("SELECT id, nomor_stbp, tanggal, akun_kode, akun_nama, jumlah, uraian FROM stbp WHERE id = ? AND (? = '' OR skpd = ?)");
+        // Hanya pakai STBP yang SUDAH divalidasi (tahap 3), milik instansi yang sama
+        $stmtS = $pdo->prepare("SELECT id, nomor_stbp, tanggal, akun_kode, akun_nama, jumlah, uraian FROM stbp WHERE id = ? AND status = 'sudah_divalidasi' AND (? = '' OR skpd = ?)");
         $total = 0.0;
         foreach ($stbp_ids as $sid) {
             $stmtS->execute([$sid, $skpd, $skpd]);

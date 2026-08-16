@@ -48,8 +48,8 @@ $skpdUser = (string) ($user['instansi'] ?? '');
 if ($action === 'jurnal') {
     $rows = [];
 
-    // STBP -> Penerimaan
-    $stSql    = "SELECT * FROM stbp WHERE status != 'dihapus'";
+    // STBP -> Penerimaan (hanya yang sudah divalidasi / tahap 3)
+    $stSql    = "SELECT * FROM stbp WHERE status = 'sudah_divalidasi'";
     $stParams = [];
     if ($skpdUser !== '') { $stSql .= " AND skpd = ?"; $stParams[] = $skpdUser; }
     $stSql .= " ORDER BY tanggal ASC, id ASC";

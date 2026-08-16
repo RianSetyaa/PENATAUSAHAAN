@@ -62,10 +62,19 @@
                         </div>
                     </div>
 
-            <a href="stbp-pembuatan.html" class="menu-item">
-                <i class="fas fa-file-invoice"></i>
-                <span>STBP</span>
-            </a>
+            <div class="menu-group" data-menu="stbp">
+                <a href="#" class="menu-item has-submenu">
+                    <i class="fas fa-file-invoice"></i>
+                    <span>STBP</span>
+                    <i class="fas fa-chevron-down submenu-arrow"></i>
+                </a>
+                <div class="submenu">
+                    <a href="stbp-pembuatan.html" class="menu-item submenu-item"><i class="fas fa-plus-circle"></i><span>Pembuatan</span></a>
+                    <a href="stbp-pembuatan.html?tahap=sudah_diverifikasi" class="menu-item submenu-item"><i class="fas fa-check"></i><span>Verifikasi</span></a>
+                    <a href="stbp-pembuatan.html?tahap=sudah_diotorisasi" class="menu-item submenu-item"><i class="fas fa-signature"></i><span>Otorisasi</span></a>
+                    <a href="stbp-pembuatan.html?tahap=sudah_divalidasi" class="menu-item submenu-item"><i class="fas fa-stamp"></i><span>Validasi</span></a>
+                </div>
+            </div>
 
             <a href="sts-pembuatan.html" class="menu-item">
                 <i class="fas fa-file-invoice-dollar"></i>
@@ -80,10 +89,10 @@
                             <i class="fas fa-chevron-down submenu-arrow"></i>
                         </a>
                         <div class="submenu">
-                            <a href="#" class="menu-item submenu-item"><i class="fas fa-sun"></i><span>Laporan Harian</span></a>
-                            <a href="#" class="menu-item submenu-item"><i class="fas fa-calendar-alt"></i><span>Laporan Bulanan</span></a>
-                            <a href="#" class="menu-item submenu-item"><i class="fas fa-chart-pie"></i><span>Rekap Penerimaan</span></a>
                             <a href="bku-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-book"></i><span>BKU Penerimaan</span></a>
+                            <a href="#" class="menu-item submenu-item"><i class="fas fa-wallet"></i><span>BKU Belanja</span></a>
+                            <a href="#" class="menu-item submenu-item"><i class="fas fa-clipboard-list"></i><span>Register</span></a>
+                            <a href="#" class="menu-item submenu-item"><i class="fas fa-file-invoice-dollar"></i><span>LPJ</span></a>
                         </div>
                     </div>
                 </div>
@@ -208,7 +217,7 @@
                     <div class="card-body">
                         <span class="card-label">Laporan</span>
                         <h3 class="card-value">Laporan Penerimaan</h3>
-                        <p class="module-desc">Laporan harian, bulanan, dan rekapitulasi penerimaan daerah.</p>
+                        <p class="module-desc">BKU Penerimaan, BKU Belanja, Register, dan LPJ.</p>
                         <a href="#" class="btn btn-sm module-link"><i class="fas fa-arrow-right"></i> Buka Laporan</a>
                     </div>
                 </div>
@@ -227,7 +236,7 @@
                     <ul style="margin: 12px 0 0 20px; font-size: 14px; color: #2c3e50; line-height: 2;">
                         <li><i class="fas fa-university" style="color:#1a3a6b; width:20px;"></i> <strong>Rekening</strong> — Permohonan</li>
                         <li><i class="fas fa-file-invoice" style="color:#27ae60; width:20px;"></i> <strong>STBP</strong> — Input STBP, Daftar STBP, Verifikasi STBP</li>
-                        <li><i class="fas fa-file-alt" style="color:#f58220; width:20px;"></i> <strong>Laporan</strong> — Laporan Harian, Laporan Bulanan, Rekap Penerimaan, BKU Penerimaan</li>
+                        <li><i class="fas fa-file-alt" style="color:#f58220; width:20px;"></i> <strong>Laporan</strong> — BKU Penerimaan, BKU Belanja, Register, LPJ</li>
                     </ul>
                 </div>
             </div>
