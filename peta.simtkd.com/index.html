@@ -71,6 +71,25 @@
             display: flex; align-items: center; justify-content: center;
             font-size: 15px; font-weight: 700;
         }
+        .region-select {
+            height: 28px; border: 1px solid rgba(255,255,255,.4); border-radius: 6px;
+            background: rgba(255,255,255,.12); color: #fff; font-size: 12px; padding: 0 8px;
+            max-width: 220px; cursor: pointer; margin-bottom: 2px;
+        }
+        .region-select option { color: #1f2937; }
+        .pw-wrap { position: relative; }
+        .pw-region { margin-bottom: 2px; }
+        .region-input { width: 200px; }
+        .pw-list {
+            display: none; position: absolute; top: calc(100% + 4px); right: 0; z-index: 90;
+            background: #fff; border: 1px solid var(--border); border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0,0,0,.18); max-height: 240px; overflow-y: auto;
+            padding: 5px; min-width: 240px; text-align: left;
+        }
+        .pw-list.open { display: block; }
+        .pw-item { padding: 8px 10px; font-size: 12.5px; cursor: pointer; border-radius: 6px; color: var(--text); }
+        .pw-item:hover { background: #eef2f9; color: var(--navy); }
+        .pw-empty { padding: 8px 10px; font-size: 12px; color: #94a3b8; }
 
         /* ---------- Body layout ---------- */
         .body-wrap { display: flex; flex: 1; min-height: 0; }
@@ -239,7 +258,14 @@
         </div>
         <div class="topbar-right">
             <div class="region">
-                <b>Provinsi Sulawesi Barat</b>
+                <select id="provWilayah" class="region-select">
+                    <option value="">-- Pilih Provinsi --</option>
+                </select>
+                <div class="pw-wrap pw-region">
+                    <input type="text" id="kotaWilayahInput" class="region-select region-input" placeholder="Kota/Kabupaten..." autocomplete="off">
+                    <input type="hidden" id="kotaWilayah" value="">
+                    <div class="pw-list" id="kotaWilayahList"></div>
+                </div>
                 <span>Tahun Anggaran 2024</span>
             </div>
             <div class="topbar-user">
@@ -383,6 +409,19 @@
     <div id="toast"></div>
 
     <script src="js/config.js"></script>
+    <script src="js/daftar-kota.js"></script>
+    <script src="js/pilih-wilayah.js"></script>
+    <script>
+        // Wilayah: pilih Provinsi -> Kota (cascading + searchable)
+        initPilihWilayah({
+            provinsiId: 'provWilayah',
+            kotaId: 'kotaWilayah',
+            kotaInputId: 'kotaWilayahInput',
+            kotaListId: 'kotaWilayahList',
+            defaultProvinsi: 'Sulawesi Barat',
+            defaultKota: 'Kabupaten Mamuju'
+        });
+    </script>
     <script>
         (function () {
             'use strict';

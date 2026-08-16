@@ -29,6 +29,8 @@ $email      = input('email');
 $password   = input('password');
 $instansi   = input('instansi');
 $peran      = input('peran', 'Pengguna Umum');
+$kota       = input('kota');
+$provinsi   = input('provinsi');
 
 // --- Validasi server-side ---
 if (!isValidNama($nama)) {
@@ -76,10 +78,10 @@ $hashed = password_hash($password, PASSWORD_DEFAULT);
 // Simpan pengguna baru (status default: pending -> menunggu verifikasi admin)
 try {
     $stmt = $pdo->prepare("
-        INSERT INTO users (nama_lengkap, username, email, password, instansi, peran, status)
-        VALUES (?, ?, ?, ?, ?, ?, 'pending')
+        INSERT INTO users (nama_lengkap, username, email, password, instansi, kota, provinsi, peran, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')
     ");
-    $stmt->execute([$nama, $username, $email, $hashed, $instansi, $peran]);
+    $stmt->execute([$nama, $username, $email, $hashed, $instansi, $kota, $provinsi, $peran]);
 
     $userId = (int) $pdo->lastInsertId();
 } catch (PDOException $e) {

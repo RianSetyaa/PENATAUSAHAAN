@@ -24,6 +24,9 @@
     const confirmPassword = document.getElementById('confirmPassword');
     const instansi = document.getElementById('instansi');
     const peran = document.getElementById('peran');
+    const kota = document.getElementById('kota');
+    const provinsi = document.getElementById('provinsi');
+    const kotaInput = document.getElementById('kotaInput');
     const terms = document.getElementById('terms');
 
     let captchaCode = '';
@@ -243,6 +246,8 @@
         const confirm = confirmPassword.value;
         const inst = instansi.value.trim();
         const role = peran.value;
+        const kt = kota.value;
+        const prov = provinsi.value.trim();
         const cap = captchaInput.value.trim().toUpperCase();
 
         // Reset errors
@@ -307,6 +312,20 @@
             hasError = true;
         }
 
+        // Validate provinsi
+        if (!prov) {
+            showToast('Silakan pilih Provinsi.', 'warning');
+            provinsi.style.borderColor = '#e74c3c';
+            hasError = true;
+        }
+
+        // Validate kota
+        if (!kt) {
+            showToast('Silakan pilih Kota / Kabupaten.', 'warning');
+            kotaInput.style.borderColor = '#e74c3c';
+            hasError = true;
+        }
+
         // Validate captcha
         if (!cap) {
             captchaInput.style.borderColor = '#e74c3c';
@@ -347,6 +366,8 @@
                 email: mail,
                 password: pw,
                 instansi: inst,
+                kota: kt,
+                provinsi: prov,
                 peran: role
             })
         })
@@ -427,6 +448,19 @@
     // ==========================================
     function init() {
         generateCaptcha();
+        // Wilayah: Provinsi -> Kota (cascading + searchable)
+        if (typeof initPilihWilayah === 'function') {
+            initPilihWilayah({
+                provinsiId: 'provinsi',
+                kotaId: 'kota',
+                kotaInputId: 'kotaInput',
+                kotaListId: 'kotaList',
+                onKotaChange: function () {
+                    clearError(kotaInput, document.getElementById('errKota'));
+                    clearError(provinsi, document.getElementById('errProvinsi'));
+                }
+            });
+        }
         console.log('SIM-TKD - Register Page Ready');
     }
 

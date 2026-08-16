@@ -6,6 +6,19 @@
     <title>Daftar - SIM-TKD | Sistem Informasi Manajemen Tata Kelola Daerah</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Pilih Wilayah: dropdown kota yang bisa dicari */
+        .pw-wrap { position: relative; }
+        .pw-list {
+            display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 60;
+            background: #fff; border: 1px solid #d0d7e2; border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0,0,0,.14); max-height: 220px; overflow-y: auto; padding: 5px;
+        }
+        .pw-list.open { display: block; }
+        .pw-item { padding: 8px 10px; font-size: 13px; cursor: pointer; border-radius: 6px; color: #1f2937; }
+        .pw-item:hover { background: #eef2f9; color: #16305a; }
+        .pw-empty { padding: 8px 10px; font-size: 12.5px; color: #94a3b8; }
+    </style>
 </head>
 <body>
     <!-- Background -->
@@ -182,6 +195,30 @@
                         </div>
                     </div>
 
+                    <!-- Wilayah: Provinsi & Kota -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="provinsi">
+                                <i class="fas fa-map-marker-alt"></i> Provinsi
+                            </label>
+                            <select id="provinsi" class="form-control" required>
+                                <option value="">-- Pilih Provinsi --</option>
+                            </select>
+                            <span class="field-error" id="errProvinsi"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="kotaInput">
+                                <i class="fas fa-city"></i> Kota / Kabupaten
+                            </label>
+                            <div class="pw-wrap">
+                                <input type="text" id="kotaInput" class="form-control" placeholder="Pilih provinsi, lalu ketik untuk mencari..." autocomplete="off">
+                                <input type="hidden" id="kota" value="">
+                                <div class="pw-list" id="kotaList"></div>
+                            </div>
+                            <span class="field-error" id="errKota"></span>
+                        </div>
+                    </div>
+
                     <!-- Captcha -->
                     <div class="form-group">
                         <label for="captchaInput">
@@ -259,6 +296,8 @@
     <!-- Toast Notifikasi -->
     <div class="toast-container" id="toastContainer"></div>
 
+    <script src="js/daftar-kota.js"></script>
+    <script src="js/pilih-wilayah.js"></script>
     <script src="js/daftar.js"></script>
 </body>
 </html>
