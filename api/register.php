@@ -28,7 +28,7 @@ $username   = input('username');
 $email      = input('email');
 $password   = input('password');
 $instansi   = input('instansi');
-$peran      = input('peran', 'Pengguna Umum');
+$peran      = input('peran', 'Bendahara');
 $kota       = input('kota');
 $provinsi   = input('provinsi');
 

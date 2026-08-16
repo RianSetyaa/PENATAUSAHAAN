@@ -23,7 +23,6 @@
     const password = document.getElementById('password');
     const confirmPassword = document.getElementById('confirmPassword');
     const instansi = document.getElementById('instansi');
-    const peran = document.getElementById('peran');
     const kota = document.getElementById('kota');
     const provinsi = document.getElementById('provinsi');
     const kotaInput = document.getElementById('kotaInput');
@@ -245,7 +244,6 @@
         const pw = password.value;
         const confirm = confirmPassword.value;
         const inst = instansi.value.trim();
-        const role = peran.value;
         const kt = kota.value;
         const prov = provinsi.value.trim();
         const cap = captchaInput.value.trim().toUpperCase();
@@ -305,13 +303,6 @@
             hasError = true;
         }
 
-        // Validate role
-        if (!role) {
-            showToast('Silakan pilih peran / jabatan.', 'warning');
-            peran.style.borderColor = '#e74c3c';
-            hasError = true;
-        }
-
         // Validate provinsi
         if (!prov) {
             showToast('Silakan pilih Provinsi.', 'warning');
@@ -367,8 +358,7 @@
                 password: pw,
                 instansi: inst,
                 kota: kt,
-                provinsi: prov,
-                peran: role
+                provinsi: prov
             })
         })
         .then(function (res) {
@@ -429,10 +419,6 @@
         el.addEventListener('focus', function () {
             clearError(this, document.getElementById(errId));
         });
-    });
-
-    peran.addEventListener('change', function () {
-        this.style.borderColor = '';
     });
 
     captchaInput.addEventListener('focus', function () {
