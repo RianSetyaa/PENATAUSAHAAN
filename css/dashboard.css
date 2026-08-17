@@ -1618,6 +1618,21 @@ a {
     align-items: stretch;
 }
 
+.card-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 22px;
+    border-bottom: 1px solid var(--border);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.card-head i {
+    color: var(--primary);
+}
+
 .card-header {
     display: flex;
     align-items: center;

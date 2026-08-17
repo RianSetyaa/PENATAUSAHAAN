@@ -3,13 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Belanja - SIM-TKD</title>
+    <title>Belanja - SIM-TKD | Modul Penatausahaan Pengeluaran</title>
     <link rel="stylesheet" href="../css/dashboard.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .modul-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(220px,1fr)); gap: 16px; margin-top: 18px; }
+        .modul-tile { background:#fff; border:1px solid #e6eaf2; border-radius:12px; padding:18px; text-decoration:none; color:#2c3e50; display:flex; flex-direction:column; gap:10px; transition:.2s; }
+        .modul-tile:hover { border-color:#2f80ed; box-shadow:0 6px 16px rgba(47,128,237,.12); transform:translateY(-2px); }
+        .modul-tile i { font-size:26px; color:#2f80ed; }
+        .modul-tile b { font-size:14px; }
+        .modul-tile span { font-size:12px; color:#6b7a90; line-height:1.4; }
+        .stat-mini { font-size:12px; color:#344054; background:#f4f7fb; border-radius:8px; padding:4px 8px; display:inline-block; margin-top:2px; }
+        .toast { position:fixed; bottom:20px; right:20px; background:#2c3e50; color:#fff; padding:12px 18px; border-radius:8px; font-size:13px; opacity:0; transition:.3s; z-index:9999; }
+        .toast.show { opacity:1; }
+    </style>
 </head>
 <body>
-
-    <!-- ================= SIDEBAR ================= -->
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <div class="sidebar-logo">
@@ -19,175 +28,103 @@
                     <span class="title-sub">Modul Edukasi</span>
                 </div>
             </div>
-            <button class="sidebar-toggle" id="sidebarToggle">
-                <i class="fas fa-bars"></i>
-            </button>
+            <button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
         </div>
-
         <div class="sidebar-user">
-            <div class="user-avatar">
-                <i class="fas fa-user-tie"></i>
-            </div>
+            <div class="user-avatar"><i class="fas fa-user-tie"></i></div>
             <div class="user-info">
                 <span class="user-name" id="sidebarUserName">Admin Dinas</span>
                 <span class="user-role" id="sidebarUserRole">Dinas Kepemudaan dan Olahraga</span>
             </div>
         </div>
-
         <nav class="sidebar-menu">
             <span class="menu-label">MENU UTAMA</span>
-            <a href="../dashboard/dashboard.html" class="menu-item">
-                <i class="fas fa-th-large"></i>
-                <span>Dashboard</span>
-            </a>
-
-            <!-- Penerimaan (dropdown utama) -->
+            <a href="../dashboard/dashboard.html" class="menu-item"><i class="fas fa-th-large"></i><span>Dashboard</span></a>
             <div class="menu-group" data-menu="penerimaan">
-                <a href="#" class="menu-item has-submenu">
-                    <i class="fas fa-arrow-down"></i>
-                    <span>Penerimaan</span>
-                    <i class="fas fa-chevron-down submenu-arrow"></i>
-                </a>
+                <a href="#" class="menu-item has-submenu"><i class="fas fa-arrow-down"></i><span>Penerimaan</span><i class="fas fa-chevron-down submenu-arrow"></i></a>
                 <div class="submenu">
-                    <!-- Rekening -->
-                    <div class="menu-group" data-menu="rekening">
-                        <a href="#" class="menu-item has-submenu">
-                            <i class="fas fa-university"></i>
-                            <span>Rekening</span>
-                            <i class="fas fa-chevron-down submenu-arrow"></i>
-                        </a>
-                        <div class="submenu">
-                            <a href="../penerimaan/permohonan.html" class="menu-item submenu-item"><i class="fas fa-file-signature"></i><span>Permohonan</span></a>
-                        </div>
-                    </div>
-
-                    <div class="menu-group" data-menu="stbp">
-                        <a href="#" class="menu-item has-submenu">
-                            <i class="fas fa-file-invoice"></i>
-                            <span>STBP</span>
-                            <i class="fas fa-chevron-down submenu-arrow"></i>
-                        </a>
-                        <div class="submenu">
-                            <a href="../penerimaan/stbp-pembuatan.html" class="menu-item submenu-item"><i class="fas fa-plus-circle"></i><span>Pembuatan</span></a>
-                            <a href="../penerimaan/stbp-pembuatan.html?tahap=sudah_diverifikasi" class="menu-item submenu-item"><i class="fas fa-check"></i><span>Verifikasi</span></a>
-                            <a href="../penerimaan/stbp-pembuatan.html?tahap=sudah_diotorisasi" class="menu-item submenu-item"><i class="fas fa-signature"></i><span>Otorisasi</span></a>
-                            <a href="../penerimaan/stbp-pembuatan.html?tahap=sudah_divalidasi" class="menu-item submenu-item"><i class="fas fa-stamp"></i><span>Validasi</span></a>
-                        </div>
-                    </div>
-
-                    <a href="../penerimaan/sts-pembuatan.html" class="menu-item">
-                        <i class="fas fa-file-invoice-dollar"></i>
-                        <span>STS</span>
-                    </a>
-
-                    <!-- Laporan -->
-                    <div class="menu-group" data-menu="laporan">
-                        <a href="#" class="menu-item has-submenu">
-                            <i class="fas fa-file-alt"></i>
-                            <span>Laporan</span>
-                            <i class="fas fa-chevron-down submenu-arrow"></i>
-                        </a>
-                        <div class="submenu">
-                            <a href="../penerimaan/bku-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-book"></i><span>BKU Penerimaan</span></a>
-                            <a href="#" class="menu-item submenu-item"><i class="fas fa-wallet"></i><span>BKU Belanja</span></a>
-                            <a href="#" class="menu-item submenu-item"><i class="fas fa-clipboard-list"></i><span>Register</span></a>
-                            <a href="#" class="menu-item submenu-item"><i class="fas fa-file-invoice-dollar"></i><span>LPJ</span></a>
-                        </div>
-                    </div>
+                    <a href="../penerimaan/permohonan.html" class="menu-item submenu-item"><i class="fas fa-file-signature"></i><span>Permohonan</span></a>
+                    <a href="../penerimaan/stbp-pembuatan.html" class="menu-item submenu-item"><i class="fas fa-file-invoice"></i><span>STBP</span></a>
+                    <a href="../penerimaan/sts-pembuatan.html" class="menu-item submenu-item"><i class="fas fa-file-invoice-dollar"></i><span>STS</span></a>
+                    <a href="../penerimaan/bku-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-book"></i><span>BKU Penerimaan</span></a>
                 </div>
             </div>
-
-            <a href="../belanja/index.html" class="menu-item active">
-                <i class="fas fa-arrow-up"></i>
-                <span>Belanja</span>
-            </a>
-            <a href="../api/aklap_go.php" class="menu-item">
-                <i class="fas fa-book"></i>
-                <span>Akuntansi</span>
-            </a>
-            <!-- Pengaturan (dropdown) -->
-            <div class="menu-group" data-menu="pengaturan">
-                <a href="#" class="menu-item has-submenu">
-                    <i class="fas fa-cog"></i>
-                    <span>Pengaturan</span>
-                    <i class="fas fa-chevron-down submenu-arrow"></i>
-                </a>
+            <div class="menu-group open" data-menu="belanja">
+                <a href="#" class="menu-item has-submenu active"><i class="fas fa-arrow-up"></i><span>Belanja</span><i class="fas fa-chevron-down submenu-arrow"></i></a>
                 <div class="submenu">
-                    <a href="../pengaturan/akun-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-coins"></i><span>Akun Penerimaan</span></a>
+                    <a href="index.html" class="menu-item submenu-item active"><i class="fas fa-th-large"></i><span>Dashboard</span></a>
+                    <a href="rekanan.html" class="menu-item submenu-item"><i class="fas fa-handshake"></i><span>Daftar Rekanan</span></a>
+                    <a href="spd.html" class="menu-item submenu-item"><i class="fas fa-file-invoice"></i><span>SPD</span></a>
+                    <a href="spp.html" class="menu-item submenu-item"><i class="fas fa-file-signature"></i><span>SPP</span></a>
+                    <a href="spm.html" class="menu-item submenu-item"><i class="fas fa-file-invoice-dollar"></i><span>SPM</span></a>
+                    <a href="sp2d.html" class="menu-item submenu-item"><i class="fas fa-money-check-alt"></i><span>SP2D</span></a>
+                    <a href="bku-belanja.html" class="menu-item submenu-item"><i class="fas fa-book"></i><span>BKU Belanja</span></a>
                 </div>
             </div>
-
+            <a href="../api/aklap_go.php" class="menu-item"><i class="fas fa-book"></i><span>Akuntansi</span></a>
             <span class="menu-label">AKUN</span>
-            <a href="../api/logout.php" class="menu-item menu-logout" id="logoutLink">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>Keluar</span>
-            </a>
+            <a href="../api/logout.php" class="menu-item menu-logout"><i class="fas fa-sign-out-alt"></i><span>Keluar</span></a>
         </nav>
-
-        <div class="sidebar-footer">
-            <span>&copy; 2026 SIM-TKD POLBAN</span>
-        </div>
+        <div class="sidebar-footer"><span>&copy; 2026 SIM-TKD POLBAN</span></div>
     </aside>
-
-    <!-- ================= OVERLAY (mobile) ================= -->
     <div class="overlay" id="overlay"></div>
-
-    <!-- ================= MAIN ================= -->
     <div class="main-wrapper">
         <header class="topbar">
             <div class="topbar-left">
-                <button class="topbar-toggle" id="topbarToggle">
-                    <i class="fas fa-bars"></i>
-                </button>
-                <div class="breadcrumb">
-                    <i class="fas fa-home"></i>
-                    <span>Beranda</span>
-                    <i class="fas fa-chevron-right"></i>
-                    <span class="current">Belanja</span>
-                </div>
+                <button class="topbar-toggle" id="topbarToggle"><i class="fas fa-bars"></i></button>
+                <div class="breadcrumb"><i class="fas fa-home"></i><span>Beranda</span><i class="fas fa-chevron-right"></i><span class="current">Belanja</span></div>
             </div>
             <div class="topbar-right">
-                <div class="topbar-item notification">
-                    <i class="fas fa-bell"></i>
-                    <span class="badge">3</span>
-                </div>
-                <div class="topbar-item">
-                    <i class="fas fa-calendar-alt"></i>
-                    <span id="currentDate">--</span>
-                </div>
-                <div class="topbar-item user">
-                    <div class="user-avatar small">
-                        <i class="fas fa-user-tie"></i>
-                    </div>
-                    <span id="topbarUserName">Admin Dinas</span>
-                </div>
+                <div class="topbar-item"><i class="fas fa-calendar-alt"></i><span id="currentDate">--</span></div>
+                <div class="topbar-item user"><div class="user-avatar small"><i class="fas fa-user-tie"></i></div><span id="topbarUserName">Admin Dinas</span></div>
             </div>
         </header>
-
-        <!-- Content -->
         <main class="content">
             <div class="page-header">
                 <div>
-                    <h1 class="page-title">Modul Belanja</h1>
-                    <p class="page-subtitle">Modul ini sedang dalam pengembangan.</p>
+                    <h1 class="page-title">Modul Belanja (Penatausahaan Pengeluaran)</h1>
+                    <p class="page-subtitle">Alur: Rekanan → SPD → SPP → SPM → SP2D → BKU Belanja</p>
                 </div>
             </div>
-
-            <div class="card" style="padding:40px;text-align:center;">
-                <i class="fas fa-tools" style="font-size:48px;color:#cbd5e1;margin-bottom:16px;"></i>
-                <h3 style="color:#475569;margin-bottom:8px;">Belanja - Segera Hadir</h3>
-                <p style="color:#94a3b8;max-width:480px;margin:0 auto;">
-                    Modul Belanja (SPP / SPM / SPM-LS) akan tersedia di sini.
-                    Saat ini fokus pengembangan pada modul Penerimaan dan Akuntansi.
-                </p>
+            <div class="cards-grid" id="summaryCards">
+                <div class="card summary-card"><div class="card-body"><span class="card-label">Rekanan</span><h3 class="card-value">0</h3></div></div>
+                <div class="card summary-card"><div class="card-body"><span class="card-label">SPD (terotorisasi)</span><h3 class="card-value">0</h3></div></div>
+                <div class="card summary-card"><div class="card-body"><span class="card-label">SPP (terverifikasi)</span><h3 class="card-value">0</h3></div></div>
+                <div class="card summary-card"><div class="card-body"><span class="card-label">SP2D (dicairkan)</span><h3 class="card-value">0</h3></div></div>
+            </div>
+            <div class="modul-grid">
+                <a class="modul-tile" href="rekanan.html"><i class="fas fa-handshake"></i><b>Daftar Rekanan</b><span>Kelola vendor/rekanan beserta rekening pembayaran.</span><span class="stat-mini" data-stat="rekanan">0 data</span></a>
+                <a class="modul-tile" href="spd.html"><i class="fas fa-file-invoice"></i><b>SPD</b><span>Pembuatan &amp; otorisasi Surat Penyediaan Dana.</span><span class="stat-mini" data-stat="spd">0 data</span></a>
+                <a class="modul-tile" href="spp.html"><i class="fas fa-file-signature"></i><b>SPP</b><span>Surat Permintaan Pembayaran &amp; verifikasi PPK.</span><span class="stat-mini" data-stat="spp">0 data</span></a>
+                <a class="modul-tile" href="spm.html"><i class="fas fa-file-invoice-dollar"></i><b>SPM</b><span>Persetujuan &amp; verifikasi Surat Perintah Membayar.</span><span class="stat-mini" data-stat="spm">0 data</span></a>
+                <a class="modul-tile" href="sp2d.html"><i class="fas fa-money-check-alt"></i><b>SP2D</b><span>Pembuatan, verifikasi &amp; pencairan dana.</span><span class="stat-mini" data-stat="sp2d">0 data</span></a>
+                <a class="modul-tile" href="bku-belanja.html"><i class="fas fa-book"></i><b>BKU Belanja</b><span>Buku Kas Umum Bendahara Pengeluaran.</span><span class="stat-mini">Cetak</span></a>
             </div>
         </main>
-
-        <footer class="footer">
-            <span>&copy; 2026 SIM-TKD - Sistem Informasi Manajemen Tata Kelola Daerah (Modul Edukasi) | Politeknik Negeri Bandung</span>
-        </footer>
+        <footer class="footer"><span>&copy; 2026 SIM-TKD - Modul Edukasi | Politeknik Negeri Bandung</span></footer>
     </div>
-
+    <div id="toast" class="toast"></div>
     <script src="../js/dashboard.js"></script>
+    <script>
+        (function () {
+            'use strict';
+            function toast(msg) { var t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(t._t); t._t = setTimeout(function () { t.classList.remove('show'); }, 2400); }
+            fetch('../api/belanja.php?action=summary')
+                .then(function (r) { return r.json(); })
+                .then(function (d) {
+                    if (!(d && d.success)) { toast((d && d.message) || 'Gagal memuat data.'); return; }
+                    var s = d;
+                    var cards = document.querySelectorAll('#summaryCards .card-value');
+                    var vals = [s.rekanan || 0, (s.spd_otor || 0) + ' / ' + (s.spd || 0), (s.spp_ver || 0) + ' / ' + (s.spp || 0), (s.sp2d_cair || 0) + ' / ' + (s.sp2d || 0)];
+                    cards.forEach(function (c, i) { c.textContent = vals[i] || 0; });
+                    var stats = { rekanan: s.rekanan || 0, spd: s.spd || 0, spp: s.spp || 0, spm: s.spm || 0, sp2d: s.sp2d || 0 };
+                    Object.keys(stats).forEach(function (k) {
+                        var el = document.querySelector('[data-stat="' + k + '"]');
+                        if (el) el.textContent = stats[k] + ' data';
+                    });
+                })
+                .catch(function () { toast('Gagal terhubung ke server API.'); });
+        })();
+    </script>
 </body>
 </html>
