@@ -1986,7 +1986,10 @@ a {
     gap: 10px;
     min-width: 280px;
     max-width: 420px;
-    animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s forwards;
+    bottom: auto;
+    height: auto;
+    /* Animasi dihapus: sebelumnya membentang setinggi viewport + menggeser ke kanan */
+    animation: none;
 }
 
 .toast-success { background: #27ae60; }

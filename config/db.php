@@ -9,13 +9,13 @@
 declare(strict_types=1);
 
 // Konfigurasi database
+// >>> LOKAL (XAMPP) - UJI LOKAL <<<
 // >>> PRODUKSI (cPanel) - PASTIKAN FILE INI YANG TER-UPLOAD KE HOSTING <<<
 // Password TEPAT: @Admin21345 (sekali). Jangan dobel.
-// Utk uji lokal, ganti blok ini dengan: 127.0.0.1 / simtkd / root / ''
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'simtkdco_sipd');
-define('DB_USER', 'simtkdco_user');
-define('DB_PASS', '@Admin21345');
+define('DB_HOST', '127.0.0.1');
+define('DB_NAME', 'simtkd');
+define('DB_USER', 'root');
+define('DB_PASS', '');
 
 // Cegah akses langsung ke file ini
 if (basename($_SERVER['PHP_SELF'] ?? '') === 'db.php') {

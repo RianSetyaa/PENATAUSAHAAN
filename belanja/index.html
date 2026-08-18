@@ -14,8 +14,8 @@
         .modul-tile b { font-size:14px; }
         .modul-tile span { font-size:12px; color:#6b7a90; line-height:1.4; }
         .stat-mini { font-size:12px; color:#344054; background:#f4f7fb; border-radius:8px; padding:4px 8px; display:inline-block; margin-top:2px; }
-        .toast { position:fixed; bottom:20px; right:20px; background:#2c3e50; color:#fff; padding:12px 18px; border-radius:8px; font-size:13px; opacity:0; transition:.3s; z-index:9999; }
-        .toast.show { opacity:1; }
+        .toast { position:fixed; top:auto; bottom:20px; right:20px; left:auto; height:auto; width:auto; min-width:0; max-width:420px; background:#2c3e50; color:#fff; padding:12px 18px; border-radius:8px; font-size:13px; opacity:0; transform:none; animation:none; transition:opacity .3s; z-index:9999; pointer-events:none; }
+        .toast.show { opacity:1; pointer-events:auto; }
     </style>
 </head>
 <body>

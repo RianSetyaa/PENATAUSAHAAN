@@ -7,8 +7,8 @@
     <link rel="stylesheet" href="../css/dashboard.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        .toast { position:fixed; bottom:20px; right:20px; background:#2c3e50; color:#fff; padding:12px 18px; border-radius:8px; font-size:13px; opacity:0; transition:.3s; z-index:9999; }
-        .toast.show { opacity:1; }
+        .toast { position:fixed; top:auto; bottom:20px; right:20px; left:auto; height:auto; width:auto; min-width:0; max-width:420px; background:#2c3e50; color:#fff; padding:12px 18px; border-radius:8px; font-size:13px; opacity:0; transform:none; animation:none; transition:opacity .3s; z-index:9999; pointer-events:none; }
+        .toast.show { opacity:1; pointer-events:auto; }
         .tabs { display:flex; gap:8px; margin-bottom:14px; }
         .tab-btn { padding:8px 16px; border:1px solid #d0d5dd; border-radius:8px; background:#fff; cursor:pointer; font-size:13px; }
         .tab-btn.active { background:#2f80ed; color:#fff; border-color:#2f80ed; }
