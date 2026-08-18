@@ -76,7 +76,7 @@
                 <div class="card-head"><i class="fas fa-university"></i> Tambah Permohonan Rekening (BP)</div>
                 <div class="card-body">
                     <div class="form-grid">
-                        <div><label>Bank *</label><input id="bank" placeholder="Nama bank"></div>
+                        <div><label>Bank *</label><select id="bank"><option value="">-- Pilih Bank --</option></select></div>
                         <div><label>Nama Pemilik *</label><input id="nama_pemilik" placeholder="Nama pemilik rekening"></div>
                     </div>
                     <div style="margin-top:14px;"><button class="btn btn-primary" id="btnSimpan"><i class="fas fa-save"></i> Simpan Permohonan</button></div>
@@ -96,11 +96,19 @@
         <footer class="footer"><span>&copy; 2026 SIM-TKD - Modul Edukasi | Politeknik Negeri Bandung</span></footer>
     </div>
     <div id="toast" class="toast"></div>
+    <script src="../js/daftar-bank.js"></script>
     <script src="../js/dashboard.js"></script>
     <script>
         (function () {
             'use strict';
             var tbody = document.getElementById('tbodyRek');
+            // Isi dropdown bank dari daftar-bank.js
+            (function () {
+                var sel = document.getElementById('bank');
+                if (typeof DAFTAR_BANK !== 'undefined' && DAFTAR_BANK.length) {
+                    sel.innerHTML = '<option value="">-- Pilih Bank --</option>' + DAFTAR_BANK.map(function (b) { return '<option value="' + b.name + '">' + b.name + ' (' + b.code + ')</option>'; }).join('');
+                }
+            })();
             var curTab = 'permohonan';
             function toast(msg) { var t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(t._t); t._t = setTimeout(function () { t.classList.remove('show'); }, 2400); }
             function esc(s) { var d = document.createElement('div'); d.textContent = String(s || ''); return d.innerHTML; }
