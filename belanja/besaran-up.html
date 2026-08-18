@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BKU Belanja - Belanja | SIM-TKD</title>
+    <title>Besaran UP - Belanja | SIM-TKD</title>
     <link rel="stylesheet" href="../css/dashboard.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -43,9 +43,9 @@
                     <a href="lpj.html" class="menu-item submenu-item"><i class="fas fa-clipboard-check"></i><span>LPJ</span></a>
                     <a href="pengajuan-tu.html" class="menu-item submenu-item"><i class="fas fa-paper-plane"></i><span>Pengajuan TU</span></a>
                     <a href="npd.html" class="menu-item submenu-item"><i class="fas fa-file-invoice-dollar"></i><span>NPD</span></a>
-                    <a href="besaran-up.html" class="menu-item submenu-item"><i class="fas fa-coins"></i><span>Besaran UP</span></a>
+                    <a href="besaran-up.html" class="menu-item submenu-item active"><i class="fas fa-coins"></i><span>Besaran UP</span></a>
                     <a href="kebijakan-spd.html" class="menu-item submenu-item"><i class="fas fa-gavel"></i><span>Kebijakan SPD</span></a>
-                    <a href="bku-belanja.html" class="menu-item submenu-item active"><i class="fas fa-book"></i><span>BKU Belanja</span></a>
+                    <a href="bku-belanja.html" class="menu-item submenu-item"><i class="fas fa-book"></i><span>BKU Belanja</span></a>
                 </div>
             </div>
             <a href="../api/aklap_go.php" class="menu-item"><i class="fas fa-book"></i><span>Akuntansi</span></a>
@@ -57,34 +57,20 @@
     <div class="overlay" id="overlay"></div>
     <div class="main-wrapper">
         <header class="topbar">
-            <div class="topbar-left"><button class="topbar-toggle" id="topbarToggle"><i class="fas fa-bars"></i></button><div class="breadcrumb"><i class="fas fa-home"></i><span>Beranda</span><i class="fas fa-chevron-right"></i><span>Belanja</span><i class="fas fa-chevron-right"></i><span class="current">BKU Belanja</span></div></div>
+            <div class="topbar-left"><button class="topbar-toggle" id="topbarToggle"><i class="fas fa-bars"></i></button><div class="breadcrumb"><i class="fas fa-home"></i><span>Beranda</span><i class="fas fa-chevron-right"></i><span>Belanja</span><i class="fas fa-chevron-right"></i><span class="current">Besaran UP</span></div></div>
             <div class="topbar-right"><div class="topbar-item"><i class="fas fa-calendar-alt"></i><span id="currentDate">--</span></div><div class="topbar-item user"><div class="user-avatar small"><i class="fas fa-user-tie"></i></div><span id="topbarUserName">Admin Dinas</span></div></div>
         </header>
         <main class="content">
-            <div class="page-header"><div><h1 class="page-title">Buku Kas Umum Bendahara Pengeluaran (BKU Belanja)</h1><p class="page-subtitle">Mencatat seluruh penerimaan dan pengeluaran kas berdasarkan SP2D yang telah dicairkan.</p></div></div>
-
+            <div class="page-header"><div><h1 class="page-title">Besaran Uang Persediaan (UP)</h1><p class="page-subtitle">Pengaturan besaran UP dan UP KKPD oleh Bendahara Umum Daerah (BUD).</p></div></div>
             <div class="card">
-                <div class="card-head"><i class="fas fa-filter"></i> Filter Periode</div>
+                <div class="card-head"><i class="fas fa-coins"></i> Atur Besaran UP</div>
                 <div class="card-body">
                     <div class="form-grid">
-                        <div><label>Dari Tanggal</label><input type="date" id="dari"></div>
-                        <div><label>Sampai Tanggal</label><input type="date" id="sampai"></div>
+                        <div><label>Tahun Anggaran</label><input type="text" id="tahun"></div>
+                        <div><label>Besaran UP (Rp)</label><input type="number" id="besaran_up" min="0" step="0.01" placeholder="0"></div>
+                        <div><label>Besaran UP KKPD (Rp)</label><input type="number" id="besaran_up_kkpd" min="0" step="0.01" placeholder="0"></div>
                     </div>
-                    <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;">
-                        <button class="btn btn-primary" id="btnGenerate"><i class="fas fa-play"></i> Generate</button>
-                        <button class="btn" id="btnCetak" onclick="window.print()"><i class="fas fa-print"></i> Cetak</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-head"><i class="fas fa-book"></i> Buku Kas Umum</div>
-                <div class="card-body table-body">
-                    <table class="data-table">
-                        <thead><tr><th>No.</th><th>Tanggal</th><th>No. SP2D</th><th>No. SPM</th><th>Uraian</th><th>Pengeluaran (Rp)</th><th>Saldo (Rp)</th></tr></thead>
-                        <tbody id="tbodyBku"><tr><td colspan="7" style="text-align:center;color:#9098a5;">Tekan tombol Generate untuk membuat BKU.</td></tr></tbody>
-                    </table>
-                    <div style="margin-top:10px;text-align:right;"><strong>Total Pengeluaran: Rp <span id="totalBku">0</span></strong></div>
+                    <div style="margin-top:14px;"><button class="btn btn-primary" id="btnSimpan"><i class="fas fa-save"></i> Simpan Sekarang</button></div>
                 </div>
             </div>
         </main>
@@ -95,32 +81,26 @@
     <script>
         (function () {
             'use strict';
-            var tbody = document.getElementById('tbodyBku');
             function toast(msg) { var t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(t._t); t._t = setTimeout(function () { t.classList.remove('show'); }, 2400); }
-            function esc(s) { var d = document.createElement('div'); d.textContent = String(s || ''); return d.innerHTML; }
             function rupiah(v) { return Number(v || 0).toLocaleString('id-ID'); }
-            function fmtTgl(s) { if (!s) return '-'; var p = String(s).split('-'); return p[2] + '-' + p[1] + '-' + p[0]; }
             function load() {
-                var dari = document.getElementById('dari').value;
-                var sampai = document.getElementById('sampai').value;
-                var qs = '?action=bku_belanja';
-                if (dari) qs += '&dari=' + encodeURIComponent(dari);
-                if (sampai) qs += '&sampai=' + encodeURIComponent(sampai);
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#9098a5;">Memuat data...</td></tr>';
-                fetch('../api/belanja.php' + qs).then(function (r) { return r.json(); })
+                var tahun = document.getElementById('tahun').value || new Date().getFullYear();
+                document.getElementById('tahun').value = tahun;
+                fetch('../api/belanja.php?action=besaran_up_get&tahun=' + encodeURIComponent(tahun)).then(function (r) { return r.json(); })
                     .then(function (d) {
-                        var rows = (d && d.success) ? (d.data || []) : [];
-                        if (!rows.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#9098a5;">Tidak ada SP2D yang telah dicairkan pada periode ini.</td></tr>'; document.getElementById('totalBku').textContent = '0'; return; }
-                        var saldo = 0;
-                        tbody.innerHTML = rows.map(function (r, i) {
-                            saldo += Number(r.jumlah || 0);
-                            return '<tr><td>' + (i + 1) + '</td><td>' + fmtTgl(r.tanggal) + '</td><td>' + esc(r.nomor_sp2d) + '</td><td>' + esc(r.nomor_spm || '-') + '</td><td>' + esc('Pencairan SP2D ' + (r.nomor_sp2d || '')) + '</td><td class="num">' + rupiah(r.jumlah) + '</td><td class="num"><strong>' + rupiah(saldo) + '</strong></td></tr>';
-                        }).join('');
-                        document.getElementById('totalBku').textContent = rupiah(d.total);
-                    })
-                    .catch(function () { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#9098a5;">Gagal memuat data.</td></tr>'; });
+                        if (d && d.success && d.data) {
+                            document.getElementById('besaran_up').value = d.data.besaran_up;
+                            document.getElementById('besaran_up_kkpd').value = d.data.besaran_up_kkpd;
+                            toast('Besaran UP saat ini: UP Rp ' + rupiah(d.data.besaran_up) + ' + KKPD Rp ' + rupiah(d.data.besaran_up_kkpd));
+                        }
+                    });
             }
-            document.getElementById('btnGenerate').addEventListener('click', load);
+            document.getElementById('btnSimpan').addEventListener('click', function () {
+                fetch('../api/belanja.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'besaran_up_set', tahun: document.getElementById('tahun').value, besaran_up: document.getElementById('besaran_up').value, besaran_up_kkpd: document.getElementById('besaran_up_kkpd').value }) })
+                    .then(function (r) { return r.json(); })
+                    .then(function (d) { toast(d.message || (d.success ? 'Tersimpan.' : 'Gagal.')); if (d.success) load(); })
+                    .catch(function () { toast('Gagal terhubung ke server.'); });
+            });
             load();
         })();
     </script>

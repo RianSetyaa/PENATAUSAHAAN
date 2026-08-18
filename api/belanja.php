@@ -51,16 +51,23 @@ if ($method === 'GET') {
         $cr = skpdCond('r', $skpd); // rekanan
         $cs = skpdCond('s', $skpd); // spd/spp/spm/sp2d
         jsonResponse(true, 'OK', [
-            'rekanan'   => $q("SELECT COUNT(*) FROM rekanan r WHERE 1=1{$cr[0]}", $cr[1]),
-            'spd'       => $q("SELECT COUNT(*) FROM spd s WHERE 1=1{$cs[0]}", $cs[1]),
-            'spd_otor'  => $q("SELECT COUNT(*) FROM spd s WHERE s.status='sudah_otorisasi'{$cs[0]}", $cs[1]),
-            'spp'       => $q("SELECT COUNT(*) FROM spp s WHERE 1=1{$cs[0]}", $cs[1]),
-            'spp_ver'   => $q("SELECT COUNT(*) FROM spp s WHERE s.status='sudah_diverifikasi'{$cs[0]}", $cs[1]),
-            'spm'       => $q("SELECT COUNT(*) FROM spm s WHERE 1=1{$cs[0]}", $cs[1]),
-            'sp2d'      => $q("SELECT COUNT(*) FROM sp2d s WHERE 1=1{$cs[0]}", $cs[1]),
-            'sp2d_cair' => $q("SELECT COUNT(*) FROM sp2d s WHERE s.status='sudah_dicairkan'{$cs[0]}", $cs[1]),
-            'total_spd' => $sum("SELECT COALESCE(SUM(s.jumlah),0) FROM spd s WHERE 1=1{$cs[0]}", $cs[1]),
-            'total_spp' => $sum("SELECT COALESCE(SUM(s.jumlah),0) FROM spp s WHERE 1=1{$cs[0]}", $cs[1]),
+            'rekanan'      => $q("SELECT COUNT(*) FROM rekanan r WHERE 1=1{$cr[0]}", $cr[1]),
+            'spd'          => $q("SELECT COUNT(*) FROM spd s WHERE 1=1{$cs[0]}", $cs[1]),
+            'spd_otor'     => $q("SELECT COUNT(*) FROM spd s WHERE s.status='sudah_otorisasi'{$cs[0]}", $cs[1]),
+            'spp'          => $q("SELECT COUNT(*) FROM spp s WHERE 1=1{$cs[0]}", $cs[1]),
+            'spp_ver'      => $q("SELECT COUNT(*) FROM spp s WHERE s.status='sudah_diverifikasi'{$cs[0]}", $cs[1]),
+            'spm'          => $q("SELECT COUNT(*) FROM spm s WHERE 1=1{$cs[0]}", $cs[1]),
+            'sp2d'         => $q("SELECT COUNT(*) FROM sp2d s WHERE 1=1{$cs[0]}", $cs[1]),
+            'sp2d_cair'    => $q("SELECT COUNT(*) FROM sp2d s WHERE s.status='sudah_dicairkan'{$cs[0]}", $cs[1]),
+            'total_spd'    => $sum("SELECT COALESCE(SUM(s.jumlah),0) FROM spd s WHERE 1=1{$cs[0]}", $cs[1]),
+            'total_spp'    => $sum("SELECT COALESCE(SUM(s.jumlah),0) FROM spp s WHERE 1=1{$cs[0]}", $cs[1]),
+            'lpj'          => $q("SELECT COUNT(*) FROM lpj s WHERE 1=1{$cs[0]}", $cs[1]),
+            'pengajuan_tu' => $q("SELECT COUNT(*) FROM pengajuan_tu s WHERE 1=1{$cs[0]}", $cs[1]),
+            'rekening'     => $q("SELECT COUNT(*) FROM rekening_skpd s WHERE 1=1{$cs[0]}", $cs[1]),
+            'rekening_aktif' => $q("SELECT COUNT(*) FROM rekening_skpd s WHERE s.status='aktif'{$cs[0]}", $cs[1]),
+            'kebijakan_spd'=> $q("SELECT COUNT(*) FROM kebijakan_spd s WHERE 1=1{$cs[0]}", $cs[1]),
+            'npd'          => $q("SELECT COUNT(*) FROM npd s WHERE 1=1{$cs[0]}", $cs[1]),
+            'npd_siap'     => $q("SELECT COUNT(*) FROM npd s WHERE s.status='divalidasi_bp'{$cs[0]}", $cs[1]),
         ]);
     }
 
@@ -84,9 +91,11 @@ if ($method === 'GET') {
     if ($action === 'spp_list') {
         $status = (string) ($_GET['status'] ?? '');
         $c = skpdCond('s', $skpd);
-        $sql = "SELECT s.*, d.nomor_spd, r.nama_rekanan FROM spp s
+        $sql = "SELECT s.*, d.nomor_spd, r.nama_rekanan, l.nomor_lpj, t.nomor_pengajuan FROM spp s
                 LEFT JOIN spd d ON d.id = s.spd_id
                 LEFT JOIN rekanan r ON r.id = s.rekanan_id
+                LEFT JOIN lpj l ON l.id = s.lpj_id
+                LEFT JOIN pengajuan_tu t ON t.id = s.pengajuan_tu_id
                 WHERE 1=1{$c[0]}";
         if ($status !== '' && $status !== 'semua') { $sql .= " AND s.status = ?"; $c[1][] = $status; }
         $sql .= " ORDER BY s.tanggal DESC, s.id DESC";
@@ -150,6 +159,65 @@ if ($method === 'GET') {
         jsonResponse(true, 'OK', ['data' => $rows, 'total' => $total]);
     }
 
+    // ---------- LPJ (referensi SPP GU) ----------
+    if ($action === 'lpj_list') {
+        $c = skpdCond('s', $skpd);
+        $stmt = $pdo->prepare("SELECT s.* FROM lpj s WHERE 1=1{$c[0]} ORDER BY s.tanggal DESC, s.id DESC");
+        $stmt->execute($c[1]);
+        jsonResponse(true, 'OK', ['data' => $stmt->fetchAll()]);
+    }
+
+    // ---------- Pengajuan TU ----------
+    if ($action === 'pengajuan_tu_list') {
+        $status = (string) ($_GET['status'] ?? '');
+        $c = skpdCond('s', $skpd);
+        $sql = "SELECT s.* FROM pengajuan_tu s WHERE 1=1{$c[0]}";
+        if ($status !== '' && $status !== 'semua') { $sql .= " AND s.status = ?"; $c[1][] = $status; }
+        $sql .= " ORDER BY s.tanggal DESC, s.id DESC";
+        $stmt = $pdo->prepare($sql); $stmt->execute($c[1]);
+        jsonResponse(true, 'OK', ['data' => $stmt->fetchAll()]);
+    }
+
+    // ---------- Rekening Bank SKPD ----------
+    if ($action === 'rekening_skpd_list') {
+        $status = (string) ($_GET['status'] ?? '');
+        $c = skpdCond('s', $skpd);
+        $sql = "SELECT s.* FROM rekening_skpd s WHERE 1=1{$c[0]}";
+        if ($status !== '' && $status !== 'semua') { $sql .= " AND s.status = ?"; $c[1][] = $status; }
+        $sql .= " ORDER BY s.id DESC";
+        $stmt = $pdo->prepare($sql); $stmt->execute($c[1]);
+        jsonResponse(true, 'OK', ['data' => $stmt->fetchAll()]);
+    }
+
+    // ---------- Besaran UP ----------
+    if ($action === 'besaran_up_get') {
+        $tahun = (string) ($_GET['tahun'] ?? date('Y'));
+        $c = skpdCond('s', $skpd);
+        $stmt = $pdo->prepare("SELECT s.* FROM besaran_up s WHERE s.tahun=?{$c[0]} LIMIT 1");
+        $stmt->execute(array_merge([$tahun], $c[1]));
+        $row = $stmt->fetch();
+        jsonResponse(true, 'OK', ['data' => $row ?: null]);
+    }
+
+    // ---------- Kebijakan SPD ----------
+    if ($action === 'kebijakan_spd_list') {
+        $c = skpdCond('s', $skpd);
+        $stmt = $pdo->prepare("SELECT s.* FROM kebijakan_spd s WHERE 1=1{$c[0]} ORDER BY s.id DESC");
+        $stmt->execute($c[1]);
+        jsonResponse(true, 'OK', ['data' => $stmt->fetchAll()]);
+    }
+
+    // ---------- NPD (Nota Pencairan Dana) ----------
+    if ($action === 'npd_list') {
+        $status = (string) ($_GET['status'] ?? '');
+        $c = skpdCond('s', $skpd);
+        $sql = "SELECT s.* FROM npd s WHERE 1=1{$c[0]}";
+        if ($status !== '' && $status !== 'semua') { $sql .= " AND s.status = ?"; $c[1][] = $status; }
+        $sql .= " ORDER BY s.tanggal DESC, s.id DESC";
+        $stmt = $pdo->prepare($sql); $stmt->execute($c[1]);
+        jsonResponse(true, 'OK', ['data' => $stmt->fetchAll()]);
+    }
+
     jsonResponse(false, 'Aksi tidak dikenali.', [], 422);
 }
 
@@ -200,26 +268,65 @@ if ($method === 'POST') {
         jsonResponse(true, 'SPD berhasil diotorisasi.');
     }
 
-    // ---------- SPP ----------
+    // ---------- SPP (per jenis: LS Gaji, LS Barang & Jasa, UP, GU, TU) ----------
     if ($action === 'spp_create') {
-        $tanggal = trim((string) ($body['tanggal'] ?? ''));
-        $jenis   = trim((string) ($body['jenis_spp'] ?? ''));
-        $spdId   = (int) ($body['spd_id'] ?? 0);
-        $rekId   = (int) ($body['rekanan_id'] ?? 0);
+        $tanggal  = trim((string) ($body['tanggal'] ?? ''));
+        $jenis    = trim((string) ($body['jenis_spp'] ?? ''));
+        $spdId    = (int) ($body['spd_id'] ?? 0);
+        $rekId    = (int) ($body['rekanan_id'] ?? 0);
         $keperluan = trim((string) ($body['keperluan'] ?? ''));
-        $jumlah  = (float) ($body['jumlah'] ?? 0);
+        $jumlah   = (float) ($body['jumlah'] ?? 0);
+        $lpjId    = (int) ($body['lpj_id'] ?? 0);
+        $ptuId    = (int) ($body['pengajuan_tu_id'] ?? 0);
         if ($tanggal === '') jsonResponse(false, 'Tanggal SPP wajib diisi.', ['field' => 'tanggal'], 422);
         if ($spdId <= 0) jsonResponse(false, 'Pilih SPD.', ['field' => 'spd_id'], 422);
         if ($jumlah <= 0) jsonResponse(false, 'Jumlah harus lebih dari 0.', ['field' => 'jumlah'], 422);
+        if ($jenis === 'GU' && $lpjId <= 0) jsonResponse(false, 'Pilih LPJ untuk SPP GU.', ['field' => 'lpj_id'], 422);
+        if ($jenis === 'TU' && $ptuId <= 0) jsonResponse(false, 'Pilih Pengajuan TU untuk SPP TU.', ['field' => 'pengajuan_tu_id'], 422);
         // Validasi SPD terotorisasi milik instansi
         $c = skpdCond('s', $skpd);
         $chk = $pdo->prepare("SELECT id FROM spd s WHERE s.id=? AND s.status='sudah_otorisasi'{$c[0]}");
         $chk->execute(array_merge([$spdId], $c[1]));
         if (!$chk->fetch()) jsonResponse(false, 'SPD tidak valid / belum diotorisasi / bukan milik instansi Anda.', [], 422);
+        // Potongan & pajak (khusus LS Barang & Jasa)
+        $potonganRows = isset($body['potongan']) && is_array($body['potongan']) ? $body['potongan'] : [];
+        $pajakRows    = isset($body['pajak']) && is_array($body['pajak']) ? $body['pajak'] : [];
+        $calc = function (array $rows, string $jenisRow) use ($jumlah): array {
+            $out = [];
+            foreach ($rows as $row) {
+                $nama = trim((string) ($row['nama'] ?? ''));
+                if ($nama === '') continue;
+                $persen = (float) ($row['nilai_persen'] ?? 0);
+                $nilai  = $persen > 0 ? round($jumlah * $persen / 100, 2) : (float) ($row['nilai'] ?? 0);
+                $out[] = [
+                    'jenis'       => $jenisRow,
+                    'nama'        => $nama,
+                    'persen'      => $persen,
+                    'nilai'       => $nilai,
+                    'id_billing'  => trim((string) ($row['id_billing'] ?? '')),
+                    'tgl_billing' => trim((string) ($row['tgl_billing'] ?? '')),
+                    'ntpn'        => trim((string) ($row['ntpn'] ?? '')),
+                    'tgl_ntpn'    => trim((string) ($row['tgl_ntpn'] ?? '')),
+                ];
+            }
+            return $out;
+        };
+        $potongan = $calc($potonganRows, 'potongan');
+        $pajak    = $calc($pajakRows, 'pajak');
+        $totPotongan = 0.0; $totPajak = 0.0;
+        foreach ($potongan as $p) $totPotongan += $p['nilai'];
+        foreach ($pajak as $p) $totPajak += $p['nilai'];
         $nomor = genNomor('SPP', $pdo, 'spp');
-        $stmt = $pdo->prepare("INSERT INTO spp (user_id, skpd, nomor_spp, tanggal, jenis_spp, spd_id, rekanan_id, keperluan, jumlah, status) VALUES (?,?,?,?,?,?,?,?,?, 'belum_diverifikasi')");
-        $stmt->execute([$_SESSION['user_id'] ?? null, $skpd, $nomor, $tanggal, $jenis, $spdId, $rekId ?: null, $keperluan, $jumlah]);
-        jsonResponse(true, 'SPP berhasil dibuat.', ['id' => (int) $pdo->lastInsertId(), 'nomor_spp' => $nomor], 201);
+        $stmt = $pdo->prepare("INSERT INTO spp (user_id, skpd, nomor_spp, tanggal, jenis_spp, spd_id, rekanan_id, lpj_id, pengajuan_tu_id, keperluan, jumlah, total_potongan, total_pajak, status) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?, 'belum_diverifikasi')");
+        $stmt->execute([$_SESSION['user_id'] ?? null, $skpd, $nomor, $tanggal, $jenis, $spdId, $rekId ?: null, $lpjId ?: null, $ptuId ?: null, $keperluan, $jumlah, $totPotongan, $totPajak]);
+        $sppId = (int) $pdo->lastInsertId();
+        if ($potongan || $pajak) {
+            $ins = $pdo->prepare("INSERT INTO spp_potongan_pajak (skpd, spp_id, jenis, nama, nilai_persen, nilai, id_billing, tgl_billing, ntpn, tgl_ntpn) VALUES (?,?,?,?,?,?,?,?,?,?)");
+            foreach (array_merge($potongan, $pajak) as $r) {
+                $ins->execute([$skpd, $sppId, $r['jenis'], $r['nama'], $r['persen'], $r['nilai'], $r['id_billing'], $r['tgl_billing'] ?: null, $r['ntpn'], $r['tgl_ntpn'] ?: null]);
+            }
+        }
+        jsonResponse(true, 'SPP berhasil dibuat.', ['id' => $sppId, 'nomor_spp' => $nomor], 201);
     }
     if ($action === 'spp_verifikasi') {
         $id = (int) ($body['id'] ?? 0);
@@ -233,9 +340,10 @@ if ($method === 'POST') {
         if ($stmt->rowCount() === 0) jsonResponse(false, 'SPP tidak ditemukan / bukan milik instansi Anda.', [], 404);
         if ($setuju) {
             $sp = $pdo->prepare("SELECT * FROM spp WHERE id=?"); $sp->execute([$id]); $spp = $sp->fetch();
+            $netto = (float) $spp['jumlah'] - (float) $spp['total_potongan'] - (float) $spp['total_pajak'];
             $nomor = genNomor('SPM', $pdo, 'spm');
             $in = $pdo->prepare("INSERT INTO spm (user_id, skpd, nomor_spm, tanggal, spp_id, jumlah, status) VALUES (?,?,?,?,?,?, 'belum_disetujui')");
-            $in->execute([$_SESSION['user_id'] ?? null, $spp['skpd'], $nomor, $spp['tanggal'], $spp['id'], $spp['jumlah']]);
+            $in->execute([$_SESSION['user_id'] ?? null, $spp['skpd'], $nomor, $spp['tanggal'], $spp['id'], $netto]);
             jsonResponse(true, 'SPP diverifikasi & SPM berhasil dibuat.', ['id' => $id, 'nomor_spm' => $nomor]);
         }
         jsonResponse(true, 'SPP ditolak.');
@@ -301,6 +409,157 @@ if ($method === 'POST') {
         $stmt->execute(array_merge([$tanggal !== '' ? $tanggal : null, $id], $c[1]));
         if ($stmt->rowCount() === 0) jsonResponse(false, 'SP2D tidak ditemukan / belum diverifikasi / bukan milik instansi Anda.', [], 404);
         jsonResponse(true, 'Dana SP2D berhasil dicairkan (transfer).');
+    }
+
+    // ---------- LPJ (utk SPP GU) ----------
+    if ($action === 'lpj_create') {
+        $tanggal = trim((string) ($body['tanggal'] ?? ''));
+        $uraian  = trim((string) ($body['uraian'] ?? ''));
+        $jumlah  = (float) ($body['jumlah'] ?? 0);
+        if ($tanggal === '') jsonResponse(false, 'Tanggal LPJ wajib diisi.', ['field' => 'tanggal'], 422);
+        if ($jumlah <= 0) jsonResponse(false, 'Jumlah harus lebih dari 0.', ['field' => 'jumlah'], 422);
+        $nomor = genNomor('LPJ', $pdo, 'lpj');
+        $stmt = $pdo->prepare("INSERT INTO lpj (skpd, nomor_lpj, tanggal, uraian, jumlah) VALUES (?,?,?,?,?)");
+        $stmt->execute([$skpd, $nomor, $tanggal, $uraian, $jumlah]);
+        jsonResponse(true, 'LPJ berhasil dibuat.', ['id' => (int) $pdo->lastInsertId(), 'nomor_lpj' => $nomor], 201);
+    }
+
+    // ---------- Pengajuan TU ----------
+    if ($action === 'pengajuan_tu_create') {
+        $tanggal = trim((string) ($body['tanggal'] ?? ''));
+        $keterangan = trim((string) ($body['keterangan'] ?? ''));
+        $jumlah  = (float) ($body['jumlah'] ?? 0);
+        if ($tanggal === '') jsonResponse(false, 'Tanggal pengajuan wajib diisi.', ['field' => 'tanggal'], 422);
+        if ($jumlah <= 0) jsonResponse(false, 'Jumlah harus lebih dari 0.', ['field' => 'jumlah'], 422);
+        $nomor = genNomor('TU', $pdo, 'pengajuan_tu');
+        $stmt = $pdo->prepare("INSERT INTO pengajuan_tu (skpd, nomor_pengajuan, tanggal, keterangan, jumlah, status) VALUES (?,?,?,?,?, 'belum_otorisasi')");
+        $stmt->execute([$skpd, $nomor, $tanggal, $keterangan, $jumlah]);
+        jsonResponse(true, 'Pengajuan TU berhasil dibuat.', ['id' => (int) $pdo->lastInsertId(), 'nomor_pengajuan' => $nomor], 201);
+    }
+    if ($action === 'pengajuan_tu_otorisasi') {
+        $id = (int) ($body['id'] ?? 0);
+        if ($id <= 0) jsonResponse(false, 'ID tidak valid.', [], 422);
+        $c = skpdCond('s', $skpd);
+        $stmt = $pdo->prepare("UPDATE pengajuan_tu s SET s.status='sudah_otorisasi' WHERE s.id=? AND s.status='belum_otorisasi'{$c[0]}");
+        $stmt->execute(array_merge([$id], $c[1]));
+        if ($stmt->rowCount() === 0) jsonResponse(false, 'Pengajuan TU tidak ditemukan / sudah diotorisasi / bukan milik instansi Anda.', [], 404);
+        jsonResponse(true, 'Pengajuan TU berhasil diotorisasi (BUD).');
+    }
+    if ($action === 'pengajuan_tu_validasi') {
+        $id = (int) ($body['id'] ?? 0);
+        if ($id <= 0) jsonResponse(false, 'ID tidak valid.', [], 422);
+        $c = skpdCond('s', $skpd);
+        $stmt = $pdo->prepare("UPDATE pengajuan_tu s SET s.status='sudah_divalidasi' WHERE s.id=? AND s.status='sudah_otorisasi'{$c[0]}");
+        $stmt->execute(array_merge([$id], $c[1]));
+        if ($stmt->rowCount() === 0) jsonResponse(false, 'Pengajuan TU tidak ditemukan / belum diotorisasi / bukan milik instansi Anda.', [], 404);
+        jsonResponse(true, 'Pengajuan TU berhasil divalidasi (PA/KPA).');
+    }
+
+    // ---------- Rekening Bank SKPD ----------
+    if ($action === 'rekening_skpd_create') {
+        $bank = trim((string) ($body['bank'] ?? ''));
+        $namaPemilik = trim((string) ($body['nama_pemilik'] ?? ''));
+        if ($bank === '' || $namaPemilik === '') jsonResponse(false, 'Bank dan nama pemilik wajib diisi.', [], 422);
+        $stmt = $pdo->prepare("INSERT INTO rekening_skpd (skpd, user_id, bank, nama_pemilik, status) VALUES (?,?,?,?, 'permohonan')");
+        $stmt->execute([$skpd, $_SESSION['user_id'] ?? null, $bank, $namaPemilik]);
+        jsonResponse(true, 'Permohonan rekening dibuat (BP).', ['id' => (int) $pdo->lastInsertId()], 201);
+    }
+    if ($action === 'rekening_skpd_ajukan') {
+        $id = (int) ($body['id'] ?? 0);
+        if ($id <= 0) jsonResponse(false, 'ID tidak valid.', [], 422);
+        $c = skpdCond('s', $skpd);
+        $stmt = $pdo->prepare("UPDATE rekening_skpd s SET s.status='pengajuan' WHERE s.id=? AND s.status='permohonan'{$c[0]}");
+        $stmt->execute(array_merge([$id], $c[1]));
+        if ($stmt->rowCount() === 0) jsonResponse(false, 'Rekening tidak ditemukan / bukan milik instansi Anda.', [], 404);
+        jsonResponse(true, 'Rekening diajukan (PA).');
+    }
+    if ($action === 'rekening_skpd_nomor') {
+        $id = (int) ($body['id'] ?? 0);
+        $noRek = trim((string) ($body['nomor_rekening'] ?? ''));
+        if ($id <= 0 || $noRek === '') jsonResponse(false, 'ID dan nomor rekening wajib diisi.', [], 422);
+        $c = skpdCond('s', $skpd);
+        $stmt = $pdo->prepare("UPDATE rekening_skpd s SET s.nomor_rekening=?, s.status='pembuatan' WHERE s.id=? AND s.status='pengajuan'{$c[0]}");
+        $stmt->execute(array_merge([$noRek, $id], $c[1]));
+        if ($stmt->rowCount() === 0) jsonResponse(false, 'Rekening tidak ditemukan / belum diajukan / bukan milik instansi Anda.', [], 404);
+        jsonResponse(true, 'Nomor rekening dibuat (BUD).');
+    }
+    if ($action === 'rekening_skpd_validasi') {
+        $id = (int) ($body['id'] ?? 0);
+        $setuju = !empty($body['setuju']);
+        if ($id <= 0) jsonResponse(false, 'ID tidak valid.', [], 422);
+        $c = skpdCond('s', $skpd);
+        $new = $setuju ? 'aktif' : 'ditolak';
+        $stmt = $pdo->prepare("UPDATE rekening_skpd s SET s.status=? WHERE s.id=? AND s.status='pembuatan'{$c[0]}");
+        $stmt->execute(array_merge([$new, $id], $c[1]));
+        if ($stmt->rowCount() === 0) jsonResponse(false, 'Rekening tidak ditemukan / belum dibuat nomornya / bukan milik instansi Anda.', [], 404);
+        jsonResponse(true, $setuju ? 'Rekening divalidasi & aktif.' : 'Rekening ditolak.');
+    }
+
+    // ---------- Besaran UP ----------
+    if ($action === 'besaran_up_set') {
+        $tahun = trim((string) ($body['tahun'] ?? date('Y')));
+        $besaranUp = (float) ($body['besaran_up'] ?? 0);
+        $besaranUpKkpd = (float) ($body['besaran_up_kkpd'] ?? 0);
+        if ($besaranUp <= 0 && $besaranUpKkpd <= 0) jsonResponse(false, 'Nilai besaran UP wajib diisi.', [], 422);
+        $stmt = $pdo->prepare("SELECT id FROM besaran_up WHERE skpd=? AND tahun=?");
+        $stmt->execute([$skpd, $tahun]);
+        if ($stmt->fetch()) {
+            $up = $pdo->prepare("UPDATE besaran_up SET besaran_up=?, besaran_up_kkpd=? WHERE skpd=? AND tahun=?");
+            $up->execute([$besaranUp, $besaranUpKkpd, $skpd, $tahun]);
+        } else {
+            $up = $pdo->prepare("INSERT INTO besaran_up (skpd, tahun, besaran_up, besaran_up_kkpd) VALUES (?,?,?,?)");
+            $up->execute([$skpd, $tahun, $besaranUp, $besaranUpKkpd]);
+        }
+        jsonResponse(true, 'Besaran UP berhasil disimpan.');
+    }
+
+    // ---------- Kebijakan SPD ----------
+    if ($action === 'kebijakan_spd_create') {
+        $jenisPenerbitan = trim((string) ($body['jenis_penerbitan'] ?? ''));
+        $jenisPeriode = trim((string) ($body['jenis_periode'] ?? ''));
+        $tanggal = trim((string) ($body['tanggal'] ?? ''));
+        if ($jenisPenerbitan === '' || $jenisPeriode === '') jsonResponse(false, 'Jenis penerbitan & periode wajib diisi.', [], 422);
+        $stmt = $pdo->prepare("INSERT INTO kebijakan_spd (skpd, jenis_penerbitan, jenis_periode, tanggal) VALUES (?,?,?,?)");
+        $stmt->execute([$skpd, $jenisPenerbitan, $jenisPeriode, $tanggal ?: null]);
+        jsonResponse(true, 'Kebijakan SPD berhasil dibuat.', ['id' => (int) $pdo->lastInsertId()], 201);
+    }
+
+    // ---------- NPD (Nota Pencairan Dana) ----------
+    if ($action === 'npd_create') {
+        $tanggal = trim((string) ($body['tanggal'] ?? ''));
+        $metode = ($body['metode'] === 'non_panjar') ? 'non_panjar' : 'panjar';
+        $keterangan = trim((string) ($body['keterangan'] ?? ''));
+        $kegiatan = trim((string) ($body['kegiatan'] ?? ''));
+        $subKegiatan = trim((string) ($body['sub_kegiatan'] ?? ''));
+        $jumlah = (float) ($body['jumlah'] ?? 0);
+        if ($tanggal === '') jsonResponse(false, 'Tanggal NPD wajib diisi.', ['field' => 'tanggal'], 422);
+        if ($jumlah <= 0) jsonResponse(false, 'Jumlah harus lebih dari 0.', ['field' => 'jumlah'], 422);
+        $nomor = genNomor('NPD', $pdo, 'npd');
+        $stmt = $pdo->prepare("INSERT INTO npd (skpd, user_id, nomor_npd, tanggal, metode, keterangan, kegiatan, sub_kegiatan, jumlah, status) VALUES (?,?,?,?,?,?,?,?,?, 'diajukan')");
+        $stmt->execute([$skpd, $_SESSION['user_id'] ?? null, $nomor, $tanggal, $metode, $keterangan, $kegiatan, $subKegiatan, $jumlah]);
+        jsonResponse(true, 'NPD berhasil diajukan.', ['id' => (int) $pdo->lastInsertId(), 'nomor_npd' => $nomor], 201);
+    }
+    if ($action === 'npd_validasi_pa') {
+        $id = (int) ($body['id'] ?? 0);
+        $setuju = !empty($body['setuju']);
+        if ($id <= 0) jsonResponse(false, 'ID tidak valid.', [], 422);
+        $c = skpdCond('s', $skpd);
+        $new = $setuju ? 'divalidasi_pa' : 'ditolak';
+        $stmt = $pdo->prepare("UPDATE npd s SET s.status=? WHERE s.id=? AND s.status='diajukan'{$c[0]}");
+        $stmt->execute(array_merge([$new, $id], $c[1]));
+        if ($stmt->rowCount() === 0) jsonResponse(false, 'NPD tidak ditemukan / bukan milik instansi Anda.', [], 404);
+        jsonResponse(true, $setuju ? 'NPD divalidasi (PA/KPA).' : 'NPD ditolak.');
+    }
+    if ($action === 'npd_validasi_bp') {
+        $id = (int) ($body['id'] ?? 0);
+        $setuju = !empty($body['setuju']);
+        if ($id <= 0) jsonResponse(false, 'ID tidak valid.', [], 422);
+        $c = skpdCond('s', $skpd);
+        $new = $setuju ? 'divalidasi_bp' : 'ditolak';
+        $stmt = $pdo->prepare("UPDATE npd s SET s.status=? WHERE s.id=? AND s.status='divalidasi_pa'{$c[0]}");
+        $stmt->execute(array_merge([$new, $id], $c[1]));
+        if ($stmt->rowCount() === 0) jsonResponse(false, 'NPD tidak ditemukan / belum divalidasi PA / bukan milik instansi Anda.', [], 404);
+        jsonResponse(true, $setuju ? 'NPD divalidasi (BP/BPP).' : 'NPD ditolak.');
     }
 
     jsonResponse(false, 'Aksi tidak dikenali.', [], 422);

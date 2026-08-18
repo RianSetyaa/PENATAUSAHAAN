@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SP2D - Belanja | SIM-TKD</title>
+    <title>NPD - Belanja | SIM-TKD</title>
     <link rel="stylesheet" href="../css/dashboard.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -12,7 +12,7 @@
         .form-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; }
         .form-grid label { font-size:12px; color:#5a6c7d; display:block; margin-bottom:4px; }
         .form-grid input, .form-grid select { width:100%; height:36px; border:1px solid #d0d5dd; border-radius:8px; padding:0 10px; font-size:13px; }
-        .tabs { display:flex; gap:8px; margin-bottom:14px; }
+        .tabs { display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
         .tab-btn { padding:8px 16px; border:1px solid #d0d5dd; border-radius:8px; background:#fff; cursor:pointer; font-size:13px; }
         .tab-btn.active { background:#2f80ed; color:#fff; border-color:#2f80ed; }
     </style>
@@ -42,10 +42,10 @@
                     <a href="spd.html" class="menu-item submenu-item"><i class="fas fa-file-invoice"></i><span>SPD</span></a>
                     <a href="spp.html" class="menu-item submenu-item"><i class="fas fa-file-signature"></i><span>SPP</span></a>
                     <a href="spm.html" class="menu-item submenu-item"><i class="fas fa-file-invoice-dollar"></i><span>SPM</span></a>
-                    <a href="sp2d.html" class="menu-item submenu-item active"><i class="fas fa-money-check-alt"></i><span>SP2D</span></a>
+                    <a href="sp2d.html" class="menu-item submenu-item"><i class="fas fa-money-check-alt"></i><span>SP2D</span></a>
                     <a href="lpj.html" class="menu-item submenu-item"><i class="fas fa-clipboard-check"></i><span>LPJ</span></a>
                     <a href="pengajuan-tu.html" class="menu-item submenu-item"><i class="fas fa-paper-plane"></i><span>Pengajuan TU</span></a>
-                    <a href="npd.html" class="menu-item submenu-item"><i class="fas fa-file-invoice-dollar"></i><span>NPD</span></a>
+                    <a href="npd.html" class="menu-item submenu-item active"><i class="fas fa-file-invoice-dollar"></i><span>NPD</span></a>
                     <a href="besaran-up.html" class="menu-item submenu-item"><i class="fas fa-coins"></i><span>Besaran UP</span></a>
                     <a href="kebijakan-spd.html" class="menu-item submenu-item"><i class="fas fa-gavel"></i><span>Kebijakan SPD</span></a>
                     <a href="bku-belanja.html" class="menu-item submenu-item"><i class="fas fa-book"></i><span>BKU Belanja</span></a>
@@ -60,36 +60,38 @@
     <div class="overlay" id="overlay"></div>
     <div class="main-wrapper">
         <header class="topbar">
-            <div class="topbar-left"><button class="topbar-toggle" id="topbarToggle"><i class="fas fa-bars"></i></button><div class="breadcrumb"><i class="fas fa-home"></i><span>Beranda</span><i class="fas fa-chevron-right"></i><span>Belanja</span><i class="fas fa-chevron-right"></i><span class="current">SP2D</span></div></div>
+            <div class="topbar-left"><button class="topbar-toggle" id="topbarToggle"><i class="fas fa-bars"></i></button><div class="breadcrumb"><i class="fas fa-home"></i><span>Beranda</span><i class="fas fa-chevron-right"></i><span>Belanja</span><i class="fas fa-chevron-right"></i><span class="current">NPD</span></div></div>
             <div class="topbar-right"><div class="topbar-item"><i class="fas fa-calendar-alt"></i><span id="currentDate">--</span></div><div class="topbar-item user"><div class="user-avatar small"><i class="fas fa-user-tie"></i></div><span id="topbarUserName">Admin Dinas</span></div></div>
         </header>
         <main class="content">
-            <div class="page-header"><div><h1 class="page-title">SP2D - Surat Perintah Pencairan Dana</h1><p class="page-subtitle">Pembuatan, verifikasi, dan pencairan dana oleh Kuasa BUD.</p></div></div>
+            <div class="page-header"><div><h1 class="page-title">NPD - Nota Pencairan Dana</h1><p class="page-subtitle">Alur: Pengajuan (PPTK) → Validasi (PA/KPA) → Validasi (BP/BPP). Metode Panjar &amp; Non Panjar.</p></div></div>
             <div class="tabs">
-                <button class="tab-btn active" data-tab="pembuatan">Pembuatan SP2D</button>
-                <button class="tab-btn" data-tab="verifikasi">Verifikasi SP2D</button>
-                <button class="tab-btn" data-tab="pencairan">Pencairan</button>
+                <button class="tab-btn active" data-tab="pengajuan">Pengajuan NPD</button>
+                <button class="tab-btn" data-tab="pa">Validasi (PA/KPA)</button>
+                <button class="tab-btn" data-tab="bp">Validasi (BP/BPP)</button>
             </div>
 
-            <div class="card" id="tab-pembuatan">
-                <div class="card-head"><i class="fas fa-money-check-alt"></i> Tambah SP2D</div>
+            <div class="card" id="tab-pengajuan">
+                <div class="card-head"><i class="fas fa-file-invoice-dollar"></i> Tambah Pengajuan NPD</div>
                 <div class="card-body">
                     <div class="form-grid">
                         <div><label>Tanggal *</label><input type="date" id="tanggal"></div>
-                        <div><label>SPM (terverifikasi) *</label><select id="spm_id"><option value="">-- Pilih SPM --</option></select></div>
-                        <div><label>Rekening Pembayar</label><input id="rekening" placeholder="Rekening tujuan"></div>
+                        <div><label>Metode *</label><select id="metode"><option value="panjar">Panjar</option><option value="non_panjar">Non Panjar</option></select></div>
+                        <div><label>Keterangan</label><input id="keterangan" placeholder="Keterangan"></div>
+                        <div><label>Kegiatan</label><input id="kegiatan" placeholder="Kegiatan"></div>
+                        <div><label>Sub Kegiatan</label><input id="sub_kegiatan" placeholder="Sub kegiatan"></div>
                         <div><label>Jumlah (Rp) *</label><input type="number" id="jumlah" min="0" step="0.01" placeholder="0"></div>
                     </div>
-                    <div style="margin-top:14px;"><button class="btn btn-primary" id="btnSimpan"><i class="fas fa-save"></i> Tambah SP2D Sekarang</button></div>
+                    <div style="margin-top:14px;"><button class="btn btn-primary" id="btnSimpan"><i class="fas fa-save"></i> Tambah Pengajuan NPD</button></div>
                 </div>
             </div>
 
             <div class="card">
-                <div class="card-head"><i class="fas fa-list"></i> Daftar SP2D</div>
+                <div class="card-head"><i class="fas fa-list"></i> Daftar NPD</div>
                 <div class="card-body table-body">
                     <table class="data-table">
-                        <thead><tr><th>No.</th><th>Nomor SP2D</th><th>Tanggal</th><th>No. SPM</th><th>Rekening</th><th>Jumlah (Rp)</th><th>Status</th><th>Aksi</th></tr></thead>
-                        <tbody id="tbodySp2d"><tr><td colspan="8" style="text-align:center;color:#9098a5;">Memuat data...</td></tr></tbody>
+                        <thead><tr><th>No.</th><th>Nomor NPD</th><th>Tanggal</th><th>Metode</th><th>Kegiatan</th><th>Jumlah (Rp)</th><th>Status</th><th>Aksi</th></tr></thead>
+                        <tbody id="tbodyNpd"><tr><td colspan="8" style="text-align:center;color:#9098a5;">Memuat data...</td></tr></tbody>
                     </table>
                 </div>
             </div>
@@ -101,26 +103,26 @@
     <script>
         (function () {
             'use strict';
-            var tbody = document.getElementById('tbodySp2d');
-            var curTab = 'pembuatan';
+            var tbody = document.getElementById('tbodyNpd');
+            var curTab = 'pengajuan';
             function toast(msg) { var t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(t._t); t._t = setTimeout(function () { t.classList.remove('show'); }, 2400); }
             function esc(s) { var d = document.createElement('div'); d.textContent = String(s || ''); return d.innerHTML; }
             function rupiah(v) { return Number(v || 0).toLocaleString('id-ID'); }
             function fmtTgl(s) { if (!s) return '-'; var p = String(s).split('-'); return p[2] + '-' + p[1] + '-' + p[0]; }
-            var LBL = { belum_diverifikasi: ['Belum Diverifikasi', 'type-warn'], sudah_diverifikasi: ['Terverifikasi', 'type-in'], sudah_dicairkan: ['Sudah Dicairkan', 'type-in'], ditolak: ['Ditolak', 'type-muted'] };
+            var LBL = { diajukan: ['Diajukan', 'type-warn'], divalidasi_pa: ['Divalidasi PA/KPA', 'type-warn'], divalidasi_bp: ['Divalidasi BP/BPP', 'type-in'], ditolak: ['Ditolak', 'type-muted'] };
             function badge(st) { var m = LBL[st] || [st, 'type-muted']; return '<span class="type-badge ' + m[1] + '">' + m[0] + '</span>'; }
             function load() {
-                var st = curTab === 'verifikasi' ? 'belum_diverifikasi' : (curTab === 'pencairan' ? 'sudah_diverifikasi' : 'semua');
+                var st = curTab === 'pa' ? 'diajukan' : (curTab === 'bp' ? 'divalidasi_pa' : 'semua');
                 tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#9098a5;">Memuat data...</td></tr>';
-                fetch('../api/belanja.php?action=sp2d_list&status=' + encodeURIComponent(st)).then(function (r) { return r.json(); })
+                fetch('../api/belanja.php?action=npd_list&status=' + encodeURIComponent(st)).then(function (r) { return r.json(); })
                     .then(function (d) {
                         var data = (d && d.success) ? (d.data || []) : [];
-                        if (!data.length) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#9098a5;">Belum ada data SP2D.</td></tr>'; return; }
+                        if (!data.length) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#9098a5;">Belum ada data NPD.</td></tr>'; return; }
                         tbody.innerHTML = data.map(function (r, i) {
                             var btn = '';
-                            if (r.status === 'belum_diverifikasi') btn = '<button class="btn btn-sm" data-act="verifikasi" data-id="' + r.id + '">Verifikasi</button>';
-                            else if (r.status === 'sudah_diverifikasi') btn = '<button class="btn btn-sm" data-act="cair" data-id="' + r.id + '">Transfer Dana</button>';
-                            return '<tr><td>' + (i + 1) + '</td><td>' + esc(r.nomor_sp2d) + '</td><td>' + fmtTgl(r.tanggal) + '</td><td>' + esc(r.nomor_spm || '-') + '</td><td>' + esc(r.rekening || '-') + '</td><td class="num">' + rupiah(r.jumlah) + '</td><td>' + badge(r.status) + '</td><td>' + btn + '</td></tr>';
+                            if (r.status === 'diajukan') btn = '<button class="btn btn-sm" data-act="pa" data-id="' + r.id + '">Validasi PA</button>';
+                            else if (r.status === 'divalidasi_pa') btn = '<button class="btn btn-sm" data-act="bp" data-id="' + r.id + '">Validasi BP</button>';
+                            return '<tr><td>' + (i + 1) + '</td><td>' + esc(r.nomor_npd) + '</td><td>' + fmtTgl(r.tanggal) + '</td><td>' + esc(r.metode) + '</td><td>' + esc(r.kegiatan || (r.keterangan || '-')) + '</td><td class="num">' + rupiah(r.jumlah) + '</td><td>' + badge(r.status) + '</td><td>' + btn + '</td></tr>';
                         }).join('');
                     })
                     .catch(function () { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#9098a5;">Gagal memuat data.</td></tr>'; });
@@ -129,30 +131,17 @@
                 fetch('../api/belanja.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
                     .then(function (r) { return r.json(); }).then(cb).catch(function () { toast('Gagal terhubung ke server.'); });
             }
-            function loadSpm() {
-                fetch('../api/belanja.php?action=spm_ver_list').then(function (r) { return r.json(); }).then(function (d) {
-                    var sel = document.getElementById('spm_id');
-                    sel.innerHTML = '<option value="">-- Pilih SPM --</option>' + ((d && d.success) ? (d.data || []).map(function (s) { return '<option value="' + s.id + '">' + esc(s.nomor_spm) + ' (Rp ' + rupiah(s.jumlah) + ')</option>'; }).join('') : '');
-                });
-            }
             document.getElementById('btnSimpan').addEventListener('click', function () {
-                post({ action: 'sp2d_create', tanggal: document.getElementById('tanggal').value, spm_id: document.getElementById('spm_id').value, rekening: document.getElementById('rekening').value, jumlah: document.getElementById('jumlah').value }, function (d) {
-                    toast(d.message || (d.success ? 'Tersimpan.' : 'Gagal.')); if (d.success) { document.getElementById('tanggal').value = ''; document.getElementById('rekening').value = ''; document.getElementById('jumlah').value = ''; load(); }
+                post({ action: 'npd_create', tanggal: document.getElementById('tanggal').value, metode: document.getElementById('metode').value, keterangan: document.getElementById('keterangan').value, kegiatan: document.getElementById('kegiatan').value, sub_kegiatan: document.getElementById('sub_kegiatan').value, jumlah: document.getElementById('jumlah').value }, function (d) {
+                    toast(d.message || (d.success ? 'Tersimpan.' : 'Gagal.')); if (d.success) { ['tanggal','keterangan','kegiatan','sub_kegiatan','jumlah'].forEach(function (id) { document.getElementById(id).value = ''; }); load(); }
                 });
             });
             tbody.addEventListener('click', function (e) {
                 var b = e.target.closest('[data-act]'); if (!b) return;
                 var id = parseInt(b.getAttribute('data-id'), 10);
                 var act = b.getAttribute('data-act');
-                if (act === 'verifikasi') {
-                    if (!confirm('Verifikasi SP2D ini (Setujui)?')) return;
-                    post({ action: 'sp2d_verifikasi', id: id, setuju: true }, function (d) { toast(d.message || (d.success ? 'Terverifikasi.' : 'Gagal.')); if (d.success) load(); });
-                } else if (act === 'cair') {
-                    var tgl = prompt('Tanggal pencairan (YYYY-MM-DD):', new Date().toISOString().slice(0, 10));
-                    if (tgl === null) return;
-                    if (!confirm('Semua data sudah sesuai dan benar. Transfer dana sekarang?')) return;
-                    post({ action: 'sp2d_pencairan', id: id, tanggal: tgl }, function (d) { toast(d.message || (d.success ? 'Dana dicairkan.' : 'Gagal.')); if (d.success) load(); });
-                }
+                if (act === 'pa') { if (!confirm('Validasi (Setujui) NPD ini oleh PA/KPA?')) return; post({ action: 'npd_validasi_pa', id: id, setuju: true }, function (d) { toast(d.message || (d.success ? 'Divalidasi PA.' : 'Gagal.')); if (d.success) load(); }); }
+                else if (act === 'bp') { if (!confirm('Validasi (Setujui) NPD ini oleh BP/BPP?')) return; post({ action: 'npd_validasi_bp', id: id, setuju: true }, function (d) { toast(d.message || (d.success ? 'Divalidasi BP.' : 'Gagal.')); if (d.success) load(); }); }
             });
             document.querySelectorAll('.tab-btn').forEach(function (b) {
                 b.addEventListener('click', function () {
@@ -160,7 +149,7 @@
                     b.classList.add('active'); curTab = b.getAttribute('data-tab'); load();
                 });
             });
-            loadSpm(); load();
+            load();
         })();
     </script>
 </body>
