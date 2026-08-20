@@ -612,6 +612,12 @@ a {
 .card-body {
     flex: 1;
     min-width: 0;
+    padding: 22px 24px;
+}
+
+/* Kartu ringkasan: padding sudah diatur oleh .summary-card, jangan dobel */
+.summary-card .card-body {
+    padding: 0;
 }
 
 .card-label {
@@ -1893,6 +1899,7 @@ a {
 .data-table td {
     padding: 14px 22px;
     font-size: 13px;
+    line-height: 1.5;
     border-bottom: 1px solid var(--border);
     color: var(--text-primary);
 }
