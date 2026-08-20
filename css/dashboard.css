@@ -2042,6 +2042,24 @@ button:focus-visible {
     background: rgba(255, 255, 255, 0.3);
 }
 
+/* Mencegah teks keluar/meluber dari garis sel tabel */
+.data-table td,
+.bku-table td,
+.table-responsive td {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+.data-table th {
+    overflow-wrap: anywhere;
+}
+.bku-table th {
+    overflow-wrap: anywhere;
+}
+/* Angka tetap tidak terpotong, tapi rapi */
+.data-table .num {
+    white-space: nowrap;
+}
+
 /* ============================================
    Responsive
    ============================================ */

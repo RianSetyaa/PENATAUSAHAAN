@@ -62,6 +62,21 @@ $stmt = $pdo->prepare("SELECT id, nama_kegiatan, tahun, pagu, realisasi, status 
 $stmt->execute([$tahun, $skpd, $skpd]);
 $kegiatan = $stmt->fetchAll();
 
+// ===== Ringkasan lintas modul (Penerimaan + Belanja) =====
+$modul = [];
+$runMod = function (string $key, string $sql, bool $asInt = false) use ($pdo, $skpd, &$modul) {
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([$skpd, $skpd]); // pola (? = '' OR skpd = ?)
+    $modul[$key] = $asInt ? (int) $stmt->fetchColumn() : (float) $stmt->fetchColumn();
+};
+$runMod('stbp',          "SELECT COALESCE(SUM(jumlah),0) FROM stbp WHERE status='sudah_divalidasi' AND (?='' OR skpd=?)");
+$runMod('sts',           "SELECT COALESCE(SUM(total),0) FROM sts WHERE status='aktif' AND (?='' OR skpd=?)");
+$runMod('permohonan',    "SELECT COUNT(*) FROM permohonan WHERE (?='' OR skpd=?)", true);
+$runMod('spd',           "SELECT COALESCE(SUM(jumlah),0) FROM spd WHERE (?='' OR skpd=?)");
+$runMod('spp',           "SELECT COALESCE(SUM(jumlah),0) FROM spp WHERE (?='' OR skpd=?)");
+$runMod('sp2d_dicairkan',"SELECT COALESCE(SUM(jumlah),0) FROM sp2d WHERE status='sudah_dicairkan' AND (?='' OR skpd=?)");
+$runMod('rekanan',       "SELECT COUNT(*) FROM rekanan WHERE (?='' OR skpd=?)", true);
+
 jsonResponse(true, 'OK', [
     'user' => [
         'nama'     => $_SESSION['nama'] ?? '',
@@ -75,6 +90,19 @@ jsonResponse(true, 'OK', [
         'total_realisasi' => $totalRealisasi,
         'persen'          => $persen,
         'jumlah_kegiatan' => $jumlahKegiatan,
+    ],
+    'modul' => [
+        'penerimaan' => [
+            'stbp'       => $modul['stbp'] ?? 0,
+            'sts'        => $modul['sts'] ?? 0,
+            'permohonan' => $modul['permohonan'] ?? 0,
+        ],
+        'belanja' => [
+            'spd'            => $modul['spd'] ?? 0,
+            'spp'            => $modul['spp'] ?? 0,
+            'sp2d_dicairkan' => $modul['sp2d_dicairkan'] ?? 0,
+            'rekanan'        => $modul['rekanan'] ?? 0,
+        ],
     ],
     'chart' => $chart,
     'kegiatan' => array_map(function ($k) {

@@ -762,11 +762,21 @@
                             r.realisasi = r.kode ? sumRekap(r.kode) : 0;
                         });
 
+                        // Realisasi BELANJA dari SP2D yang sudah di-approve jurnalnya (bila tersedia)
+                        if (typeof data.total_belanja === 'number') {
+                            DATA.forEach(function (r) {
+                                if (r.kode === '5' && r.type === 'section' && r.level === 0) {
+                                    r.realisasi = data.total_belanja;
+                                }
+                            });
+                        }
+
                         // Total tanpa kode (JUMLAH ...) mengikuti bagian/section terdekat sebelumnya
                         DATA.forEach(function (r, i) {
                             if (r.kode || r.type === 'detail') return;
                             if (r.uraian.indexOf('SURPLUS') === 0) {
-                                r.realisasi = sumRekap('4') - sumRekap('5');
+                                r.realisasi = (typeof data.total_penerimaan === 'number' ? data.total_penerimaan : sumRekap('4'))
+                                            - (typeof data.total_belanja === 'number' ? data.total_belanja : sumRekap('5'));
                                 return;
                             }
                             for (var j = i - 1; j >= 0; j--) {
