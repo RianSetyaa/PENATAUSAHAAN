@@ -107,6 +107,35 @@ if ($action === 'jurnal') {
         ];
     }
 
+    // SP2D -> Pengeluaran/Belanja (hanya yang sudah dicairkan)
+    $blSql    = "SELECT s.*, m.nomor_spm FROM sp2d s LEFT JOIN spm m ON m.id = s.spm_id WHERE s.status = 'sudah_dicairkan'";
+    $blParams = [];
+    if ($skpdUser !== '') { $blSql .= " AND s.skpd = ?"; $blParams[] = $skpdUser; }
+    $blSql .= " ORDER BY s.tanggal ASC, s.id ASC";
+    $bl = $pdo->prepare($blSql);
+    $bl->execute($blParams);
+    $bl = $bl->fetchAll();
+    foreach ($bl as $r) {
+        $jstat = (string) ($r['jurnal_status'] ?? 'belum_approve');
+        $status = ($jstat === 'sudah_approve') ? 'Sudah Approve' : (($jstat === 'ditolak') ? 'Ditolak' : 'Belum Approve');
+        $rows[] = [
+            'no'        => 'JRN-' . ($r['nomor_sp2d'] ?: 'SP2D-' . $r['id']),
+            'dok'       => $r['nomor_sp2d'] ?: '',
+            'tgl'       => $r['tanggal'] ?: '',
+            'tglAkhir'  => $r['tanggal'] ?: '',
+            'nilai'     => (float) ($r['jumlah'] ?? 0),
+            'ket'       => 'Pencairan SP2D' . (($r['nomor_spm'] ?? '') !== '' ? ' (' . $r['nomor_spm'] . ')' : ''),
+            'status'    => $status,
+            'jurnal_status' => $jstat,
+            'transaksi' => 'Pengeluaran',
+            'sumber'    => 'sp2d',
+            'id'        => (int) $r['id'],
+            'akun_kode' => '',
+            'akun_nama' => '',
+            'skpd'      => $r['skpd'] ?: '',
+        ];
+    }
+
     // Urutkan berdasarkan tanggal lalu id
     usort($rows, function ($a, $b) {
         return strcmp($a['tgl'], $b['tgl']) ?: ($a['id'] <=> $b['id']);
@@ -148,6 +177,9 @@ if ($action === 'approve' || $action === 'reject') {
         if ($sumber === 'sts') {
             $table = 'sts';
             $statusCond = "status = 'aktif'";
+        } elseif ($sumber === 'sp2d') {
+            $table = 'sp2d';
+            $statusCond = "status = 'sudah_dicairkan'";
         } else {
             $table = 'stbp';
             $statusCond = "status = 'sudah_divalidasi'";
@@ -188,12 +220,18 @@ if ($action === 'lra_rekap') {
     $totalRealisasi     = (float) $pdo->query("SELECT COALESCE(SUM(realisasi),0) FROM kegiatan WHERE " . (($skpdUser !== '') ? ("skpd = " . $pdo->quote($skpdUser)) : '1=1'))->fetchColumn();
     $jumlahKegiatan     = (int)  $pdo->query("SELECT COUNT(*) FROM kegiatan WHERE " . (($skpdUser !== '') ? ("skpd = " . $pdo->quote($skpdUser)) : '1=1'))->fetchColumn();
 
+    // Realisasi BELANJA = SP2D yang sudah dicairkan & sudah di-approve jurnalnya
+    $belanjaCond = "status = 'sudah_dicairkan' AND jurnal_status = 'sudah_approve'" . (($skpdUser !== '') ? " AND skpd = " . $pdo->quote($skpdUser) : '');
+    $totalBelanja = (float) $pdo->query("SELECT COALESCE(SUM(jumlah),0) FROM sp2d WHERE {$belanjaCond}")->fetchColumn();
+
     echo json_encode([
         'success'           => true,
         'realisasi_by_akun' => $realisasiByAkun,
         'total_pagu'        => $totalPagu,
         'total_realisasi'   => $totalRealisasi,
         'jumlah_kegiatan'   => $jumlahKegiatan,
+        'total_penerimaan'  => array_sum($realisasiByAkun),
+        'total_belanja'     => $totalBelanja,
     ], JSON_UNESCAPED_UNICODE);
     exit;
 }
@@ -236,6 +274,8 @@ if ($action === 'rekap') {
             'akun'         => $count('akun_penerimaan', $skpdCond),
             'total_pagu'   => (float) $pdo->query("SELECT COALESCE(SUM(pagu),0) FROM kegiatan WHERE {$skpdCond}")->fetchColumn(),
             'total_penerimaan' => (float) $pdo->query("SELECT COALESCE(SUM(jumlah),0) FROM stbp WHERE status != 'dihapus' AND jurnal_status = 'sudah_approve' AND {$skpdCond}")->fetchColumn(),
+            'sp2d_cair'    => $count('sp2d', "status = 'sudah_dicairkan' AND {$skpdCond}"),
+            'total_belanja' => (float) $pdo->query("SELECT COALESCE(SUM(jumlah),0) FROM sp2d WHERE status = 'sudah_dicairkan' AND jurnal_status = 'sudah_approve' AND {$skpdCond}")->fetchColumn(),
         ],
     ], JSON_UNESCAPED_UNICODE);
     exit;

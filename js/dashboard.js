@@ -400,6 +400,17 @@
             kegiatanTrend.innerHTML = '<i class="fas fa-arrow-down"></i> ' + tahun + ' <span>tahun berjalan</span>';
         }
 
+        // Kartu: Modul Penerimaan & Belanja (data lintas database)
+        const modul = data.modul || {};
+        const penerimaan = modul.penerimaan || {};
+        const belanjaMod = modul.belanja || {};
+        const stbpValue = document.getElementById('cardStbpValue');
+        if (stbpValue) stbpValue.textContent = formatRupiah(penerimaan.stbp);
+        const stsValue = document.getElementById('cardStsValue');
+        if (stsValue) stsValue.textContent = formatRupiah(penerimaan.sts);
+        const sp2dValue = document.getElementById('cardSp2dValue');
+        if (sp2dValue) sp2dValue.textContent = formatRupiah(belanjaMod.sp2d_dicairkan);
+
         // Ring progres jadwal
         const ring = document.getElementById('progressRing');
         if (ring) ring.style.setProperty('--p', Math.round(persen));

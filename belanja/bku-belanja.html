@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BKU Belanja - SIM-TKD</title>
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ===== Panel pengaturan kertas (sama seperti BKU Penerimaan / cetak STBP) ===== */
+        .print-settings { margin: 0 0 20px; }
+        .print-settings .card-body { padding-top: 18px; }
+        .settings-section { margin-bottom: 22px; }
+        .settings-section:last-of-type { margin-bottom: 0; }
+        .settings-section-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-secondary); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+        .settings-section-title i { color: var(--primary); font-size: 13px; }
+        .settings-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 14px 16px; }
+        .settings-field label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; }
+        .settings-field input[type="number"], .settings-field input[type="text"], .settings-field select { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; font-family: inherit; color: var(--text-primary); background: #ffffff; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+        .settings-field input:focus, .settings-field select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(26, 58, 107, 0.12); }
+        .color-input { display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; background: #ffffff; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+        .color-input:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(26, 58, 107, 0.12); }
+        .color-input input[type="color"] { width: 34px; height: 26px; padding: 0; border: 1px solid var(--border); border-radius: 6px; background: none; cursor: pointer; }
+        .color-input span { font-family: 'SF Mono', 'Consolas', monospace; font-size: 12px; color: var(--text-muted); }
+        .settings-toggle { display: flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: #f8fafc; }
+        .settings-toggle button { flex: 1; padding: 9px 6px; border: none; background: transparent; font-size: 12px; font-weight: 600; color: var(--text-secondary); cursor: pointer; font-family: inherit; transition: all 0.2s ease; }
+        .settings-toggle button.active { background: var(--primary); color: #ffffff; }
+        .watermark-field { margin-top: 22px; }
+        .watermark-drop { border: 2px dashed var(--border); border-radius: 12px; padding: 22px; text-align: center; color: var(--text-muted); font-size: 12px; background: #f8fafc; transition: all 0.2s ease; }
+        .watermark-drop.drag { border-color: var(--primary); background: rgba(26, 58, 107, 0.06); }
+        .watermark-drop p { margin: 4px 0; }
+        .watermark-drop .fa-cloud-upload-alt { font-size: 28px; color: var(--primary); opacity: 0.6; }
+        .watermark-drop a { color: var(--primary); font-weight: 600; }
+
+        /* ===== Periode (di bawah pengaturan cetak) ===== */
+        .bku-periode { margin: 0 0 20px; }
+        .bku-periode-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+        .bku-periode-field label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; }
+        .bku-periode-field input[type="date"] { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; font-family: inherit; color: var(--text-primary); background: #ffffff; }
+        .bku-periode-field input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(26, 58, 107, 0.12); }
+        .bku-actions { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+
+        /* ===== Dokumen BKU ===== */
+        .bku-sheet {
+            --sf-size: 12px; --sf-line: 1px; --sf-line-color: #1e293b; --sf-text-color: #0f172a;
+            --sf-frame: 36px; --sf-col-gap: 7px; --sf-font: 'Inter', system-ui, sans-serif;
+            --sf-bg-main: #ffffff; --sf-bg-hl1: #f1f5f9; --sf-bg-hl2: #e2e8f0;
+            --sf-line-height: 1.6; --sf-table-layout: auto; --wm: none;
+            max-width: none; width: 100%; box-sizing: border-box; margin: 0 auto;
+            background: var(--sf-bg-main); border: 1px solid var(--sf-line-color); border-radius: var(--radius-lg);
+            padding: var(--sf-frame); box-shadow: 0 8px 30px rgba(15, 23, 42, 0.06);
+            color: var(--sf-text-color); line-height: var(--sf-line-height); font-family: var(--sf-font);
+            font-size: var(--sf-size); position: relative; display: none;
+        }
+        .bku-sheet.watermarked { background-image: var(--wm); background-repeat: no-repeat; background-position: center; background-size: 55% auto; }
+        .bku-head { text-align: center; margin-bottom: 18px; }
+        .bku-head .instansi { font-size: 14px; font-weight: 700; color: var(--sf-text-color); text-transform: uppercase; letter-spacing: 0.5px; }
+        .bku-head .title { font-size: 18px; font-weight: 800; color: var(--sf-text-color); margin-top: 2px; letter-spacing: 1px; }
+        .bku-head .periode { font-size: 12px; color: var(--sf-text-color); opacity: 0.8; margin-top: 2px; }
+        .bku-table { width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: var(--sf-table-layout); }
+        .bku-table th, .bku-table td { border: var(--sf-line) solid var(--sf-line-color); padding: var(--sf-col-gap) 8px; font-size: 12px; text-align: left; color: var(--sf-text-color); vertical-align: top; }
+        .bku-table th { background: var(--sf-bg-hl1); font-weight: 700; text-align: center; }
+        .bku-table tbody tr:nth-child(even) td { background: var(--sf-bg-hl2); }
+        .bku-table td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+        .bku-table td.c { text-align: center; }
+        .bku-saldo { margin-top: 12px; font-size: 13px; }
+        .bku-saldo p { margin: 4px 0; }
+        .bku-signs { margin-top: 40px; display: flex; justify-content: space-between; gap: 30px; font-size: 12px; }
+        .bku-sign { text-align: center; flex: 1; }
+        .bku-sign .label { font-weight: 700; text-transform: uppercase; }
+        .bku-sign .space { height: 74px; }
+        .bku-sign .name { text-decoration: underline; }
+        .bku-notfound { max-width: 820px; margin: 0 auto; }
+
+        /* ===== Saat mencetak: hanya dokumen, landscape ===== */
+        @page { size: A4 landscape; margin: 12mm; }
+        @media print {
+            .sidebar, .topbar, .footer, .overlay, .print-settings, .bku-periode, .page-header { display: none !important; }
+            .main-wrapper { margin-left: 0 !important; }
+            .content { padding: 0 !important; margin: 0 !important; }
+            body { background: #ffffff !important; }
+            .bku-sheet { box-shadow: none; border: none; border-radius: 0; padding: 0; max-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ================= SIDEBAR ================= -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header"><div class="sidebar-logo"><img src="../img/Logo Polban.png" alt="Logo POLBAN"><div class="sidebar-title"><span class="title-main">SIM-TKD</span><span class="title-sub">Modul Edukasi</span></div></div><button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button></div>
+        <div class="sidebar-user"><div class="user-avatar"><i class="fas fa-user-tie"></i></div><div class="user-info"><span class="user-name" id="sidebarUserName">Admin Dinas</span><span class="user-role" id="sidebarUserRole">Dinas Kepemudaan dan Olahraga</span></div></div>
+        <nav class="sidebar-menu">
+            <span class="menu-label">MENU UTAMA</span>
+            <a href="../dashboard/dashboard.html" class="menu-item"><i class="fas fa-th-large"></i><span>Dashboard</span></a>
+            <div class="menu-group" data-menu="penerimaan">
+                <a href="#" class="menu-item has-submenu"><i class="fas fa-arrow-down"></i><span>Penerimaan</span><i class="fas fa-chevron-down submenu-arrow"></i></a>
+                <div class="submenu">
+                    <a href="../penerimaan/permohonan.html" class="menu-item submenu-item"><i class="fas fa-file-signature"></i><span>Permohonan</span></a>
+                    <a href="../penerimaan/stbp-pembuatan.html" class="menu-item submenu-item"><i class="fas fa-file-invoice"></i><span>STBP</span></a>
+                    <a href="../penerimaan/sts-pembuatan.html" class="menu-item submenu-item"><i class="fas fa-file-invoice-dollar"></i><span>STS</span></a>
+                    <a href="../penerimaan/bku-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-book"></i><span>BKU Penerimaan</span></a>
+                </div>
+            </div>
+            <div class="menu-group open" data-menu="belanja">
+                <a href="#" class="menu-item has-submenu active"><i class="fas fa-arrow-up"></i><span>Belanja</span><i class="fas fa-chevron-down submenu-arrow"></i></a>
+                <div class="submenu">
+                    <a href="index.html" class="menu-item submenu-item"><i class="fas fa-th-large"></i><span>Dashboard</span></a>
+                    <a href="rekanan.html" class="menu-item submenu-item"><i class="fas fa-handshake"></i><span>Daftar Rekanan</span></a>
+                    <a href="rekening.html" class="menu-item submenu-item"><i class="fas fa-university"></i><span>Rekening Bank SKPD</span></a>
+                    <a href="spd.html" class="menu-item submenu-item"><i class="fas fa-file-invoice"></i><span>SPD</span></a>
+                    <a href="spp.html" class="menu-item submenu-item"><i class="fas fa-file-signature"></i><span>SPP</span></a>
+                    <a href="spm.html" class="menu-item submenu-item"><i class="fas fa-file-invoice-dollar"></i><span>SPM</span></a>
+                    <a href="sp2d.html" class="menu-item submenu-item"><i class="fas fa-money-check-alt"></i><span>SP2D</span></a>
+                    <a href="lpj.html" class="menu-item submenu-item"><i class="fas fa-clipboard-check"></i><span>LPJ</span></a>
+                    <a href="pengajuan-tu.html" class="menu-item submenu-item"><i class="fas fa-paper-plane"></i><span>Pengajuan TU</span></a>
+                    <a href="npd.html" class="menu-item submenu-item"><i class="fas fa-file-invoice-dollar"></i><span>NPD</span></a>
+                    <a href="besaran-up.html" class="menu-item submenu-item"><i class="fas fa-coins"></i><span>Besaran UP</span></a>
+                    <a href="kebijakan-spd.html" class="menu-item submenu-item"><i class="fas fa-gavel"></i><span>Kebijakan SPD</span></a>
+                    <a href="bku-belanja.html" class="menu-item submenu-item active"><i class="fas fa-book"></i><span>BKU Belanja</span></a>
+                </div>
+            </div>
+            <a href="../api/aklap_go.php" class="menu-item"><i class="fas fa-book"></i><span>Akuntansi</span></a>
+            <span class="menu-label">AKUN</span>
+            <a href="../api/logout.php" class="menu-item menu-logout"><i class="fas fa-sign-out-alt"></i><span>Keluar</span></a>
+        </nav>
+        <div class="sidebar-footer"><span>&copy; 2026 SIM-TKD POLBAN</span></div>
+    </aside>
+    <div class="overlay" id="overlay"></div>
+
+    <div class="main-wrapper">
+        <header class="topbar">
+            <div class="topbar-left"><button class="topbar-toggle" id="topbarToggle"><i class="fas fa-bars"></i></button><div class="breadcrumb"><i class="fas fa-home"></i><span>Beranda</span><i class="fas fa-chevron-right"></i><span>Belanja</span><i class="fas fa-chevron-right"></i><span class="current">BKU Belanja</span></div></div>
+            <div class="topbar-right"><div class="topbar-item notification"><i class="fas fa-bell"></i><span class="badge">3</span></div><div class="topbar-item"><i class="fas fa-calendar-alt"></i><span id="currentDate">--</span></div><div class="topbar-item user"><div class="user-avatar small"><i class="fas fa-user-tie"></i></div><span id="topbarUserName">Admin Dinas</span></div></div>
+        </header>
+
+        <main class="content">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Buku Kas Umum Bendahara Pengeluaran (BKU Belanja)</h1>
+                    <p class="page-subtitle">Laporan Buku Kas Umum Pengeluaran Daerah berdasarkan SP2D yang telah dicairkan</p>
+                </div>
+                <div class="page-actions">
+                    <button class="btn btn-outline" onclick="history.back();"><i class="fas fa-arrow-left"></i> Kembali</button>
+                </div>
+            </div>
+
+            <!-- ===== Pengaturan Kertas PDF (sama seperti BKU Penerimaan) ===== -->
+            <div class="card print-settings" id="printSettings">
+                <div class="card-header"><h3><i class="fas fa-sliders-h"></i> Pengaturan Kertas PDF</h3></div>
+                <div class="card-body">
+                    <div class="settings-section">
+                        <div class="settings-section-title"><i class="fas fa-font"></i> Teks &amp; Garis</div>
+                        <div class="settings-grid">
+                            <div class="settings-field"><label for="setFontSize">Ukuran Font</label><input type="number" id="setFontSize" value="13" min="8" max="30"></div>
+                            <div class="settings-field"><label for="setLineHeight">Jarak Tulisan</label><input type="number" id="setLineHeight" value="1.6" min="1" max="3" step="0.1"></div>
+                            <div class="settings-field"><label for="setFont">Font</label><select id="setFont"><option value="'Inter', system-ui, sans-serif" selected>Inter, Sans-Serif</option><option value="Arial, Helvetica, sans-serif">Arial</option><option value="'Times New Roman', Times, serif">Times New Roman</option><option value="'Courier New', monospace">Monospace</option></select></div>
+                            <div class="settings-field"><label for="setLineWidth">Ketebalan Garis</label><input type="number" id="setLineWidth" value="1" min="0" max="5" step="0.5"></div>
+                            <div class="settings-field"><label for="setLineColor">Warna Garis</label><div class="color-input"><input type="color" id="setLineColor" value="#1e293b"><span id="setLineColorVal">#1e293b</span></div></div>
+                            <div class="settings-field"><label for="setTextColor">Warna Tulisan</label><div class="color-input"><input type="color" id="setTextColor" value="#0f172a"><span id="setTextColorVal">#0f172a</span></div></div>
+                        </div>
+                    </div>
+                    <div class="settings-section">
+                        <div class="settings-section-title"><i class="fas fa-table"></i> Layout</div>
+                        <div class="settings-grid">
+                            <div class="settings-field"><label for="setFrame">Jarak Frame</label><input type="number" id="setFrame" value="36" min="0" max="120"></div>
+                            <div class="settings-field"><label for="setColGap">Jarak Kolom</label><input type="number" id="setColGap" value="7" min="0" max="40"></div>
+                            <div class="settings-field"><label>Lebar Kolom</label><div class="settings-toggle" id="setColLayout"><button type="button" data-layout="auto" class="active">Sesuaikan Konten</button><button type="button" data-layout="fixed">Sama Rata</button></div></div>
+                            <div class="settings-field"><label for="setTanggal">Tanggal</label><input type="text" id="setTanggal" value="hh/bb/tttt" placeholder="hh/bb/tttt"></div>
+                        </div>
+                    </div>
+                    <div class="settings-section">
+                        <div class="settings-section-title"><i class="fas fa-palette"></i> Warna Background</div>
+                        <div class="settings-grid">
+                            <div class="settings-field"><label for="setBgMain">Utama</label><div class="color-input"><input type="color" id="setBgMain" value="#ffffff"><span id="setBgMainVal">#ffffff</span></div></div>
+                            <div class="settings-field"><label for="setBgHl1">Highlight 1</label><div class="color-input"><input type="color" id="setBgHl1" value="#f1f5f9"><span id="setBgHl1Val">#f1f5f9</span></div></div>
+                            <div class="settings-field"><label for="setBgHl2">Highlight 2</label><div class="color-input"><input type="color" id="setBgHl2" value="#e2e8f0"><span id="setBgHl2Val">#e2e8f0</span></div></div>
+                        </div>
+                    </div>
+                    <div class="settings-field watermark-field">
+                        <label>Watermark</label>
+                        <div class="watermark-drop" id="watermarkDrop">
+                            <input type="file" id="watermarkInput" accept="image/*" hidden>
+                            <p><i class="fas fa-cloud-upload-alt"></i></p>
+                            <p id="watermarkText">Tidak ada file yang dipilih.<br>Seret dan lepaskan file Anda atau <a href="#" id="watermarkPick">Pilih Disini</a></p>
+                            <button type="button" class="btn btn-outline btn-sm" id="watermarkClear" style="display:none;"><i class="fas fa-times"></i> Hapus Watermark</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== Periode ===== -->
+            <div class="card bku-periode" id="bkuPeriode">
+                <div class="card-header"><h3><i class="fas fa-calendar-alt"></i> Periode</h3></div>
+                <div class="card-body">
+                    <div class="bku-periode-grid">
+                        <div class="bku-periode-field"><label for="perDari">Periode Dari</label><input type="date" id="perDari"></div>
+                        <div class="bku-periode-field"><label for="perSampai">Periode Sampai</label><input type="date" id="perSampai"></div>
+                    </div>
+                    <div class="bku-actions">
+                        <button class="btn btn-primary" id="btnGenerate"><i class="fas fa-book"></i> BKU Belanja SKPD</button>
+                        <button class="btn btn-success" id="btnCetak" onclick="window.print();"><i class="fas fa-print"></i> Cetak Sekarang</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== Dokumen BKU ===== -->
+            <div class="bku-sheet" id="bkuSheet">
+                <div class="bku-head">
+                    <div class="instansi" id="docInstansi">PEMERINTAH DAERAH</div>
+                    <div class="title">BUKU KAS UMUM BENDAHARA PENGELUARAN</div>
+                    <div class="periode" id="docPeriode">Periode: -</div>
+                </div>
+
+                <table class="bku-table">
+                    <thead>
+                        <tr>
+                            <th style="width:36px;">No</th>
+                            <th style="width:90px;">Tanggal</th>
+                            <th style="width:130px;">No. SP2D</th>
+                            <th style="width:130px;">No. SPM</th>
+                            <th>Uraian</th>
+                            <th style="width:130px;">Pengeluaran</th>
+                            <th style="width:130px;">Saldo</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bkuBody">
+                        <tr><td colspan="7" style="text-align:center;color:#9098a5;">Pilih periode lalu klik <b>BKU Belanja SKPD</b> untuk menampilkan data.</td></tr>
+                    </tbody>
+                </table>
+
+                <div class="bku-saldo" id="bkuFooter"></div>
+
+                <div class="bku-signs">
+                    <div class="bku-sign">
+                        <div>Disetujui Oleh</div>
+                        <div class="label">Pengguna Anggaran</div>
+                        <div class="space"></div>
+                        <div class="name" id="signPA">(______________________)</div>
+                    </div>
+                    <div class="bku-sign">
+                        <div>Disiapkan Oleh</div>
+                        <div class="label">Bendahara Pengeluaran</div>
+                        <div class="space"></div>
+                        <div class="name" id="signBP">(______________________)</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <span>&copy; 2026 SIM-TKD - Sistem Informasi Manajemen Tata Kelola Daerah (Modul Edukasi) | Politeknik Negeri Bandung</span>
+        </footer>
+    </div>
+
+    <script src="../js/dashboard.js"></script>
+    <script>
+        // ==========================================
+        // Halaman BKU Belanja
+        // ==========================================
+        (function () {
+            'use strict';
+
+            function escapeHtml(str) {
+                const div = document.createElement('div');
+                div.textContent = String(str || '');
+                return div.innerHTML;
+            }
+
+            function formatRupiah(v) {
+                return 'Rp' + Number(v || 0).toLocaleString('id-ID');
+            }
+
+            function formatTanggal(s) {
+                if (!s) return '-';
+                const p = String(s).split('-');
+                const b = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+                           'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+                const day = ('0' + parseInt(p[2], 10)).slice(-2);
+                return day + ' ' + b[parseInt(p[1], 10) - 1] + ' ' + p[0];
+            }
+
+            function terbilang(n) {
+                const angka = ['', 'satu', 'dua', 'tiga', 'empat', 'lima', 'enam',
+                               'tujuh', 'delapan', 'sembilan', 'sepuluh', 'sebelas'];
+                function urai(x) {
+                    if (x < 12) return angka[x];
+                    if (x < 20) return urai(x - 10) + ' belas';
+                    if (x < 100) return urai(Math.floor(x / 10)) + ' puluh ' + urai(x % 10);
+                    if (x < 200) return 'seratus ' + urai(x - 100);
+                    if (x < 1000) return urai(Math.floor(x / 100)) + ' ratus ' + urai(x % 100);
+                    if (x < 2000) return 'seribu ' + urai(x - 1000);
+                    if (x < 1000000) return urai(Math.floor(x / 1000)) + ' ribu ' + urai(x % 1000);
+                    if (x < 1000000000) return urai(Math.floor(x / 1000000)) + ' juta ' + urai(x % 1000000);
+                    if (x < 1000000000000) return urai(Math.floor(x / 1000000000)) + ' miliar ' + urai(x % 1000000000);
+                    return urai(Math.floor(x / 1000000000000)) + ' triliun ' + urai(x % 1000000000000);
+                }
+                const words = urai(Math.floor(Number(n || 0))).replace(/\s+/g, ' ').trim();
+                if (!words || words === 'nol') return 'nol rupiah';
+                return words + ' rupiah';
+            }
+
+            // Prefill periode (bulan berjalan)
+            (function prefill() {
+                const now = new Date();
+                const dari = new Date(now.getFullYear(), now.getMonth(), 1);
+                document.getElementById('perDari').value = dari.toISOString().slice(0, 10);
+                document.getElementById('perSampai').value = now.toISOString().slice(0, 10);
+            })();
+
+            // Prefill instansi
+            fetch('../api/session.php')
+                .then(function (res) { return res.json(); })
+                .then(function (d) {
+                    if (!d.success) { window.location.href = '../login.html'; return; }
+                    document.getElementById('docInstansi').textContent = (d.user.instansi || 'PEMERINTAH DAERAH').toUpperCase();
+                    document.getElementById('signPA').textContent = d.user.nama || '(______________________)';
+                    document.getElementById('signBP').textContent = d.user.nama || '(______________________)';
+                })
+                .catch(function () { /* biarkan */ });
+
+            // ---------- Generate BKU ----------
+            document.getElementById('btnGenerate').addEventListener('click', function () {
+                const dari = document.getElementById('perDari').value;
+                const sampai = document.getElementById('perSampai').value;
+                if (!dari || !sampai) {
+                    alert('Mohon pilih periode terlebih dahulu.');
+                    return;
+                }
+                const btn = this;
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memuat...';
+
+                fetch('../api/belanja.php?action=bku_belanja&dari=' + encodeURIComponent(dari) + '&sampai=' + encodeURIComponent(sampai))
+                    .then(function (res) { return res.json(); })
+                    .then(function (data) {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-book"></i> BKU Belanja SKPD';
+                        if (!data || !data.success) {
+                            alert((data && data.message) || 'Gagal memuat laporan.');
+                            return;
+                        }
+                        renderBku(data);
+                    })
+                    .catch(function () {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-book"></i> BKU Belanja SKPD';
+                        alert('Terjadi kesalahan koneksi ke server.');
+                    });
+            });
+
+            function renderBku(data) {
+                const entries = data.data || [];
+                document.getElementById('bkuSheet').style.display = 'block';
+                document.getElementById('docPeriode').textContent =
+                    'Periode: ' + formatTanggal(data.periode ? data.periode.dari : (entries.length ? entries[0].tanggal : '-')) +
+                    ' s.d ' + formatTanggal(data.periode ? data.periode.sampai : (entries.length ? entries[entries.length - 1].tanggal : '-'));
+
+                const tbody = document.getElementById('bkuBody');
+                if (!entries.length) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#9098a5;">Tidak ada SP2D yang telah dicairkan pada periode tersebut.</td></tr>';
+                } else {
+                    let saldo = 0;
+                    tbody.innerHTML = entries.map(function (e, i) {
+                        saldo += Number(e.jumlah || 0);
+                        return '<tr>' +
+                            '<td class="c">' + (i + 1) + '</td>' +
+                            '<td class="c">' + formatTanggal(e.tanggal) + '</td>' +
+                            '<td class="c">' + escapeHtml(e.nomor_sp2d || '-') + '</td>' +
+                            '<td class="c">' + escapeHtml(e.nomor_spm || '-') + '</td>' +
+                            '<td>' + escapeHtml('Pencairan SP2D ' + (e.nomor_sp2d || '')) + '</td>' +
+                            '<td class="num">' + formatRupiah(e.jumlah) + '</td>' +
+                            '<td class="num">' + formatRupiah(saldo) + '</td>' +
+                        '</tr>';
+                    }).join('');
+                }
+
+                const total = Number(data.total || 0);
+                document.getElementById('bkuFooter').innerHTML =
+                    '<p><strong>Saldo Kas di Bendahara Pengeluaran</strong> ' + formatRupiah(total) +
+                    ' <em>(terbilang: ' + terbilang(total) + ')</em></p>' +
+                    '<p>Total Pengeluaran (SP2D Dicairkan) : ' + formatRupiah(total) + '</p>';
+            }
+
+            // ---------- Watermark ----------
+            const sheet = document.getElementById('bkuSheet');
+
+            // ---------- Pengaturan Kertas PDF ----------
+            function applySettings() {
+                const v = function (id, fb) { const el = document.getElementById(id); return el && el.value !== '' ? el.value : fb; };
+                sheet.style.setProperty('--sf-size', v('setFontSize', '13') + 'px');
+                sheet.style.setProperty('--sf-line', v('setLineWidth', '1') + 'px');
+                sheet.style.setProperty('--sf-line-color', v('setLineColor', '#1e293b'));
+                sheet.style.setProperty('--sf-text-color', v('setTextColor', '#0f172a'));
+                sheet.style.setProperty('--sf-frame', v('setFrame', '36') + 'px');
+                sheet.style.setProperty('--sf-col-gap', v('setColGap', '7') + 'px');
+                sheet.style.setProperty('--sf-font', v('setFont', "'Inter', system-ui, sans-serif"));
+                sheet.style.setProperty('--sf-bg-main', v('setBgMain', '#ffffff'));
+                sheet.style.setProperty('--sf-bg-hl1', v('setBgHl1', '#f1f5f9'));
+                sheet.style.setProperty('--sf-bg-hl2', v('setBgHl2', '#e2e8f0'));
+                sheet.style.setProperty('--sf-line-height', v('setLineHeight', '1.6'));
+                const layoutBtn = document.querySelector('#setColLayout .active');
+                sheet.style.setProperty('--sf-table-layout', layoutBtn && layoutBtn.getAttribute('data-layout') === 'fixed' ? 'fixed' : 'auto');
+            }
+
+            ['setFontSize', 'setLineWidth', 'setLineColor', 'setTextColor', 'setFrame',
+             'setColGap', 'setFont', 'setBgMain', 'setBgHl1', 'setBgHl2', 'setLineHeight']
+                .forEach(function (id) {
+                    const el = document.getElementById(id);
+                    if (el) el.addEventListener('input', applySettings);
+                });
+
+            ['setLineColor', 'setTextColor', 'setBgMain', 'setBgHl1', 'setBgHl2'].forEach(function (id) {
+                const el = document.getElementById(id);
+                const val = document.getElementById(id + 'Val');
+                if (el && val) el.addEventListener('input', function () { val.textContent = el.value; });
+            });
+
+            document.querySelectorAll('#setColLayout button').forEach(function (b) {
+                b.addEventListener('click', function () {
+                    document.querySelectorAll('#setColLayout button').forEach(function (x) { x.classList.remove('active'); });
+                    b.classList.add('active');
+                    applySettings();
+                });
+            });
+
+            const wmInput = document.getElementById('watermarkInput');
+            const wmDrop = document.getElementById('watermarkDrop');
+            const wmText = document.getElementById('watermarkText');
+            const wmClear = document.getElementById('watermarkClear');
+
+            function setWatermark(file) {
+                const reader = new FileReader();
+                reader.onload = function (ev) {
+                    sheet.style.setProperty('--wm', 'url("' + ev.target.result + '")');
+                    sheet.classList.add('watermarked');
+                    wmText.innerHTML = 'File: <b>' + file.name + '</b>';
+                    wmClear.style.display = 'inline-flex';
+                };
+                reader.readAsDataURL(file);
+            }
+
+            wmDrop.addEventListener('click', function (e) {
+                if (e.target.closest('#watermarkPick')) { e.preventDefault(); wmInput.click(); }
+            });
+            wmInput.addEventListener('change', function () {
+                if (wmInput.files && wmInput.files[0]) setWatermark(wmInput.files[0]);
+            });
+            wmClear.addEventListener('click', function () {
+                sheet.classList.remove('watermarked');
+                sheet.style.setProperty('--wm', 'none');
+                wmText.innerHTML = 'Tidak ada file yang dipilih.<br>Seret dan lepaskan file Anda atau <a href="#" id="watermarkPick">Pilih Disini</a>';
+                wmClear.style.display = 'none';
+                wmInput.value = '';
+            });
+            wmDrop.addEventListener('dragover', function (e) { e.preventDefault(); wmDrop.classList.add('drag'); });
+            wmDrop.addEventListener('dragleave', function () { wmDrop.classList.remove('drag'); });
+            wmDrop.addEventListener('drop', function (e) {
+                e.preventDefault();
+                wmDrop.classList.remove('drag');
+                if (e.dataTransfer.files && e.dataTransfer.files[0]) setWatermark(e.dataTransfer.files[0]);
+            });
+        })();
+    </script>
+</body>
+</html>

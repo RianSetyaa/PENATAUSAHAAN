@@ -1209,10 +1209,11 @@ a {
     border-radius: var(--radius-lg);
     width: 100%;
     max-width: 480px;
+    max-height: 85vh;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
     transform: translateY(20px) scale(0.98);
     transition: transform 0.25s ease;
-    overflow: hidden;
+    overflow: hidden auto;
 }
 
 .modal-overlay.show .modal {
@@ -1618,6 +1619,21 @@ a {
     align-items: stretch;
 }
 
+.card-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 22px;
+    border-bottom: 1px solid var(--border);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.card-head i {
+    color: var(--primary);
+}
+
 .card-header {
     display: flex;
     align-items: center;
@@ -1850,6 +1866,11 @@ a {
     overflow-x: auto;
 }
 
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
 .data-table {
     width: 100%;
     border-collapse: collapse;
@@ -1965,7 +1986,10 @@ a {
     gap: 10px;
     min-width: 280px;
     max-width: 420px;
-    animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s forwards;
+    bottom: auto;
+    height: auto;
+    /* Animasi dihapus: sebelumnya membentang setinggi viewport + menggeser ke kanan */
+    animation: none;
 }
 
 .toast-success { background: #27ae60; }
@@ -1980,6 +2004,60 @@ a {
 @keyframes fadeOut {
     from { transform: translateX(0); opacity: 1; }
     to { transform: translateX(100%); opacity: 0; }
+}
+
+/* ============================================
+   Polish & Aksesibilitas (audit tampilan)
+   ============================================ */
+.btn-danger {
+    background: #e74c3c;
+    color: #fff;
+}
+.btn-danger:hover {
+    background: #c0392b;
+    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+}
+
+/* Fokus global agar interaksi terlihat jelas & konsisten */
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+button:focus-visible {
+    outline: 2px solid rgba(44, 90, 160, 0.4);
+    outline-offset: 1px;
+}
+
+/* Scrollbar sidebar yang halus (menu panjang: Penerimaan/Belanja) */
+.sidebar-menu::-webkit-scrollbar {
+    width: 6px;
+}
+.sidebar-menu::-webkit-scrollbar-track {
+    background: transparent;
+}
+.sidebar-menu::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.18);
+    border-radius: 8px;
+}
+.sidebar-menu::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Mencegah teks keluar/meluber dari garis sel tabel */
+.data-table td,
+.bku-table td,
+.table-responsive td {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+.data-table th {
+    overflow-wrap: anywhere;
+}
+.bku-table th {
+    overflow-wrap: anywhere;
+}
+/* Angka tetap tidak terpotong, tapi rapi */
+.data-table .num {
+    white-space: nowrap;
 }
 
 /* ============================================

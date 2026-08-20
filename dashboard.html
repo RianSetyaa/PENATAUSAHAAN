@@ -89,7 +89,6 @@
                         </a>
                         <div class="submenu">
                             <a href="penerimaan/bku-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-book"></i><span>BKU Penerimaan</span></a>
-                            <a href="#" class="menu-item submenu-item"><i class="fas fa-wallet"></i><span>BKU Belanja</span></a>
                             <a href="#" class="menu-item submenu-item"><i class="fas fa-clipboard-list"></i><span>Register</span></a>
                             <a href="#" class="menu-item submenu-item"><i class="fas fa-file-invoice-dollar"></i><span>LPJ</span></a>
                         </div>
@@ -97,10 +96,28 @@
                 </div>
             </div>
 
-            <a href="belanja/index.html" class="menu-item">
-                <i class="fas fa-arrow-up"></i>
-                <span>Belanja</span>
-            </a>
+            <div class="menu-group" data-menu="belanja">
+                <a href="#" class="menu-item has-submenu">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>Belanja</span>
+                    <i class="fas fa-chevron-down submenu-arrow"></i>
+                </a>
+                <div class="submenu">
+                    <a href="belanja/index.html" class="menu-item submenu-item"><i class="fas fa-th-large"></i><span>Dashboard</span></a>
+                    <a href="belanja/rekanan.html" class="menu-item submenu-item"><i class="fas fa-handshake"></i><span>Daftar Rekanan</span></a>
+                    <a href="belanja/rekening.html" class="menu-item submenu-item"><i class="fas fa-university"></i><span>Rekening Bank SKPD</span></a>
+                    <a href="belanja/spd.html" class="menu-item submenu-item"><i class="fas fa-file-invoice"></i><span>SPD</span></a>
+                    <a href="belanja/spp.html" class="menu-item submenu-item"><i class="fas fa-file-signature"></i><span>SPP</span></a>
+                    <a href="belanja/spm.html" class="menu-item submenu-item"><i class="fas fa-file-invoice-dollar"></i><span>SPM</span></a>
+                    <a href="belanja/sp2d.html" class="menu-item submenu-item"><i class="fas fa-money-check-alt"></i><span>SP2D</span></a>
+                    <a href="belanja/lpj.html" class="menu-item submenu-item"><i class="fas fa-clipboard-check"></i><span>LPJ</span></a>
+                    <a href="belanja/pengajuan-tu.html" class="menu-item submenu-item"><i class="fas fa-paper-plane"></i><span>Pengajuan TU</span></a>
+                    <a href="belanja/npd.html" class="menu-item submenu-item"><i class="fas fa-file-invoice-dollar"></i><span>NPD</span></a>
+                    <a href="belanja/besaran-up.html" class="menu-item submenu-item"><i class="fas fa-coins"></i><span>Besaran UP</span></a>
+                    <a href="belanja/kebijakan-spd.html" class="menu-item submenu-item"><i class="fas fa-gavel"></i><span>Kebijakan SPD</span></a>
+                    <a href="belanja/bku-belanja.html" class="menu-item submenu-item"><i class="fas fa-book"></i><span>BKU Belanja</span></a>
+                </div>
+            </div>
             <a href="api/aklap_go.php" class="menu-item">
                 <i class="fas fa-book"></i>
                 <span>Akuntansi</span>
@@ -223,6 +240,42 @@
                             <i class="fas fa-arrow-down"></i> --
                             <span>tahun berjalan</span>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Penerimaan STBP -->
+                <div class="card summary-card">
+                    <div class="card-icon icon-finance">
+                        <i class="fas fa-arrow-down"></i>
+                    </div>
+                    <div class="card-body">
+                        <span class="card-label">Penerimaan (STBP)</span>
+                        <h3 class="card-value" id="cardStbpValue">Rp 0</h3>
+                        <div class="card-trend"><span>sudah divalidasi</span></div>
+                    </div>
+                </div>
+
+                <!-- Penyetoran STS -->
+                <div class="card summary-card">
+                    <div class="card-icon icon-finance-out">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                    </div>
+                    <div class="card-body">
+                        <span class="card-label">Penyetoran (STS)</span>
+                        <h3 class="card-value" id="cardStsValue">Rp 0</h3>
+                        <div class="card-trend"><span>setoran kas daerah</span></div>
+                    </div>
+                </div>
+
+                <!-- Belanja SP2D Dicairkan -->
+                <div class="card summary-card">
+                    <div class="card-icon icon-expense">
+                        <i class="fas fa-money-check-alt"></i>
+                    </div>
+                    <div class="card-body">
+                        <span class="card-label">Belanja (SP2D Dicairkan)</span>
+                        <h3 class="card-value" id="cardSp2dValue">Rp 0</h3>
+                        <div class="card-trend"><span>realisasi belanja</span></div>
                     </div>
                 </div>
             </div>

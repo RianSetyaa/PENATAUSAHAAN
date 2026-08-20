@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Besaran UP - Belanja | SIM-TKD</title>
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .toast { position:fixed; top:auto; bottom:20px; right:20px; left:auto; height:auto; width:auto; min-width:0; max-width:420px; background:#2c3e50; color:#fff; padding:12px 18px; border-radius:8px; font-size:13px; opacity:0; transform:none; animation:none; transition:opacity .3s; z-index:9999; pointer-events:none; }
+        .toast.show { opacity:1; pointer-events:auto; }
+        .form-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; }
+        .form-grid label { font-size:12px; color:#5a6c7d; display:block; margin-bottom:4px; }
+        .form-grid input { width:100%; height:36px; border:1px solid #d0d5dd; border-radius:8px; padding:0 10px; font-size:13px; }
+    </style>
+</head>
+<body>
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header"><div class="sidebar-logo"><img src="../img/Logo Polban.png" alt="Logo POLBAN"><div class="sidebar-title"><span class="title-main">SIM-TKD</span><span class="title-sub">Modul Edukasi</span></div></div><button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button></div>
+        <div class="sidebar-user"><div class="user-avatar"><i class="fas fa-user-tie"></i></div><div class="user-info"><span class="user-name" id="sidebarUserName">Admin Dinas</span><span class="user-role" id="sidebarUserRole">Dinas Kepemudaan dan Olahraga</span></div></div>
+        <nav class="sidebar-menu">
+            <span class="menu-label">MENU UTAMA</span>
+            <a href="../dashboard/dashboard.html" class="menu-item"><i class="fas fa-th-large"></i><span>Dashboard</span></a>
+            <div class="menu-group" data-menu="penerimaan">
+                <a href="#" class="menu-item has-submenu"><i class="fas fa-arrow-down"></i><span>Penerimaan</span><i class="fas fa-chevron-down submenu-arrow"></i></a>
+                <div class="submenu">
+                    <a href="../penerimaan/permohonan.html" class="menu-item submenu-item"><i class="fas fa-file-signature"></i><span>Permohonan</span></a>
+                    <a href="../penerimaan/stbp-pembuatan.html" class="menu-item submenu-item"><i class="fas fa-file-invoice"></i><span>STBP</span></a>
+                    <a href="../penerimaan/sts-pembuatan.html" class="menu-item submenu-item"><i class="fas fa-file-invoice-dollar"></i><span>STS</span></a>
+                    <a href="../penerimaan/bku-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-book"></i><span>BKU Penerimaan</span></a>
+                </div>
+            </div>
+            <div class="menu-group open" data-menu="belanja">
+                <a href="#" class="menu-item has-submenu active"><i class="fas fa-arrow-up"></i><span>Belanja</span><i class="fas fa-chevron-down submenu-arrow"></i></a>
+                <div class="submenu">
+                    <a href="index.html" class="menu-item submenu-item"><i class="fas fa-th-large"></i><span>Dashboard</span></a>
+                    <a href="rekanan.html" class="menu-item submenu-item"><i class="fas fa-handshake"></i><span>Daftar Rekanan</span></a>
+                    <a href="rekening.html" class="menu-item submenu-item"><i class="fas fa-university"></i><span>Rekening Bank SKPD</span></a>
+                    <a href="spd.html" class="menu-item submenu-item"><i class="fas fa-file-invoice"></i><span>SPD</span></a>
+                    <a href="spp.html" class="menu-item submenu-item"><i class="fas fa-file-signature"></i><span>SPP</span></a>
+                    <a href="spm.html" class="menu-item submenu-item"><i class="fas fa-file-invoice-dollar"></i><span>SPM</span></a>
+                    <a href="sp2d.html" class="menu-item submenu-item"><i class="fas fa-money-check-alt"></i><span>SP2D</span></a>
+                    <a href="lpj.html" class="menu-item submenu-item"><i class="fas fa-clipboard-check"></i><span>LPJ</span></a>
+                    <a href="pengajuan-tu.html" class="menu-item submenu-item"><i class="fas fa-paper-plane"></i><span>Pengajuan TU</span></a>
+                    <a href="npd.html" class="menu-item submenu-item"><i class="fas fa-file-invoice-dollar"></i><span>NPD</span></a>
+                    <a href="besaran-up.html" class="menu-item submenu-item active"><i class="fas fa-coins"></i><span>Besaran UP</span></a>
+                    <a href="kebijakan-spd.html" class="menu-item submenu-item"><i class="fas fa-gavel"></i><span>Kebijakan SPD</span></a>
+                    <a href="bku-belanja.html" class="menu-item submenu-item"><i class="fas fa-book"></i><span>BKU Belanja</span></a>
+                </div>
+            </div>
+            <a href="../api/aklap_go.php" class="menu-item"><i class="fas fa-book"></i><span>Akuntansi</span></a>
+            <span class="menu-label">AKUN</span>
+            <a href="../api/logout.php" class="menu-item menu-logout"><i class="fas fa-sign-out-alt"></i><span>Keluar</span></a>
+        </nav>
+        <div class="sidebar-footer"><span>&copy; 2026 SIM-TKD POLBAN</span></div>
+    </aside>
+    <div class="overlay" id="overlay"></div>
+    <div class="main-wrapper">
+        <header class="topbar">
+            <div class="topbar-left"><button class="topbar-toggle" id="topbarToggle"><i class="fas fa-bars"></i></button><div class="breadcrumb"><i class="fas fa-home"></i><span>Beranda</span><i class="fas fa-chevron-right"></i><span>Belanja</span><i class="fas fa-chevron-right"></i><span class="current">Besaran UP</span></div></div>
+            <div class="topbar-right"><div class="topbar-item"><i class="fas fa-calendar-alt"></i><span id="currentDate">--</span></div><div class="topbar-item user"><div class="user-avatar small"><i class="fas fa-user-tie"></i></div><span id="topbarUserName">Admin Dinas</span></div></div>
+        </header>
+        <main class="content">
+            <div class="page-header"><div><h1 class="page-title">Besaran Uang Persediaan (UP)</h1><p class="page-subtitle">Pengaturan besaran UP dan UP KKPD oleh Bendahara Umum Daerah (BUD).</p></div></div>
+            <div class="card">
+                <div class="card-head"><i class="fas fa-coins"></i> Atur Besaran UP</div>
+                <div class="card-body">
+                    <div class="form-grid">
+                        <div><label>Tahun Anggaran</label><input type="text" id="tahun"></div>
+                        <div><label>Besaran UP (Rp)</label><input type="number" id="besaran_up" min="0" step="0.01" placeholder="0"></div>
+                        <div><label>Besaran UP KKPD (Rp)</label><input type="number" id="besaran_up_kkpd" min="0" step="0.01" placeholder="0"></div>
+                    </div>
+                    <div style="margin-top:14px;"><button class="btn btn-primary" id="btnSimpan"><i class="fas fa-save"></i> Simpan Sekarang</button></div>
+                </div>
+            </div>
+        </main>
+        <footer class="footer"><span>&copy; 2026 SIM-TKD - Modul Edukasi | Politeknik Negeri Bandung</span></footer>
+    </div>
+    <div id="toast" class="toast"></div>
+    <script src="../js/dashboard.js"></script>
+    <script>
+        (function () {
+            'use strict';
+            function toast(msg) { var t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(t._t); t._t = setTimeout(function () { t.classList.remove('show'); }, 2400); }
+            function rupiah(v) { return Number(v || 0).toLocaleString('id-ID'); }
+            function load() {
+                var tahun = document.getElementById('tahun').value || new Date().getFullYear();
+                document.getElementById('tahun').value = tahun;
+                fetch('../api/belanja.php?action=besaran_up_get&tahun=' + encodeURIComponent(tahun)).then(function (r) { return r.json(); })
+                    .then(function (d) {
+                        if (d && d.success && d.data) {
+                            document.getElementById('besaran_up').value = d.data.besaran_up;
+                            document.getElementById('besaran_up_kkpd').value = d.data.besaran_up_kkpd;
+                            toast('Besaran UP saat ini: UP Rp ' + rupiah(d.data.besaran_up) + ' + KKPD Rp ' + rupiah(d.data.besaran_up_kkpd));
+                        }
+                    });
+            }
+            document.getElementById('btnSimpan').addEventListener('click', function () {
+                fetch('../api/belanja.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'besaran_up_set', tahun: document.getElementById('tahun').value, besaran_up: document.getElementById('besaran_up').value, besaran_up_kkpd: document.getElementById('besaran_up_kkpd').value }) })
+                    .then(function (r) { return r.json(); })
+                    .then(function (d) { toast(d.message || (d.success ? 'Tersimpan.' : 'Gagal.')); if (d.success) load(); })
+                    .catch(function () { toast('Gagal terhubung ke server.'); });
+            });
+            load();
+        })();
+    </script>
+</body>
+</html>
