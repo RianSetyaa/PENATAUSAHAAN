@@ -170,4 +170,12 @@ Semua endpoint mengembalikan JSON:
 
 ---
 
-© 2026 SIM-TKD — Politeknik Negeri Bandung (Modul Edukasi)
+## ⚖️ Lisensi
+
+Hak cipta © 2026 **Politeknik Negeri Bandung — Jurusan Akuntansi**. Seluruh hak cipta dilindungi.
+
+Aplikasi ini dilindungi oleh **lisensi perangkat lunak proprietari** dan **DILARANG untuk disebarluaskan**, disalin, dijual, atau digunakan kembali tanpa izin tertulis dari pemegang hak cipta. Lihat file [`LICENSE`](./LICENSE) untuk ketentuan lengkap.
+
+> ⛔ **TIDAK BOLEH DI-SEBAR.** Dengan menggunakan aplikasi ini, Anda menyetujui seluruh
+> ketentuan lisensi yang berlaku. Setiap pelanggaran dapat ditindaklanjuti sesuai
+> hukum yang berlaku di Republik Indonesia.
