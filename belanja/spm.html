@@ -81,11 +81,13 @@
     </div>
     <div id="toast" class="toast"></div>
     <script src="../js/dashboard.js"></script>
+    <script src="../js/cetak-belanja.js"></script>
     <script>
         (function () {
             'use strict';
             var tbody = document.getElementById('tbodySpm');
             var curTab = 'persetujuan';
+            var dataRowCache = {};
             function toast(msg) { var t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(t._t); t._t = setTimeout(function () { t.classList.remove('show'); }, 2400); }
             function esc(s) { var d = document.createElement('div'); d.textContent = String(s || ''); return d.innerHTML; }
             function rupiah(v) { return Number(v || 0).toLocaleString('id-ID'); }
@@ -99,10 +101,12 @@
                     .then(function (d) {
                         var data = (d && d.success) ? (d.data || []) : [];
                         if (!data.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#9098a5;">Belum ada data SPM.</td></tr>'; return; }
+                        dataRowCache = {};
+                        data.forEach(function (r) { dataRowCache[r.id] = r; });
                         tbody.innerHTML = data.map(function (r, i) {
-                            var btn = '';
-                            if (r.status === 'belum_disetujui') btn = '<button class="btn btn-sm" data-act="persetujuan" data-id="' + r.id + '">Setujui</button>';
-                            else if (r.status === 'belum_diverifikasi') btn = '<button class="btn btn-sm" data-act="verifikasi" data-id="' + r.id + '">Verifikasi</button>';
+                            var btn = '<button class="btn btn-sm" data-cetak="' + r.id + '"><i class="fas fa-print"></i> Cetak</button>';
+                            if (r.status === 'belum_disetujui') btn += '<button class="btn btn-sm" data-act="persetujuan" data-id="' + r.id + '">Setujui</button>';
+                            else if (r.status === 'belum_diverifikasi') btn += '<button class="btn btn-sm" data-act="verifikasi" data-id="' + r.id + '">Verifikasi</button>';
                             return '<tr><td>' + (i + 1) + '</td><td>' + esc(r.nomor_spm) + '</td><td>' + fmtTgl(r.tanggal) + '</td><td>' + esc(r.nomor_spp || '-') + '</td><td class="num">' + rupiah(r.jumlah) + '</td><td>' + badge(r.status) + '</td><td>' + btn + '</td></tr>';
                         }).join('');
                     })
@@ -113,6 +117,8 @@
                     .then(function (r) { return r.json(); }).then(cb).catch(function () { toast('Gagal terhubung ke server.'); });
             }
             tbody.addEventListener('click', function (e) {
+                var c = e.target.closest('[data-cetak]');
+                if (c) { cetakSpm(parseInt(c.getAttribute('data-cetak'), 10)); return; }
                 var b = e.target.closest('[data-act]'); if (!b) return;
                 var id = parseInt(b.getAttribute('data-id'), 10);
                 var act = b.getAttribute('data-act');
@@ -124,6 +130,29 @@
                     post({ action: 'spm_verifikasi', id: id, setuju: true }, function (d) { toast(d.message || (d.success ? 'Terverifikasi.' : 'Gagal.')); if (d.success) load(); });
                 }
             });
+
+            function cetakSpm(id) {
+                var r = dataRowCache[id];
+                if (!r) return;
+                var C = CetakBelanja;
+                C.bukaCetak({
+                    title: 'SPM - Surat Perintah Membayar',
+                    judul: 'SURAT PERINTAH MEMBAYAR (SPM)',
+                    subjudul: 'Kuasa Bendahara Umum Daerah',
+                    nomor: r.nomor_spm ? 'Nomor SPM : ' + r.nomor_spm : '',
+                    fields: [
+                        ['Tanggal SPM', C.tgl(r.tanggal)],
+                        ['Nomor SPP (Dasar)', r.nomor_spp || '-'],
+                        ['Jumlah yang Dibayarkan (Rp)', C.rupiah(r.jumlah)],
+                        ['Status', r.status || '-']
+                    ],
+                    catatan: 'SPM ini sah apabila sudah ditandatangani dan distempel oleh SKPD. Supaya diterbitkan SP2D kepada pihak terkait.',
+                    ttd: {
+                        left: { jabatan: 'Mengetahui,', nama: 'Kepala SKPD' },
+                        right: { jabatan: 'Bendahara Pengeluaran', nama: '(................................)' }
+                    }
+                });
+            }
             document.querySelectorAll('.tab-btn').forEach(function (b) {
                 b.addEventListener('click', function () {
                     document.querySelectorAll('.tab-btn').forEach(function (x) { x.classList.remove('active'); });

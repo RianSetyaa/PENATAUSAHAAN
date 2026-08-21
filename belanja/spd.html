@@ -100,11 +100,13 @@
     </div>
     <div id="toast" class="toast"></div>
     <script src="../js/dashboard.js"></script>
+    <script src="../js/cetak-belanja.js"></script>
     <script>
         (function () {
             'use strict';
             var tbody = document.getElementById('tbodySpd');
             var curTab = 'pembuatan';
+            var dataRowCache = {};
             function toast(msg) { var t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(t._t); t._t = setTimeout(function () { t.classList.remove('show'); }, 2400); }
             function esc(s) { var d = document.createElement('div'); d.textContent = String(s || ''); return d.innerHTML; }
             function rupiah(v) { return Number(v || 0).toLocaleString('id-ID'); }
@@ -117,8 +119,11 @@
                     .then(function (d) {
                         var data = (d && d.success) ? (d.data || []) : [];
                         if (!data.length) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#9098a5;">Belum ada data SPD.</td></tr>'; return; }
+                        dataRowCache = {};
+                        data.forEach(function (r) { dataRowCache[r.id] = r; });
                         tbody.innerHTML = data.map(function (r, i) {
-                            var btn = r.status === 'belum_otorisasi' ? '<button class="btn btn-sm" data-otor="' + r.id + '">Otorisasi</button>' : '<span style="color:#6b7a90;">-</span>';
+                            var btn = '<button class="btn btn-sm" data-cetak="' + r.id + '"><i class="fas fa-print"></i> Cetak</button>';
+                            if (r.status === 'belum_otorisasi') btn += '<button class="btn btn-sm" data-otor="' + r.id + '">Otorisasi</button>';
                             return '<tr><td>' + (i + 1) + '</td><td>' + esc(r.nomor_spd) + '</td><td>' + fmtTgl(r.tanggal) + '</td><td>' + esc(r.jenis || '-') + '</td><td>' + esc(r.periode || '-') + '</td><td class="num">' + rupiah(r.jumlah) + '</td><td>' + statusBadge(r.status) + '</td><td>' + btn + '</td></tr>';
                         }).join('');
                     })
@@ -134,9 +139,34 @@
                 });
             });
             tbody.addEventListener('click', function (e) {
+                var c = e.target.closest('[data-cetak]');
+                if (c) { cetakSpd(parseInt(c.getAttribute('data-cetak'), 10)); return; }
                 var b = e.target.closest('[data-otor]'); if (!b) return;
                 post({ action: 'spd_otorisasi', id: parseInt(b.getAttribute('data-otor'), 10) }, function (d) { toast(d.message || (d.success ? 'Diotorisasi.' : 'Gagal.')); if (d.success) load(); });
             });
+
+            function cetakSpd(id) {
+                var r = dataRowCache[id];
+                if (!r) return;
+                var C = CetakBelanja;
+                C.bukaCetak({
+                    title: 'SPD - Surat Penyediaan Dana',
+                    judul: 'SURAT PENYEDIAAN DANA (SPD)',
+                    nomor: r.nomor_spd ? 'Nomor : ' + r.nomor_spd : '',
+                    fields: [
+                        ['Tanggal SPD', C.tgl(r.tanggal)],
+                        ['Jenis SPD', r.jenis || '-'],
+                        ['Periode', r.periode || '-'],
+                        ['Jumlah Dana (Rp)', C.rupiah(r.jumlah)],
+                        ['Status', r.status || '-']
+                    ],
+                    catatan: 'SPD diterbitkan sebagai dasar penyediaan dana untuk SPP/SPM/SP2D.',
+                    ttd: {
+                        left: { jabatan: 'Mengetahui,', nama: 'Kepala SKPD' },
+                        right: { jabatan: 'Kuasa Bendahara Umum Daerah (BUD)', nama: '(................................)' }
+                    }
+                });
+            }
             document.querySelectorAll('.tab-btn').forEach(function (b) {
                 b.addEventListener('click', function () {
                     document.querySelectorAll('.tab-btn').forEach(function (x) { x.classList.remove('active'); });

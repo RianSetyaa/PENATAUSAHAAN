@@ -100,11 +100,13 @@
     </div>
     <div id="toast" class="toast"></div>
     <script src="../js/dashboard.js"></script>
+    <script src="../js/cetak-belanja.js"></script>
     <script>
         (function () {
             'use strict';
             var tbody = document.getElementById('tbodyTu');
             var curTab = 'pengajuan';
+            var dataRowCache = {};
             function toast(msg) { var t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(t._t); t._t = setTimeout(function () { t.classList.remove('show'); }, 2400); }
             function esc(s) { var d = document.createElement('div'); d.textContent = String(s || ''); return d.innerHTML; }
             function rupiah(v) { return Number(v || 0).toLocaleString('id-ID'); }
@@ -118,10 +120,12 @@
                     .then(function (d) {
                         var data = (d && d.success) ? (d.data || []) : [];
                         if (!data.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#9098a5;">Belum ada data pengajuan TU.</td></tr>'; return; }
+                        dataRowCache = {};
+                        data.forEach(function (r) { dataRowCache[r.id] = r; });
                         tbody.innerHTML = data.map(function (r, i) {
-                            var btn = '';
-                            if (r.status === 'belum_otorisasi') btn = '<button class="btn btn-sm" data-act="otorisasi" data-id="' + r.id + '">Otorisasi</button>';
-                            else if (r.status === 'sudah_otorisasi') btn = '<button class="btn btn-sm" data-act="validasi" data-id="' + r.id + '">Validasi</button>';
+                            var btn = '<button class="btn btn-sm" data-cetak="' + r.id + '"><i class="fas fa-print"></i> Cetak</button>';
+                            if (r.status === 'belum_otorisasi') btn += '<button class="btn btn-sm" data-act="otorisasi" data-id="' + r.id + '">Otorisasi</button>';
+                            else if (r.status === 'sudah_otorisasi') btn += '<button class="btn btn-sm" data-act="validasi" data-id="' + r.id + '">Validasi</button>';
                             return '<tr><td>' + (i + 1) + '</td><td>' + esc(r.nomor_pengajuan) + '</td><td>' + fmtTgl(r.tanggal) + '</td><td>' + esc(r.keterangan || '-') + '</td><td class="num">' + rupiah(r.jumlah) + '</td><td>' + badge(r.status) + '</td><td>' + btn + '</td></tr>';
                         }).join('');
                     })
@@ -137,12 +141,36 @@
                 });
             });
             tbody.addEventListener('click', function (e) {
+                var c = e.target.closest('[data-cetak]');
+                if (c) { cetakTu(parseInt(c.getAttribute('data-cetak'), 10)); return; }
                 var b = e.target.closest('[data-act]'); if (!b) return;
                 var id = parseInt(b.getAttribute('data-id'), 10);
                 var act = b.getAttribute('data-act');
                 if (act === 'otorisasi') { if (!confirm('Otorisasi pengajuan TU ini (BUD)?')) return; post({ action: 'pengajuan_tu_otorisasi', id: id }, function (d) { toast(d.message || (d.success ? 'Terotorisasi.' : 'Gagal.')); if (d.success) load(); }); }
                 else if (act === 'validasi') { if (!confirm('Validasi pengajuan TU ini (PA/KPA)?')) return; post({ action: 'pengajuan_tu_validasi', id: id }, function (d) { toast(d.message || (d.success ? 'Tervalidasi.' : 'Gagal.')); if (d.success) load(); }); }
             });
+
+            function cetakTu(id) {
+                var r = dataRowCache[id];
+                if (!r) return;
+                var C = CetakBelanja;
+                C.bukaCetak({
+                    title: 'Laporan Pertanggungjawaban Tambah Uang (TU)',
+                    judul: 'LAPORAN PERTANGGUNGJAWABAN TAMBAH UANG PERSEDIAAN (TU)',
+                    nomor: r.nomor_pengajuan ? 'Nomor : ' + r.nomor_pengajuan : '',
+                    fields: [
+                        ['Tanggal Pengajuan', C.tgl(r.tanggal)],
+                        ['Keterangan', r.keterangan || '-'],
+                        ['Jumlah (Rp)', C.rupiah(r.jumlah)],
+                        ['Status', r.status || '-']
+                    ],
+                    catatan: 'SPP TU dibuat setelah pengajuan TU divalidasi oleh PA/KPA.',
+                    ttd: {
+                        left: { jabatan: 'Mengetahui,', nama: 'Kepala SKPD' },
+                        right: { jabatan: 'Bendahara Pengeluaran', nama: '(................................)' }
+                    }
+                });
+            }
             document.querySelectorAll('.tab-btn').forEach(function (b) {
                 b.addEventListener('click', function () {
                     document.querySelectorAll('.tab-btn').forEach(function (x) { x.classList.remove('active'); });

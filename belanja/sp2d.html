@@ -101,11 +101,13 @@
     </div>
     <div id="toast" class="toast"></div>
     <script src="../js/dashboard.js"></script>
+    <script src="../js/cetak-belanja.js"></script>
     <script>
         (function () {
             'use strict';
             var tbody = document.getElementById('tbodySp2d');
             var curTab = 'pembuatan';
+            var dataRowCache = {};
             function toast(msg) { var t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(t._t); t._t = setTimeout(function () { t.classList.remove('show'); }, 2400); }
             function esc(s) { var d = document.createElement('div'); d.textContent = String(s || ''); return d.innerHTML; }
             function rupiah(v) { return Number(v || 0).toLocaleString('id-ID'); }
@@ -119,10 +121,12 @@
                     .then(function (d) {
                         var data = (d && d.success) ? (d.data || []) : [];
                         if (!data.length) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#9098a5;">Belum ada data SP2D.</td></tr>'; return; }
+                        dataRowCache = {};
+                        data.forEach(function (r) { dataRowCache[r.id] = r; });
                         tbody.innerHTML = data.map(function (r, i) {
-                            var btn = '';
-                            if (r.status === 'belum_diverifikasi') btn = '<button class="btn btn-sm" data-act="verifikasi" data-id="' + r.id + '">Verifikasi</button>';
-                            else if (r.status === 'sudah_diverifikasi') btn = '<button class="btn btn-sm" data-act="cair" data-id="' + r.id + '">Transfer Dana</button>';
+                            var btn = '<button class="btn btn-sm" data-cetak="' + r.id + '"><i class="fas fa-print"></i> Cetak</button>';
+                            if (r.status === 'belum_diverifikasi') btn += '<button class="btn btn-sm" data-act="verifikasi" data-id="' + r.id + '">Verifikasi</button>';
+                            else if (r.status === 'sudah_diverifikasi') btn += '<button class="btn btn-sm" data-act="cair" data-id="' + r.id + '">Transfer Dana</button>';
                             return '<tr><td>' + (i + 1) + '</td><td>' + esc(r.nomor_sp2d) + '</td><td>' + fmtTgl(r.tanggal) + '</td><td>' + esc(r.nomor_spm || '-') + '</td><td>' + esc(r.rekening || '-') + '</td><td class="num">' + rupiah(r.jumlah) + '</td><td>' + badge(r.status) + '</td><td>' + btn + '</td></tr>';
                         }).join('');
                     })
@@ -144,6 +148,8 @@
                 });
             });
             tbody.addEventListener('click', function (e) {
+                var c = e.target.closest('[data-cetak]');
+                if (c) { cetakSp2d(parseInt(c.getAttribute('data-cetak'), 10)); return; }
                 var b = e.target.closest('[data-act]'); if (!b) return;
                 var id = parseInt(b.getAttribute('data-id'), 10);
                 var act = b.getAttribute('data-act');
@@ -157,6 +163,30 @@
                     post({ action: 'sp2d_pencairan', id: id, tanggal: tgl }, function (d) { toast(d.message || (d.success ? 'Dana dicairkan.' : 'Gagal.')); if (d.success) load(); });
                 }
             });
+
+            function cetakSp2d(id) {
+                var r = dataRowCache[id];
+                if (!r) return;
+                var C = CetakBelanja;
+                C.bukaCetak({
+                    title: 'SP2D - Surat Perintah Pencairan Dana',
+                    judul: 'SURAT PERINTAH PENCAIRAN DANA (SP2D)',
+                    subjudul: 'Berdasarkan SPM dari Kuasa Bendahara Umum Daerah',
+                    nomor: r.nomor_sp2d ? 'Nomor SP2D : ' + r.nomor_sp2d : '',
+                    fields: [
+                        ['Tanggal SP2D', C.tgl(r.tanggal)],
+                        ['Nomor SPM (Dasar)', r.nomor_spm || '-'],
+                        ['Rekening Tujuan', r.rekening || '-'],
+                        ['Jumlah yang Dicairkan (Rp)', C.rupiah(r.jumlah)],
+                        ['Status', r.status || '-']
+                    ],
+                    catatan: 'Dana dicairkan sesuai SPM yang telah diverifikasi. SP2D diterbitkan oleh Kuasa BUD.',
+                    ttd: {
+                        left: { jabatan: 'Mengetahui,', nama: 'Kepala SKPD' },
+                        right: { jabatan: 'Kuasa Bendahara Umum Daerah', nama: '(................................)' }
+                    }
+                });
+            }
             document.querySelectorAll('.tab-btn').forEach(function (b) {
                 b.addEventListener('click', function () {
                     document.querySelectorAll('.tab-btn').forEach(function (x) { x.classList.remove('active'); });
