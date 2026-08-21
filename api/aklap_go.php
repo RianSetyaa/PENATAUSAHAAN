@@ -34,6 +34,14 @@ if ($token === '') {
     }
 }
 
-$target = 'https://peta.simtkd.com/?token=' . rawurlencode($token);
+// Tentukan target AKLAP: saat diakses lewat server lokal (127.0.0.1/localhost),
+// arahkan ke modul AKLAP lokal agar bisa diuji; selain itu ke produksi peta.simtkd.com.
+$host   = (string) ($_SERVER['HTTP_HOST'] ?? '');
+$isLocal = (stripos($host, '127.0.0.1') !== false || stripos($host, 'localhost') !== false);
+if ($isLocal) {
+    $target = 'http://' . $host . '/peta.simtkd.com/?token=' . rawurlencode($token);
+} else {
+    $target = 'https://peta.simtkd.com/?token=' . rawurlencode($token);
+}
 header('Location: ' . $target, true, 302);
 exit;

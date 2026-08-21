@@ -18,10 +18,11 @@
         .tab-btn { padding:9px 20px; border:none; border-radius:9px; background:transparent; color:#5a6c7d; cursor:pointer; font-size:13px; font-weight:600; transition:all .2s ease; font-family:inherit; white-space:nowrap; }
         .tab-btn:hover { color:#1a3a6b; background:rgba(26,58,107,.07); }
         .tab-btn.active { background:#ffffff; color:#1a3a6b; box-shadow:0 2px 8px rgba(15,23,42,.14); }
-        .pp-grid { display:grid; grid-template-columns:1fr 1fr 90px 120px 130px 130px 120px 120px 36px; gap:6px; align-items:center; margin-bottom:6px; }
-        .pp-grid input { height:32px; border:1px solid #d0d5dd; border-radius:6px; padding:0 8px; font-size:12px; width:100%; }
-        .pp-grid select { height:32px; border:1px solid #d0d5dd; border-radius:6px; font-size:12px; }
-        .pp-head { display:grid; grid-template-columns:1fr 1fr 90px 120px 130px 130px 120px 120px 36px; gap:6px; font-size:11px; color:#5a6c7d; font-weight:700; margin-bottom:4px; }
+        .pp-grid { display:grid; grid-template-columns:1.1fr 1.5fr 90px 160px 160px 150px 160px 150px 44px; gap:8px; align-items:center; margin-bottom:8px; }
+        .pp-grid input { height:38px; border:1px solid #d0d5dd; border-radius:8px; padding:0 10px; font-size:13px; width:100%; font-family:inherit; color:#1f2937; background:#fff; }
+        .pp-grid select { height:38px; border:1px solid #d0d5dd; border-radius:8px; font-size:13px; padding:0 8px; font-family:inherit; color:#1f2937; background:#fff; }
+        .pp-grid input:focus, .pp-grid select:focus { outline:none; border-color:#2c5aa0; box-shadow:0 0 0 3px rgba(44,90,160,.12); }
+        .pp-head { display:grid; grid-template-columns:1.1fr 1.5fr 90px 160px 160px 150px 160px 150px 44px; gap:8px; font-size:12px; color:#5a6c7d; font-weight:700; margin-bottom:6px; }
         .modal-overlay.show { display:flex; }
     </style>
 </head>
@@ -121,7 +122,7 @@
 
     <!-- Modal Potongan & Pajak -->
     <div class="modal-overlay" id="modalPP">
-        <div class="modal" style="max-width:960px;">
+        <div class="modal" style="max-width:1240px;">
             <div class="modal-header"><h3><i class="fas fa-percent"></i> Potongan &amp; Pajak (SPP LS Barang &amp; Jasa)</h3><button class="modal-close" id="ppClose"><i class="fas fa-times"></i></button></div>
             <div class="card-body">
                 <div class="pp-head">

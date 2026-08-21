@@ -505,7 +505,9 @@
 
             // ---------- Format nominal rupiah ----------
             function formatRupiahInput(val) {
-                return val.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                var digits = String(val || '').replace(/\D/g, '').replace(/^0+/, '');
+                if (!digits) return '';
+                return Number(digits).toLocaleString('id-ID');
             }
             const nominalInput = document.getElementById('nominal');
 

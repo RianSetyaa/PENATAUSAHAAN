@@ -635,6 +635,16 @@
                 { type: 'total', level: 0, kode: '', uraian: 'SURPLUS / DEFISIT', anggaran: 10300000000, realisasi: 4965000000, r2023: 0 }
             ];
 
+            // ============================================================
+            // HAPUS ANGKA DUMMY — seluruh nilai (anggaran & realisasi) diisi
+            // dari API (data real DB). Struktur baris (kode/uraian) tetap.
+            // ============================================================
+            DATA.forEach(function (r) {
+                r.anggaran = 0;
+                r.realisasi = 0;
+                r.r2023 = 0;
+            });
+
             function fmtN(v) {
                 if (v === 0 || v === null || v === undefined) return '0';
                 return Number(v).toLocaleString('id-ID');

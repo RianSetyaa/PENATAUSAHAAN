@@ -486,11 +486,19 @@ if ($method === 'POST') {
     if ($action === 'rekening_skpd_validasi') {
         $id = (int) ($body['id'] ?? 0);
         $setuju = !empty($body['setuju']);
+        $noRek = trim((string) ($body['nomor_rekening'] ?? ''));
         if ($id <= 0) jsonResponse(false, 'ID tidak valid.', [], 422);
+        if ($setuju && $noRek === '') jsonResponse(false, 'Nomor rekening wajib diisi saat validasi.', [], 422);
         $c = skpdCond('s', $skpd);
         $new = $setuju ? 'aktif' : 'ditolak';
-        $stmt = $pdo->prepare("UPDATE rekening_skpd s SET s.status=? WHERE s.id=? AND s.status='pembuatan'{$c[0]}");
-        $stmt->execute(array_merge([$new, $id], $c[1]));
+        if ($setuju) {
+            // Validasi sekaligus menetapkan nomor rekening
+            $stmt = $pdo->prepare("UPDATE rekening_skpd s SET s.status=?, s.nomor_rekening=? WHERE s.id=? AND s.status='pembuatan'{$c[0]}");
+            $stmt->execute(array_merge([$new, $noRek, $id], $c[1]));
+        } else {
+            $stmt = $pdo->prepare("UPDATE rekening_skpd s SET s.status=? WHERE s.id=? AND s.status='pembuatan'{$c[0]}");
+            $stmt->execute(array_merge([$new, $id], $c[1]));
+        }
         if ($stmt->rowCount() === 0) jsonResponse(false, 'Rekening tidak ditemukan / belum dibuat nomornya / bukan milik instansi Anda.', [], 404);
         jsonResponse(true, $setuju ? 'Rekening divalidasi & aktif.' : 'Rekening ditolak.');
     }

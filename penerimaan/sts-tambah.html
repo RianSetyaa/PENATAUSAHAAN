@@ -518,7 +518,11 @@
 
             function renderStbpPicker() {
                 const q = cariStbp.value.trim().toLowerCase();
+                // STBP yang sudah dipilih disembunyikan dari daftar (tidak dobel)
+                const selectedIds = {};
+                selectedStbp.forEach(function (s) { selectedIds[s.id] = true; });
                 const filtered = stbpCache.filter(function (s) {
+                    if (selectedIds[s.id]) return false;
                     return (s.nomor_stbp + ' ' + s.akun_nama + ' ' + s.uraian).toLowerCase().indexOf(q) !== -1;
                 });
 
@@ -538,13 +542,9 @@
                 const start = (pickPage - 1) * perPage;
                 const pageData = filtered.slice(start, start + perPage);
 
-                const selectedIds = {};
-                selectedStbp.forEach(function (s) { selectedIds[s.id] = true; });
-
                 stbpPickBody.innerHTML = pageData.map(function (s) {
-                    const disabled = selectedIds[s.id] ? ' disabled' : '';
                     return '<tr>' +
-                        '<td><input type="checkbox" class="row-check pick-check" data-id="' + s.id + '"' + disabled + '></td>' +
+                        '<td><input type="checkbox" class="row-check pick-check" data-id="' + s.id + '"></td>' +
                         '<td><strong>' + escapeHtml(s.nomor_stbp) + '</strong></td>' +
                         '<td class="num">' + formatRupiah(s.jumlah) + '</td>' +
                         '<td>' + formatTanggalSts(s.tanggal) + '</td>' +
@@ -554,7 +554,7 @@
 
                 checkAll.checked = false;
                 const end = start + pageData.length;
-                pickPageInfo.textContent = 'Menampilkan ' + start + 1 + ' sampai ' + end + ' dari ' + filtered.length + ' data';
+                pickPageInfo.textContent = 'Menampilkan ' + (start + 1) + ' sampai ' + end + ' dari ' + filtered.length + ' data';
                 pickPrev.disabled = pickPage <= 1;
                 pickNext.disabled = pickPage >= totalPages;
                 pickPageCurrent.textContent = pickPage;
@@ -572,7 +572,10 @@
             pickNext.addEventListener('click', function () {
                 const perPage = parseInt(pickPerPage.value, 10);
                 const q = cariStbp.value.trim().toLowerCase();
+                const selIds = {};
+                selectedStbp.forEach(function (s) { selIds[s.id] = true; });
                 const totalPages = Math.max(1, Math.ceil(stbpCache.filter(function (s) {
+                    if (selIds[s.id]) return false;
                     return (s.nomor_stbp + ' ' + s.akun_nama + ' ' + s.uraian).toLowerCase().indexOf(q) !== -1;
                 }).length / perPage));
                 if (pickPage < totalPages) { pickPage++; renderStbpPicker(); }
