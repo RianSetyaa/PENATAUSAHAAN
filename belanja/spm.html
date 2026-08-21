@@ -136,37 +136,49 @@
                 if (!r) return;
                 var C = CetakBelanja;
                 var skpd = C.instansi();
+                var jml = C.rupiah(r.jumlah);   // "Rp 4.450.000"
+
+                // Format SPM mengikuti jenis SPP (UP / GU / TU / LS)
+                var js = r.jenis_spp || '';
+                var fmt = (js === 'UP' || js === 'GU' || js === 'TU')
+                    ? js
+                    : (js.indexOf('LS') === 0 ? 'LS' : 'UP / GU / TU / LS');
+
+                var body =
+                    C.paragraf('Kepada Yth. Kuasa Bendahara Umum Daerah') +
+                    '<div class="spm-info">' +
+                        C.itemLine('SKPD', skpd) +
+                        C.itemLine('Nama Bendahara Pengeluaran', '') +
+                        C.itemLine('Nomor Rekening Bank', '') +
+                        C.itemLine('NPWP', '') +
+                        C.itemLine('Dasar Pembayaran', (r.nomor_spp || '') + ' / ' + C.tgl(r.tanggal)) +
+                    '</div>' +
+                    C.rincianTable([
+                        { uraian: 'Pembayaran sesuai ' + (r.nomor_spp || 'SPP'), jumlah: r.jumlah, ket: '' },
+                        { uraian: '', jumlah: '', ket: '' },
+                        { uraian: '', jumlah: '', ket: '' }
+                    ], [
+                        { t: 'No', key: null },
+                        { t: 'Uraian', key: 'uraian' },
+                        { t: 'Jumlah (Rp)', key: 'jumlah', num: true, fmt: function (v) { return (v === '' || v == null) ? '' : C.rupiah(v); } },
+                        { t: 'Keterangan', key: 'ket' }
+                    ]) +
+                    '<div class="spm-box">' +
+                        '<div class="item"><span class="lbl">Jumlah yang Dibayarkan</span> : ' + jml + ',-</div>' +
+                        '<div class="item"><span class="lbl">Terbilang</span> : ' + C.terbilangRupiah(r.jumlah) + '</div>' +
+                        '<div class="item"><span class="lbl">Nomor SPM</span> : ' + (r.nomor_spm || '-') + '</div>' +
+                        '<div class="item"><span class="lbl">Tanggal</span> : ' + C.tgl(r.tanggal) + '</div>' +
+                    '</div>' +
+                    C.paragraf('SPM ini sah apabila sudah ditandatangani dan distempel oleh SKPD.') +
+                    C.ttdTunggal({ jabatan: 'Pejabat Penatausahaan Keuangan' });
+
                 C.bukaCetak({
                     title: 'SPM - Surat Perintah Membayar',
                     judul: 'SURAT PERINTAH MEMBAYAR (SPM)',
-                    subjudul: 'KUASA BENDAHARA UMUM DAERAH',
+                    subjudul: 'Format : ' + fmt,
                     nomor: r.nomor_spm ? 'Nomor SPM : ' + r.nomor_spm : '',
                     garis2: true,
-                    fields: [
-                        ['Tanggal SPM', C.tgl(r.tanggal)],
-                        ['Supaya Menerbitkan SP2D Kepada', skpd],
-                        ['Dasar Pembayaran (Nomor SPP)', r.nomor_spp || '-'],
-                        ['Nomor Rekening Bank', ''],
-                        ['Jumlah yang Dibayarkan (Rp)', C.rupiah(r.jumlah) + ',-  (' + C.terbilangRupiah(r.jumlah) + ')']
-                    ],
-                    detail: {
-                        cols: [
-                            { t: 'No', key: null },
-                            { t: 'Uraian', key: 'uraian' },
-                            { t: 'Jumlah (Rp)', key: 'jumlah', num: true, fmt: function (v) { return (v === '' || v == null) ? '' : C.rupiah(v); } }
-                        ],
-                        rows: [
-                            { uraian: 'Pembayaran sesuai SPP', jumlah: r.jumlah },
-                            { uraian: '', jumlah: '' },
-                            { uraian: '', jumlah: '' }
-                        ]
-                    },
-                    total: 'Total : ' + C.rupiah(r.jumlah) + ',-',
-                    catatan: 'SPM ini sah apabila sudah ditandatangani dan distempel oleh SKPD. Supaya diterbitkan SP2D kepada pihak terkait.',
-                    ttd: {
-                        left: { jabatan: 'Mengetahui,', nama: 'Kepala SKPD' },
-                        right: { jabatan: 'Bendahara Pengeluaran', nama: '(................................)' }
-                    }
+                    bodyHtml: body
                 });
             }
             document.querySelectorAll('.tab-btn').forEach(function (b) {

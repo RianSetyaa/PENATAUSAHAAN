@@ -106,7 +106,7 @@ if ($method === 'GET') {
     if ($action === 'spm_list') {
         $status = (string) ($_GET['status'] ?? '');
         $c = skpdCond('s', $skpd);
-        $sql = "SELECT s.*, p.nomor_spp FROM spm s
+        $sql = "SELECT s.*, p.nomor_spp, p.jenis_spp FROM spm s
                 LEFT JOIN spp p ON p.id = s.spp_id
                 WHERE 1=1{$c[0]}";
         if ($status !== '' && $status !== 'semua') { $sql .= " AND s.status = ?"; $c[1][] = $status; }
@@ -129,9 +129,14 @@ if ($method === 'GET') {
 
     // Referensi SPD terotorisasi utk SPP & SPM terverifikasi utk SP2D
     if ($action === 'spd_otor_list') {
+        // Hanya SPD yang sudah diotorisasi DAN belum dipakai oleh SPP (non-ditolak),
+        // supaya SPD yang sudah dibuatkan SPP tidak muncul lagi di dropdown.
         $c = skpdCond('s', $skpd);
-        $stmt = $pdo->prepare("SELECT s.* FROM spd s WHERE s.status='sudah_otorisasi'{$c[0]} ORDER BY s.tanggal DESC, s.id DESC");
-        $stmt->execute($c[1]);
+        $sql = "SELECT s.* FROM spd s
+                WHERE s.status='sudah_otorisasi'{$c[0]}
+                  AND NOT EXISTS (SELECT 1 FROM spp x WHERE x.spd_id = s.id AND x.status <> 'ditolak')
+                ORDER BY s.tanggal DESC, s.id DESC";
+        $stmt = $pdo->prepare($sql); $stmt->execute($c[1]);
         jsonResponse(true, 'OK', ['data' => $stmt->fetchAll()]);
     }
     if ($action === 'spm_ver_list') {
