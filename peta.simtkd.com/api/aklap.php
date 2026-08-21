@@ -42,6 +42,12 @@ if (!$user) {
 // SKPD/instansi pemilik token -> pemisahan data antar dinas (multi-tenant)
 $skpdUser = (string) ($user['instansi'] ?? '');
 
+// Seluruh aksi dibungkus try/catch: jika ada kolom/tabel yang belum ada di
+// database (mis. jurnal_status, tabel sp2d/spm), API tetap mengembalikan JSON
+// berisi pesan yang jelas — BUKAN error 500 / halaman kosong yang membuat
+// approve jurnal & LRA tidak bisa digunakan sama sekali.
+try {
+
 // ============================================
 // 1. Jurnal Approve (STBP = Penerimaan, STS = Penyetoran)
 // ============================================
@@ -286,3 +292,14 @@ if ($action === 'rekap') {
 // ============================================
 http_response_code(400);
 echo json_encode(['success' => false, 'message' => 'Aksi tidak dikenal.'], JSON_UNESCAPED_UNICODE);
+
+} catch (Throwable $e) {
+    // Jangan biarkan error database mematikan seluruh API
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Kesalahan pada API AKLAP: ' . $e->getMessage() .
+                     ' — Kemungkinan skema database belum lengkap. ' .
+                     'Login sebagai admin lalu buka: api/aklap_migrate.php?run=1',
+    ], JSON_UNESCAPED_UNICODE);
+}
