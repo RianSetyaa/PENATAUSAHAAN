@@ -135,17 +135,33 @@
                 var r = dataRowCache[id];
                 if (!r) return;
                 var C = CetakBelanja;
+                var skpd = C.instansi();
                 C.bukaCetak({
                     title: 'SPM - Surat Perintah Membayar',
                     judul: 'SURAT PERINTAH MEMBAYAR (SPM)',
-                    subjudul: 'Kuasa Bendahara Umum Daerah',
+                    subjudul: 'KUASA BENDAHARA UMUM DAERAH',
                     nomor: r.nomor_spm ? 'Nomor SPM : ' + r.nomor_spm : '',
+                    garis2: true,
                     fields: [
                         ['Tanggal SPM', C.tgl(r.tanggal)],
-                        ['Nomor SPP (Dasar)', r.nomor_spp || '-'],
-                        ['Jumlah yang Dibayarkan (Rp)', C.rupiah(r.jumlah)],
-                        ['Status', r.status || '-']
+                        ['Supaya Menerbitkan SP2D Kepada', skpd],
+                        ['Dasar Pembayaran (Nomor SPP)', r.nomor_spp || '-'],
+                        ['Nomor Rekening Bank', ''],
+                        ['Jumlah yang Dibayarkan (Rp)', C.rupiah(r.jumlah) + ',-  (' + C.terbilangRupiah(r.jumlah) + ')']
                     ],
+                    detail: {
+                        cols: [
+                            { t: 'No', key: null },
+                            { t: 'Uraian', key: 'uraian' },
+                            { t: 'Jumlah (Rp)', key: 'jumlah', num: true, fmt: function (v) { return (v === '' || v == null) ? '' : C.rupiah(v); } }
+                        ],
+                        rows: [
+                            { uraian: 'Pembayaran sesuai SPP', jumlah: r.jumlah },
+                            { uraian: '', jumlah: '' },
+                            { uraian: '', jumlah: '' }
+                        ]
+                    },
+                    total: 'Total : ' + C.rupiah(r.jumlah) + ',-',
                     catatan: 'SPM ini sah apabila sudah ditandatangani dan distempel oleh SKPD. Supaya diterbitkan SP2D kepada pihak terkait.',
                     ttd: {
                         left: { jabatan: 'Mengetahui,', nama: 'Kepala SKPD' },

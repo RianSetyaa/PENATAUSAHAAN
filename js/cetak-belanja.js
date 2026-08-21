@@ -104,6 +104,23 @@
         '#docArea .ttd .nip { font-size: calc(var(--fs,13px) - 1px); margin-top: 2px; }',
         '#docArea .ttd .kosong { height: 56px; }',
         '',
+        '/* ===== Format surat resmi (SPP / SPM / SP2D) ===== */',
+        '#docArea .kop .garis2 { border-bottom: 3px double var(--lc, #000); margin: 7px 0 16px; }',
+        '#docArea .blok { margin-top: 16px; }',
+        '#docArea .blok-title { text-align: center; font-weight: 700; text-decoration: underline; font-size: var(--fs,13px); margin: 20px 0 8px; }',
+        '#docArea .surat { margin: 4px 0; }',
+        '#docArea .kepada { margin: 8px 0 12px; }',
+        '#docArea .item { margin: 3px 0; }',
+        '#docArea .item .lbl { display: inline-block; min-width: 215px; }',
+        '#docArea .rincian-title { text-align: center; font-weight: 700; text-decoration: underline; margin: 20px 0 8px; }',
+        '#docArea .rincian-ket { margin: 2px 0 6px; }',
+        '#docArea .ttd-single { width: 46%; margin: 30px 0 0 auto; text-align: center; }',
+        '#docArea .ttd-single .ttd-jabatan { font-weight: 700; text-transform: uppercase; }',
+        '#docArea .ttd-single .ttd-space { height: 56px; }',
+        '#docArea .ttd-single .ttd-nama { font-weight: 700; }',
+        '#docArea .ttd-single .ttd-nip { font-size: calc(var(--fs,13px) - 1px); }',
+        '#docArea .spm-ket { margin: 10px 0; font-style: italic; text-align: center; }',
+        '',
         '@media print {',
         '  body { background: #fff; }',
         '  .cetak-settings, .no-print { display: none !important; }',
@@ -189,6 +206,62 @@
         '</div>';
     }
 
+    // ================= Format Surat Resmi (SPP / SPM / SP2D) =================
+
+    // Angka -> kata (Bahasa Indonesia)
+    function terbilang(n) {
+        n = Math.floor(Math.abs(Number(n) || 0));
+        var angka = ['', 'Satu', 'Dua', 'Tiga', 'Empat', 'Lima', 'Enam', 'Tujuh', 'Delapan', 'Sembilan', 'Sepuluh', 'Sebelas'];
+        if (n < 12) return angka[n];
+        if (n < 20) return terbilang(n - 10) + ' Belas';
+        if (n < 100) return terbilang(Math.floor(n / 10)) + ' Puluh ' + terbilang(n % 10);
+        if (n < 200) return 'Seratus ' + terbilang(n - 100);
+        if (n < 1000) return terbilang(Math.floor(n / 100)) + ' Ratus ' + terbilang(n % 100);
+        if (n < 2000) return 'Seribu ' + terbilang(n - 1000);
+        if (n < 1000000) return terbilang(Math.floor(n / 1000)) + ' Ribu ' + terbilang(n % 1000);
+        if (n < 1000000000) return terbilang(Math.floor(n / 1000000)) + ' Juta ' + terbilang(n % 1000000);
+        return terbilang(Math.floor(n / 1000000000)) + ' Miliar ' + terbilang(n % 1000000000);
+    }
+    function terbilangRupiah(n) {
+        return '#' + terbilang(n) + ' Rupiah#';
+    }
+    function blokTitle(t) { return '<div class="blok-title">' + esc(t) + '</div>'; }
+    function paragraf(t) { return '<div class="surat">' + esc(t) + '</div>'; }
+    function kepada(lines) { return '<div class="kepada">' + (lines || []).map(paragraf).join('') + '</div>'; }
+    function itemLine(lbl, val) { return '<div class="item"><span class="lbl">' + esc(lbl) + '</span> : ' + esc(val == null ? '' : val) + '</div>'; }
+    function ttdTunggal(t) {
+        return '<div class="ttd-single">' +
+            '<div class="ttd-jabatan">' + esc((t && t.jabatan) || 'Bendahara Pengeluaran') + '</div>' +
+            '<div class="ttd-space"></div>' +
+            '<div class="ttd-nama">' + esc((t && t.nama) || '(................................)') + '</div>' +
+            (t && t.nip ? '<div class="ttd-nip">NIP. ' + esc(t.nip) + '</div>' : '') +
+        '</div>';
+    }
+    // SURAT PENGANTAR (bagian atas SPP)
+    function suratPengantar(d) {
+        d = d || {};
+        var h = '<div class="blok">' + blokTitle('SURAT PENGANTAR');
+        h += kepada(d.kepada || ['Pengguna Anggaran / Kuasa Pengguna Anggaran', 'SKPKD - BPKD', 'Di Tempat']);
+        h += paragraf(d.pembuka || 'Dengan memperhatikan Peraturan Bupati Nomor ...... Tahun ...... tentang Penjabaran APBD, bersama ini kami mengajukan permintaan pembayaran sebagai berikut :');
+        (d.items || []).forEach(function (it) { h += itemLine(it[0], it[1]); });
+        h += paragraf((d.kota || 'Bandung') + ', ' + (d.tanggal || '.......................'));
+        h += ttdTunggal(d.ttd || { jabatan: 'Bendahara Pengeluaran' });
+        h += '</div>';
+        return h;
+    }
+    // Blok RINGKASAN / paragraf resmi + TTD
+    function ringkasanBlok(judul, lines, ttdOpt) {
+        var h = '<div class="blok">' + blokTitle(judul);
+        (lines || []).forEach(function (ln) { h += paragraf(ln); });
+        h += ttdTunggal(ttdOpt || { jabatan: 'Bendahara Pengeluaran' });
+        h += '</div>';
+        return h;
+    }
+    // Tabel Rincian Rencana Penggunaan (nomor, kode, uraian, jumlah)
+    function rincianTable(rows, cols) {
+        return detailTable(rows || [], cols || []);
+    }
+
     function bukaCetak(o) {
         var w = window.open('', '_blank', 'width=980,height=780');
         if (!w) { alert('Izinkan pop-up agar dokumen dapat dicetak.'); return; }
@@ -201,6 +274,7 @@
         var totalHtml = o.total ? '<div class="total">' + esc(o.total) + '</div>' : '';
         var ttdHtml = o.ttd ? ttd(o.ttd.left, o.ttd.right) : '';
         var catatanHtml = o.catatan ? '<div class="catatan">' + esc(o.catatan) + '</div>' : '';
+        var bodyDefault = (fieldsHtml ? '<table class="f">' + fieldsHtml + '</table>' : '') + detailHtml + totalHtml + catatanHtml + ttdHtml;
 
         var fontOpts = FONT_OPTIONS.map(function (f) {
             return '<option value="' + esc(f[1]) + '">' + esc(f[0]) + '</option>';
@@ -211,16 +285,12 @@
                 '<div class="pem">' + esc(o.pem || 'PEMERINTAH KOTA BANDUNG') + '</div>' +
                 '<div class="din">' + esc(o.kop || instansi()) + '</div>' +
                 (o.alamat ? '<div class="alamat">' + esc(o.alamat) + '</div>' : '') +
-                '<div class="garis"></div>' +
+                (o.garis2 ? '<div class="garis2"></div>' : '<div class="garis"></div>') +
             '</div>' +
             '<div class="judul">' + esc(o.judul || '') + '</div>' +
             (o.subjudul ? '<div class="subjudul">' + esc(o.subjudul) + '</div>' : '') +
             (o.nomor ? '<div class="nomor">' + esc(o.nomor) + '</div>' : '') +
-            (fieldsHtml ? '<table class="f">' + fieldsHtml + '</table>' : '') +
-            detailHtml +
-            totalHtml +
-            catatanHtml +
-            ttdHtml;
+            (o.bodyHtml ? o.bodyHtml : bodyDefault);
 
         var panel =
             '<div class="cetak-settings no-print">' +
@@ -265,6 +335,16 @@
         instansi: instansi,
         fieldRow: fieldRow,
         detailTable: detailTable,
-        ttd: ttd
+        ttd: ttd,
+        terbilang: terbilang,
+        terbilangRupiah: terbilangRupiah,
+        blokTitle: blokTitle,
+        paragraf: paragraf,
+        kepada: kepada,
+        itemLine: itemLine,
+        ttdTunggal: ttdTunggal,
+        suratPengantar: suratPengantar,
+        ringkasanBlok: ringkasanBlok,
+        rincianTable: rincianTable
     };
 })(window);

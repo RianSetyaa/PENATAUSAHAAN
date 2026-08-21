@@ -168,18 +168,33 @@
                 var r = dataRowCache[id];
                 if (!r) return;
                 var C = CetakBelanja;
+                var skpd = C.instansi();
                 C.bukaCetak({
                     title: 'SP2D - Surat Perintah Pencairan Dana',
                     judul: 'SURAT PERINTAH PENCAIRAN DANA (SP2D)',
-                    subjudul: 'Berdasarkan SPM dari Kuasa Bendahara Umum Daerah',
-                    nomor: r.nomor_sp2d ? 'Nomor SP2D : ' + r.nomor_sp2d : '',
+                    subjudul: 'Diterbitkan oleh Kuasa Bendahara Umum Daerah',
+                    nomor: r.nomor_sp2d ? 'Nomor : ' + r.nomor_sp2d : '',
+                    garis2: true,
                     fields: [
-                        ['Tanggal SP2D', C.tgl(r.tanggal)],
-                        ['Nomor SPM (Dasar)', r.nomor_spm || '-'],
-                        ['Rekening Tujuan', r.rekening || '-'],
-                        ['Jumlah yang Dicairkan (Rp)', C.rupiah(r.jumlah)],
-                        ['Status', r.status || '-']
+                        ['Tanggal', C.tgl(r.tanggal)],
+                        ['Diterbitkan Berdasarkan (Nomor SPM)', r.nomor_spm || '-'],
+                        ['Kepada / Untuk Pembayaran Kepada', skpd],
+                        ['Bank / Rekening Tujuan', r.rekening || '-'],
+                        ['Jumlah yang Dicairkan (Rp)', C.rupiah(r.jumlah) + ',-  (' + C.terbilangRupiah(r.jumlah) + ')']
                     ],
+                    detail: {
+                        cols: [
+                            { t: 'No', key: null },
+                            { t: 'Uraian', key: 'uraian' },
+                            { t: 'Jumlah (Rp)', key: 'jumlah', num: true, fmt: function (v) { return (v === '' || v == null) ? '' : C.rupiah(v); } }
+                        ],
+                        rows: [
+                            { uraian: 'Pembayaran sesuai SPM ' + (r.nomor_spm || ''), jumlah: r.jumlah },
+                            { uraian: '', jumlah: '' },
+                            { uraian: '', jumlah: '' }
+                        ]
+                    },
+                    total: 'Total : ' + C.rupiah(r.jumlah) + ',-',
                     catatan: 'Dana dicairkan sesuai SPM yang telah diverifikasi. SP2D diterbitkan oleh Kuasa BUD.',
                     ttd: {
                         left: { jabatan: 'Mengetahui,', nama: 'Kepala SKPD' },

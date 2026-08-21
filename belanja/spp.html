@@ -283,28 +283,61 @@
                 else if (j === 'GU') judul = 'SURAT PERMINTAAN PEMBAYARAN GANTI UANG (SPP-GU)';
                 else if (j === 'TU') judul = 'SURAT PERMINTAAN PEMBAYARAN TAMBAH UANG (SPP-TU)';
                 else judul = 'SURAT PERMINTAAN PEMBAYARAN (SPP)';
+
+                var skpd = C.instansi();
+                var tahun = (r.tanggal || '').split('-')[0] || '';
+                var jml = C.rupiah(r.jumlah);           // "Rp 5.000.000"
                 var netto = Number(r.jumlah || 0) - Number(r.total_potongan || 0) - Number(r.total_pajak || 0);
+                var ref = r.nama_rekanan || r.nomor_lpj || r.nomor_pengajuan || '';
+
+                var body =
+                    C.suratPengantar({
+                        kota: skpd,
+                        items: [
+                            ['a. Urusan Pemerintahan', ''],
+                            ['b. SKPD', skpd],
+                            ['c. Tahun Anggaran', tahun],
+                            ['d. Dasar Pengeluaran SPD Nomor', r.nomor_spd || ''],
+                            ['e. Jumlah Sisa Dana SPD', ''],
+                            ['f. Nama Bendahara Pengeluaran', ''],
+                            ['g. Jumlah Pembayaran Yang Diminta', jml + ',-  (' + C.terbilangRupiah(r.jumlah) + ')'],
+                            ['h. Nama dan Nomor Rekening Bank', ref]
+                        ],
+                        ttd: { jabatan: 'Bendahara Pengeluaran' }
+                    }) +
+                    C.ringkasanBlok('RINGKASAN', [
+                        'Berdasarkan ketentuan yang berlaku, diajukan permintaan pembayaran sebesar ' + jml + ',-',
+                        (Number(r.total_potongan) > 0 ? 'Potongan : ' + C.rupiah(r.total_potongan) + ',-' : ''),
+                        (Number(r.total_pajak) > 0 ? 'Pajak : ' + C.rupiah(r.total_pajak) + ',-' : ''),
+                        (Number(r.total_potongan) > 0 || Number(r.total_pajak) > 0 ? 'Netto Dibayar : ' + C.rupiah(netto) + ',-' : ''),
+                        'Terbilang : ' + C.terbilangRupiah(r.jumlah),
+                        skpd + ', ' + C.tgl(r.tanggal)
+                    ], { jabatan: 'Bendahara Pengeluaran' }) +
+                    '<div class="blok">' +
+                        C.blokTitle('RINCIAN RENCANA PENGGUNAAN') +
+                        '<div class="rincian-ket">BULAN : ' + C.tgl(r.tanggal) + '</div>' +
+                        C.rincianTable([
+                            { kode: '', uraian: r.keperluan || ('Belanja ' + j), jumlah: r.jumlah },
+                            { kode: '', uraian: '', jumlah: '' },
+                            { kode: '', uraian: '', jumlah: '' }
+                        ], [
+                            { t: 'No', key: null },
+                            { t: 'Kode Rekening', key: 'kode' },
+                            { t: 'Uraian', key: 'uraian' },
+                            { t: 'Jumlah (Rp)', key: 'jumlah', num: true, fmt: function (v) { return (v === '' || v == null) ? '' : C.rupiah(v); } }
+                        ]) +
+                        '<div class="total">Total : ' + jml + ',-</div>' +
+                        '<div class="surat">Terbilang : ' + C.terbilangRupiah(r.jumlah) + '</div>' +
+                        '<div class="surat">' + skpd + ', ' + C.tgl(r.tanggal) + '</div>' +
+                        C.ttdTunggal({ jabatan: 'Bendahara Pengeluaran' }) +
+                    '</div>';
+
                 C.bukaCetak({
                     title: judul,
                     judul: judul,
-                    subjudul: 'Surat Permintaan Pembayaran',
                     nomor: r.nomor_spp ? 'Nomor : ' + r.nomor_spp : '',
-                    fields: [
-                        ['Tanggal', C.tgl(r.tanggal)],
-                        ['Jenis SPP', j],
-                        ['Nomor SPD (Dasar)', r.nomor_spd || '-'],
-                        ['Rekanan / Referensi', r.nama_rekanan || r.nomor_lpj || r.nomor_pengajuan || '-'],
-                        ['Keperluan', r.keperluan || '-'],
-                        ['Jumlah Yang Diminta (Rp)', C.rupiah(r.jumlah)],
-                        ['Total Potongan (Rp)', C.rupiah(r.total_potongan)],
-                        ['Total Pajak (Rp)', C.rupiah(r.total_pajak)],
-                        ['Netto Dibayar (Rp)', C.rupiah(netto)]
-                    ],
-                    catatan: 'Dokumen ini dicetak dari SIM-TKD (Modul Edukasi) dan berlaku sebagai lembar kerja penatausahaan belanja SKPKD.',
-                    ttd: {
-                        left: { jabatan: 'Mengetahui,', nama: 'Kepala SKPD' },
-                        right: { jabatan: 'Bendahara Pengeluaran', nama: '(................................)' }
-                    }
+                    garis2: true,
+                    bodyHtml: body
                 });
             }
             document.querySelectorAll('.tab-btn').forEach(function (b) {
