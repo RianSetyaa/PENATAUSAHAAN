@@ -32,6 +32,10 @@
         .save-row .total-info { font-size:12.5px; color:#16305a; font-weight:600; }
         .badge-count { background:#e0e7ff; color:#3730a3; padding:5px 11px; border-radius:999px; font-size:12px; font-weight:700; }
         .hint { font-size:12px; color:#64748b; margin:0 0 12px; line-height:1.5; }
+        .row-del { border:none; background:#fee2e2; color:#b91c1c; width:28px; height:28px; border-radius:8px; cursor:pointer; font-size:13px; line-height:1; }
+        .row-del:hover { background:#fecaca; }
+        .btn-add { border:1.5px dashed #1d3a6e; background:#f5f8ff; color:#1d3a6e; height:38px; padding:0 14px; border-radius:9px; cursor:pointer; font-size:13px; font-weight:600; }
+        .btn-add:hover { background:#e8efff; }
     </style>
 </head>
 <body>
@@ -156,12 +160,13 @@
                     <div class="toolbar">
                         <div class="ctl"><label>Tahun Anggaran</label><input type="number" id="tahunNeraca" value="2026" min="2000" max="2100"></div>
                         <button class="btn btn-outline" id="btnMuatNeraca" style="height:38px;"><i class="fas fa-sync"></i> Muat Akun</button>
+                        <button class="btn-add" id="btnTambahNeraca" style="height:38px;"><i class="fas fa-plus"></i> Tambah Akun</button>
                         <div class="search-box"><i class="fas fa-search"></i><input type="text" id="cariNeraca" placeholder="Cari kode / nama akun ..."></div>
                     </div>
                     <p class="hint">Isi saldo awal (Rp) per akun neraca lengkap (Aset Lancar, Investasi, Aset Tetap, Aset Lainnya, Kewajiban, Ekuitas) sebagai saldo pembukuan awal periode.</p>
                     <div class="tbl-wrap">
                         <table class="data-table">
-                            <thead><tr><th style="width:40px;">No.</th><th style="width:130px;">Kode Akun</th><th>Uraian Akun</th><th style="width:130px;">Jenis</th><th style="width:190px;">Saldo Awal (Rp)</th></tr></thead>
+                            <thead><tr><th style="width:40px;">No.</th><th style="width:130px;">Kode Akun</th><th>Uraian Akun</th><th style="width:130px;">Jenis</th><th style="width:190px;">Saldo Awal (Rp)</th><th style="width:46px;">Aksi</th></tr></thead>
                             <tbody id="tbNeraca"><tr><td colspan="5" style="text-align:center;color:#9098a5;padding:24px;">Memuat akun...</td></tr></tbody>
                         </table>
                     </div>
@@ -402,15 +407,6 @@
             var JENIS_LBL = { aset: 'Aset', kewajiban: 'Kewajiban', ekuitas: 'Ekuitas' };
             var JENIS_GRP = { aset: 'ASET', kewajiban: 'KEWAJIBAN', ekuitas: 'EKUITAS' };
 
-            function loadAkunPenerimaan() {
-                return fetch('../api/akun_penerimaan.php?aktif=1').then(function (r) { return r.json(); })
-                    .then(function (d) {
-                        var list = (d && d.success) ? (d.data || []) : [];
-                        return list.filter(function (a) { var k = String(a.kode_akun || ''); return k.indexOf('4.') === 0 || k.indexOf('5.') === 0; })
-                            .map(function (a) { return [a.kode_akun, a.nama_akun]; });
-                    }).catch(function () { return []; });
-            }
-
             // ---------------- ANGGARAN ----------------
             var anggaranRows = [];
             function updateSumAnggaran() {
@@ -442,11 +438,9 @@
                 var savedMap = {};
                 fetch('../api/akuntansi_setup.php?action=anggaran_list&tahun=' + encodeURIComponent(tahun)).then(function (r) { return r.json(); })
                     .then(function (d) {
+                        // Selalu tampilkan SEMUA akun LRA (177 akun dari lra.html)
                         (d && d.success ? d.data : []).forEach(function (s) { savedMap[s.kode_akun] = Number(s.anggaran); });
-                        return loadAkunPenerimaan();
-                    }).then(function (akuns) {
-                        var base = akuns.length ? akuns : LRA_FALLBACK;
-                        anggaranRows = base.map(function (a, i) { return { _i: i, kode: a[0], nama: a[1], anggaran: savedMap[a[0]] || '' }; });
+                        anggaranRows = LRA_FALLBACK.map(function (a, i) { return { _i: i, kode: a[0], nama: a[1], anggaran: savedMap[a[0]] || '' }; });
                         updateSumAnggaran(); renderAnggaran();
                     });
             }
@@ -471,6 +465,26 @@
 
             // ---------------- NERACA ----------------
             var neracaRows = [];
+            var _nextNeracaId = 1000;
+            function findNeraca(i) {
+                for (var j = 0; j < neracaRows.length; j++) if (neracaRows[j]._i === i) return neracaRows[j];
+                return null;
+            }
+            function kodeParts(k) {
+                if (!k || !String(k).trim()) return [999999]; // kode kosong selalu di akhir
+                return String(k).trim().split('.').map(function (p) { var n = parseInt(p, 10); return isNaN(n) ? 0 : n; });
+            }
+            function compareKode(a, b) {
+                var pa = kodeParts(a), pb = kodeParts(b), n = Math.max(pa.length, pb.length);
+                for (var i = 0; i < n; i++) {
+                    var x = pa[i] === undefined ? 0 : pa[i], y = pb[i] === undefined ? 0 : pb[i];
+                    if (x !== y) return x - y;
+                }
+                return 0;
+            }
+            function sortNeracaRows() {
+                neracaRows.sort(function (a, b) { return compareKode(a.kode, b.kode); });
+            }
             function updateSumNeraca() {
                 var a = 0, k = 0, e = 0;
                 neracaRows.forEach(function (r) {
@@ -484,11 +498,11 @@
                 var tb = document.getElementById('tbNeraca');
                 var q = (document.getElementById('cariNeraca').value || '').toLowerCase();
                 var rows = neracaRows.filter(function (r) { return !q || (r.kode + ' ' + r.nama).toLowerCase().indexOf(q) >= 0; });
-                if (!rows.length) { tb.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#9098a5;padding:24px;">Tidak ada akun yang cocok.</td></tr>'; return; }
+                if (!rows.length) { tb.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#9098a5;padding:24px;">Tidak ada akun yang cocok.</td></tr>'; return; }
                 var html = '', lastG = '';
                 rows.forEach(function (r, i) {
                     var g = JENIS_GRP[r.jenis] || 'LAINNYA';
-                    if (g !== lastG) { html += '<tr class="grp"><td colspan="5">' + g + '</td></tr>'; lastG = g; }
+                    if (g !== lastG) { html += '<tr class="grp"><td colspan="6">' + g + '</td></tr>'; lastG = g; }
                     html += '<tr>' +
                         '<td>' + (i + 1) + '</td>' +
                         '<td><input class="num-input" data-i="' + r._i + '" data-f="kode" value="' + esc(r.kode) + '" style="width:120px;text-align:left;"></td>' +
@@ -497,35 +511,77 @@
                             ['aset', 'kewajiban', 'ekuitas'].map(function (j) { return '<option value="' + j + '"' + (r.jenis === j ? ' selected' : '') + '>' + JENIS_LBL[j] + '</option>'; }).join('') +
                         '</select></td>' +
                         '<td><input class="num-input" data-i="' + r._i + '" data-f="saldo" type="number" step="0.01" value="' + (r.saldo || '') + '" placeholder="0"></td>' +
+                        '<td><button class="row-del" data-i="' + r._i + '" title="Hapus akun"><i class="fas fa-trash"></i></button></td>' +
                     '</tr>';
                 });
                 tb.innerHTML = html;
             }
             function loadNeraca() {
                 var tahun = document.getElementById('tahunNeraca').value || new Date().getFullYear();
-                document.getElementById('tbNeraca').innerHTML = '<tr><td colspan="5" style="text-align:center;color:#9098a5;padding:24px;">Memuat...</td></tr>';
+                document.getElementById('tbNeraca').innerHTML = '<tr><td colspan="6" style="text-align:center;color:#9098a5;padding:24px;">Memuat...</td></tr>';
                 fetch('../api/akuntansi_setup.php?action=neraca_list&tahun=' + encodeURIComponent(tahun)).then(function (r) { return r.json(); })
                     .then(function (d) {
-                        var savedMap = {};
-                        (d && d.success ? d.data : []).forEach(function (s) { savedMap[s.kode_akun] = { saldo: Number(s.saldo), jenis: s.jenis }; });
-                        neracaRows = NERACA_FALLBACK.map(function (a, i) { return { _i: i, kode: a[0], nama: a[1], jenis: a[2], saldo: savedMap[a[0]] ? savedMap[a[0]].saldo : '' }; });
+                        var saved = (d && d.success) ? d.data : [];
+                        var savedMap = {}, fallbackKodes = {};
+                        saved.forEach(function (s) { savedMap[s.kode_akun] = { saldo: Number(s.saldo), jenis: s.jenis, nama: s.nama_akun }; });
+                        NERACA_FALLBACK.forEach(function (a) { fallbackKodes[a[0]] = true; });
+                        var i = 0;
+                        neracaRows = NERACA_FALLBACK.map(function (a) {
+                            var s = savedMap[a[0]];
+                            return { _i: i++, kode: a[0], nama: a[1], jenis: a[2], saldo: s ? s.saldo : '' };
+                        });
+                        // Akun tambahan (custom) dari DB yang tidak ada di daftar standar
+                        saved.forEach(function (s) {
+                            if (!fallbackKodes[s.kode_akun]) {
+                                neracaRows.push({ _i: i++, kode: s.kode_akun, nama: savedMap[s.kode_akun].nama, jenis: savedMap[s.kode_akun].jenis, saldo: savedMap[s.kode_akun].saldo });
+                            }
+                        });
+                        _nextNeracaId = i;
+                        sortNeracaRows(); // urutkan menurut nomor akun
                         updateSumNeraca(); renderNeraca();
                     });
             }
             document.getElementById('btnMuatNeraca').addEventListener('click', loadNeraca);
+            function tambahAkunNeraca() {
+                var r = { _i: _nextNeracaId++, kode: '', nama: '', jenis: 'aset', saldo: '' };
+                neracaRows.push(r);
+                sortNeracaRows(); // baris kosong (kode '') otomatis di akhir
+                renderNeraca();
+                var inp = document.querySelector('#tbNeraca input[data-i="' + r._i + '"][data-f="kode"]');
+                if (inp) inp.focus();
+            }
+            document.getElementById('btnTambahNeraca').addEventListener('click', tambahAkunNeraca);
             document.getElementById('cariNeraca').addEventListener('input', renderNeraca);
             document.getElementById('tbNeraca').addEventListener('input', function (e) {
                 var t = e.target; if (!t.dataset.i) return;
-                neracaRows[+t.dataset.i][t.dataset.f] = t.value;
+                var r = findNeraca(+t.dataset.i); if (!r) return;
+                r[t.dataset.f] = t.value;
                 if (t.dataset.f === 'saldo') updateSumNeraca();
             });
             document.getElementById('tbNeraca').addEventListener('change', function (e) {
-                var t = e.target; if (!t.dataset.i || t.dataset.f !== 'jenis') return;
-                neracaRows[+t.dataset.i].jenis = t.value; updateSumNeraca(); renderNeraca();
+                var t = e.target; if (!t.dataset.i) return;
+                var r = findNeraca(+t.dataset.i); if (!r) return;
+                if (t.dataset.f === 'jenis') {
+                    r.jenis = t.value;
+                } else if (t.dataset.f === 'kode') {
+                    r.kode = t.value;
+                    sortNeracaRows(); // susun ulang menurut nomor akun
+                    renderNeraca();
+                    var inp = document.querySelector('#tbNeraca input[data-i="' + r._i + '"][data-f="kode"]');
+                    if (inp) inp.focus();
+                    return;
+                }
+                updateSumNeraca(); renderNeraca();
+            });
+            document.getElementById('tbNeraca').addEventListener('click', function (e) {
+                var btn = e.target.closest('.row-del');
+                if (!btn) return;
+                neracaRows = neracaRows.filter(function (r) { return r._i !== +btn.dataset.i; });
+                updateSumNeraca(); renderNeraca();
             });
             document.getElementById('btnSimpanNeraca').addEventListener('click', function () {
                 var tahun = document.getElementById('tahunNeraca').value || new Date().getFullYear();
-                var rows = neracaRows.map(function (r) { return { kode_akun: r.kode, nama_akun: r.nama, saldo: Number(r.saldo || 0), jenis: r.jenis }; });
+                var rows = neracaRows.filter(function (r) { return String(r.kode || '').trim() !== ''; }).map(function (r) { return { kode_akun: r.kode, nama_akun: r.nama, saldo: Number(r.saldo || 0), jenis: r.jenis }; });
                 fetch('../api/akuntansi_setup.php', {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action: 'neraca_save', tahun: tahun, rows: rows })
