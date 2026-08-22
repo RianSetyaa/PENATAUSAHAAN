@@ -302,6 +302,7 @@
                 var body =
                     C.suratPengantar({
                         kota: skpd,
+                        tanggal: C.tgl(r.tanggal),
                         items: [
                             ['a. Urusan Pemerintahan', '1.20 Pemerintahan Umum'],
                             ['b. SKPD', skpd],
@@ -312,7 +313,7 @@
                             ['g. Jumlah Pembayaran Yang Diminta', jml + ',-  (' + C.terbilangRupiah(r.jumlah) + ')'],
                             ['h. Nama dan Nomor Rekening Bank', ref]
                         ],
-                        ttd: { jabatan: 'Bendahara Pengeluaran' }
+                        ttd: { jabatan: 'Bendahara Pengeluaran', nama: user.nama_lengkap }
                     }) +
                     C.ringkasanBlok('RINGKASAN', [
                         'Berdasarkan Keputusan Bupati Nomor 03 Tanggal 3 Januari 200B tentang Penetapan Jumlah Uang Persediaan untuk SKPKD  Badan Pengelola Keuangan Daerah sejumlah  ' + jml + ',-',
@@ -320,8 +321,8 @@
                         (Number(r.total_pajak) > 0 ? 'Pajak : ' + C.rupiah(r.total_pajak) + ',-' : ''),
                         (Number(r.total_potongan) > 0 || Number(r.total_pajak) > 0 ? 'Netto Dibayar : ' + C.rupiah(netto) + ',-' : ''),
                         'Terbilang : ' + C.terbilangRupiah(r.jumlah),
-                        skpd + ', ' + C.tgl(r.tanggal)
-                    ], { jabatan: 'Bendahara Pengeluaran' }) +
+                        { tgl: skpd + ', ' + C.tgl(r.tanggal) }
+                    ], { jabatan: 'Bendahara Pengeluaran', nama: user.nama_lengkap }) +
                     '<div class="blok">' +
                         C.blokTitle('RINCIAN RENCANA PENGGUNAAN') +
                         '<div class="rincian-ket">BULAN : ' + C.tgl(r.tanggal) + '</div>' +
@@ -337,8 +338,8 @@
                         ]) +
                         '<div class="total">Total : ' + jml + ',-</div>' +
                         '<div class="surat">Terbilang : ' + C.terbilangRupiah(r.jumlah) + '</div>' +
-                        '<div class="surat">' + skpd + ', ' + C.tgl(r.tanggal) + '</div>' +
-                        C.ttdTunggal({ jabatan: 'Bendahara Pengeluaran' }) +
+                        '<div class="surat tgl">' + skpd + ', ' + C.tgl(r.tanggal) + '</div>' +
+                        C.ttdTunggal({ jabatan: 'Bendahara Pengeluaran', nama: user.nama_lengkap }) +
                     '</div>';
 
                 C.bukaCetak({

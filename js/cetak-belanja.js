@@ -117,6 +117,7 @@
         '#docArea .blok { margin-top: 16px; }',
         '#docArea .blok-title { text-align: center; font-weight: 700; text-decoration: underline; font-size: var(--fs,13px); margin: 20px 0 8px; }',
         '#docArea .surat { margin: 4px 0; }',
+        '#docArea .surat.tgl { text-align: right; }',
         '#docArea .kepada { margin: 8px 0 12px; }',
         '#docArea .item { margin: 3px 0; }',
         '#docArea .item .lbl { display: inline-block; min-width: 215px; }',
@@ -258,7 +259,7 @@
         h += kepada(d.kepada || ['Pengguna Anggaran / Kuasa Pengguna Anggaran', 'SKPKD - BPKD', 'Di Tempat']);
         h += paragraf(d.pembuka || 'Dengan memperhatikan Peraturan Bupati Nomor ...... Tahun ...... tentang Penjabaran APBD, bersama ini kami mengajukan permintaan pembayaran sebagai berikut :');
         (d.items || []).forEach(function (it) { h += itemLine(it[0], it[1]); });
-        h += paragraf((d.kota || 'Bandung') + ', ' + (d.tanggal || '.......................'));
+        h += '<div class="surat tgl">' + esc((d.kota || 'Bandung') + ', ' + (d.tanggal || '.......................')) + '</div>';
         h += ttdTunggal(d.ttd || { jabatan: 'Bendahara Pengeluaran' });
         h += '</div>';
         return h;
@@ -266,7 +267,10 @@
     // Blok RINGKASAN / paragraf resmi + TTD
     function ringkasanBlok(judul, lines, ttdOpt) {
         var h = '<div class="blok">' + blokTitle(judul);
-        (lines || []).forEach(function (ln) { h += paragraf(ln); });
+        (lines || []).forEach(function (ln) {
+            if (ln && ln.tgl) { h += '<div class="surat tgl">' + esc(ln.tgl) + '</div>'; return; }
+            h += paragraf(ln);
+        });
         h += ttdTunggal(ttdOpt || { jabatan: 'Bendahara Pengeluaran' });
         h += '</div>';
         return h;
