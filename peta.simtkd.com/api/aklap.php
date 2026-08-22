@@ -257,7 +257,31 @@ if ($action === 'lra_rekap') {
 }
 
 // ============================================
-// 2b. Profil akun AKLAP (dari data pendaftaran)
+// 2b. Neraca (saldo awal per akun dari pengaturan)
+// ============================================
+if ($action === 'neraca_rekap') {
+    $tahunN = (string) ($_GET['tahun'] ?? date('Y'));
+    $nSql = "SELECT kode_akun, nama_akun, SUM(saldo) AS saldo, jenis FROM neraca_awal WHERE 1=1";
+    $nParams = [];
+    if ($skpdUser !== '') { $nSql .= " AND skpd = ?"; $nParams[] = $skpdUser; }
+    $nSql .= " AND tahun = ? GROUP BY kode_akun, nama_akun, jenis ORDER BY kode_akun ASC";
+    $n = $pdo->prepare($nSql);
+    $n->execute(array_merge($nParams, [$tahunN]));
+    $rows = [];
+    foreach ($n->fetchAll() as $r) {
+        $rows[] = [
+            'kode_akun' => (string) $r['kode_akun'],
+            'nama_akun' => (string) $r['nama_akun'],
+            'saldo'     => (float) $r['saldo'],
+            'jenis'     => (string) $r['jenis'],
+        ];
+    }
+    echo json_encode(['success' => true, 'data' => $rows], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+// ============================================
+// 2c. Profil akun AKLAP (dari data pendaftaran)
 // ============================================
 if ($action === 'profil') {
     echo json_encode(['success' => true, 'user' => [
