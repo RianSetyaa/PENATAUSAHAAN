@@ -91,7 +91,9 @@ if ($method === 'GET') {
     if ($action === 'spp_list') {
         $status = (string) ($_GET['status'] ?? '');
         $c = skpdCond('s', $skpd);
-        $sql = "SELECT s.*, d.nomor_spd, r.nama_rekanan, l.nomor_lpj, t.nomor_pengajuan FROM spp s
+        $sql = "SELECT s.*, d.nomor_spd, d.jumlah AS spd_jumlah,
+                       (d.jumlah - COALESCE((SELECT SUM(x.jumlah) FROM spp x WHERE x.spd_id = s.spd_id AND x.status <> 'ditolak'), 0)) AS spd_sisa,
+                       r.nama_rekanan, l.nomor_lpj, t.nomor_pengajuan FROM spp s
                 LEFT JOIN spd d ON d.id = s.spd_id
                 LEFT JOIN rekanan r ON r.id = s.rekanan_id
                 LEFT JOIN lpj l ON l.id = s.lpj_id
@@ -129,12 +131,14 @@ if ($method === 'GET') {
 
     // Referensi SPD terotorisasi utk SPP & SPM terverifikasi utk SP2D
     if ($action === 'spd_otor_list') {
-        // Hanya SPD yang sudah diotorisasi DAN belum dipakai oleh SPP (non-ditolak),
-        // supaya SPD yang sudah dibuatkan SPP tidak muncul lagi di dropdown.
+        // Hanya SPD terotorisasi yang MASIH PUNYA SISA (belum habis dipakai SPP non-ditolak).
+        // sisa = jumlah SPD - total jumlah SPP yang memakai SPD tersebut.
         $c = skpdCond('s', $skpd);
-        $sql = "SELECT s.* FROM spd s
+        $sql = "SELECT s.*,
+                       (s.jumlah - COALESCE((SELECT SUM(x.jumlah) FROM spp x WHERE x.spd_id = s.id AND x.status <> 'ditolak'), 0)) AS sisa
+                FROM spd s
                 WHERE s.status='sudah_otorisasi'{$c[0]}
-                  AND NOT EXISTS (SELECT 1 FROM spp x WHERE x.spd_id = s.id AND x.status <> 'ditolak')
+                  AND s.jumlah > COALESCE((SELECT SUM(x.jumlah) FROM spp x WHERE x.spd_id = s.id AND x.status <> 'ditolak'), 0)
                 ORDER BY s.tanggal DESC, s.id DESC";
         $stmt = $pdo->prepare($sql); $stmt->execute($c[1]);
         jsonResponse(true, 'OK', ['data' => $stmt->fetchAll()]);
@@ -293,6 +297,14 @@ if ($method === 'POST') {
         $chk = $pdo->prepare("SELECT id FROM spd s WHERE s.id=? AND s.status='sudah_otorisasi'{$c[0]}");
         $chk->execute(array_merge([$spdId], $c[1]));
         if (!$chk->fetch()) jsonResponse(false, 'SPD tidak valid / belum diotorisasi / bukan milik instansi Anda.', [], 422);
+        // Validasi sisa SPD: jumlah SPP tidak boleh melebihi sisa SPD
+        $sisaQ = $pdo->prepare("SELECT s.jumlah - COALESCE((SELECT SUM(x.jumlah) FROM spp x WHERE x.spd_id = s.id AND x.status <> 'ditolak'), 0) AS sisa FROM spd s WHERE s.id = ?");
+        $sisaQ->execute([$spdId]);
+        $sisaRow = $sisaQ->fetch();
+        $sisa = $sisaRow ? (float) $sisaRow['sisa'] : 0.0;
+        if ($jumlah > $sisa + 0.001) {
+            jsonResponse(false, 'Jumlah SPP melebihi sisa SPD (sisa: Rp ' . number_format($sisa, 0, ',', '.') . ').', ['field' => 'jumlah'], 422);
+        }
         // Potongan & pajak (khusus LS Barang & Jasa)
         $potonganRows = isset($body['potongan']) && is_array($body['potongan']) ? $body['potongan'] : [];
         $pajakRows    = isset($body['pajak']) && is_array($body['pajak']) ? $body['pajak'] : [];

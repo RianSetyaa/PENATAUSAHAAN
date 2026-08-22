@@ -47,6 +47,14 @@
         return el ? el.textContent.trim() : '';
     }
 
+    // Nama akun/pengguna aktif (dari sidebar yang diisi dashboard.js)
+    function namaAkun() {
+        var el = document.getElementById('sidebarUserName');
+        if (el && el.textContent && el.textContent.trim() !== '') return el.textContent.trim();
+        el = document.getElementById('topbarUserName');
+        return el ? el.textContent.trim() : '';
+    }
+
     var FONT_OPTIONS = [
         ['Times New Roman', TN],
         ['Inter, Sans-Serif', "'Inter', system-ui, sans-serif"],
@@ -339,6 +347,7 @@
         tgl: tgl,
         tglPanjang: tglPanjang,
         instansi: instansi,
+        namaAkun: namaAkun,
         fieldRow: fieldRow,
         detailTable: detailTable,
         ttd: ttd,

@@ -66,6 +66,8 @@
             <div class="tabs">
                 <button class="tab-btn active" data-tab="persetujuan">Persetujuan SPM</button>
                 <button class="tab-btn" data-tab="verifikasi">Verifikasi SPM</button>
+                <button class="tab-btn" data-tab="terverifikasi">Sudah Diverifikasi</button>
+                <button class="tab-btn" data-tab="semua">Semua</button>
             </div>
             <div class="card">
                 <div class="card-head"><i class="fas fa-list"></i> Daftar SPM</div>
@@ -95,7 +97,7 @@
             var LBL = { belum_disetujui: ['Belum Disetujui', 'type-warn'], belum_diverifikasi: ['Belum Diverifikasi', 'type-warn'], sudah_diverifikasi: ['Terverifikasi', 'type-in'], ditolak: ['Ditolak', 'type-muted'] };
             function badge(st) { var m = LBL[st] || [st, 'type-muted']; return '<span class="type-badge ' + m[1] + '">' + m[0] + '</span>'; }
             function load() {
-                var st = curTab === 'persetujuan' ? 'belum_disetujui' : (curTab === 'verifikasi' ? 'belum_diverifikasi' : 'semua');
+                var st = curTab === 'persetujuan' ? 'belum_disetujui' : (curTab === 'verifikasi' ? 'belum_diverifikasi' : (curTab === 'terverifikasi' ? 'sudah_diverifikasi' : 'semua'));
                 tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#9098a5;">Memuat data...</td></tr>';
                 fetch('../api/belanja.php?action=spm_list&status=' + encodeURIComponent(st)).then(function (r) { return r.json(); })
                     .then(function (d) {
@@ -164,6 +166,8 @@
                         { t: 'Keterangan', key: 'ket' }
                     ]) +
                     '<div class="spm-box">' +
+                        '<div class="item"><span class="lbl">Jumlah SPP yang diminta</span> : ' + jml + ',-</div>' +
+                        '<div class="item"><span class="lbl">Tanggal dan Nomor SPP</span> : ' + C.tglPanjang(r.tanggal) + ' ' + (r.nomor_spp || '') + '</div>' +
                         '<div class="item"><span class="lbl">Jumlah yang Dibayarkan</span> : ' + jml + ',-</div>' +
                         '<div class="item"><span class="lbl">Terbilang</span> : ' + C.terbilangRupiah(r.jumlah) + '</div>' +
                         '<div class="item"><span class="lbl">Nomor SPM</span> : ' + (r.nomor_spm || '-') + '</div>' +
