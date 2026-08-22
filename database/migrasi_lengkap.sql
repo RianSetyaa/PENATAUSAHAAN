@@ -243,6 +243,18 @@ CREATE TABLE IF NOT EXISTS spp_potongan_pajak (
     INDEX idx_pp_spp (spp_id)
 ) ENGINE=InnoDB;
 
+-- 4.8b Rincian detail per SPP (kode rekening belanja + uraian + jumlah) -- SPP LS Gaji multi-baris
+CREATE TABLE IF NOT EXISTS spp_detail (
+    id            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    skpd          VARCHAR(150) DEFAULT NULL,
+    spp_id        INT UNSIGNED DEFAULT NULL,
+    kode_rekening VARCHAR(50)  DEFAULT NULL,
+    uraian        VARCHAR(255) DEFAULT NULL,
+    jumlah        DECIMAL(18,2) DEFAULT 0,
+    created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_sd_spp (spp_id)
+) ENGINE=InnoDB;
+
 -- 4.9 Rekening Bank SKPD
 CREATE TABLE IF NOT EXISTS rekening_skpd (
     id             INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,

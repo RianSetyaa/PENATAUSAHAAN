@@ -146,41 +146,123 @@
                     ? js
                     : (js.indexOf('LS') === 0 ? 'LS' : 'UP / GU / TU / LS');
 
+                var user = { nama_lengkap: C.namaAkun() };
+                var tahun = (r.tanggal || '').split('-')[0] || '';
+                var pem = 'PEMERINTAH KOTA BANDUNG';
+                var totPot = Number(r.total_potongan || 0);
+                var totPaj = Number(r.total_pajak || 0);
+                var potongan = r.potongan || [];
+                var pajak = r.pajak || [];
+                var details = r.details || [];
+                var sppJml = r.spp_jumlah != null ? r.spp_jumlah : r.jumlah;
+
+                function td(t, cls) { return '<td' + (cls ? ' class="' + cls + '"' : '') + '>' + t + '</td>'; }
+
+                // Potongan-Potongan (3 baris + 1 kosong)
+                var pRows = '';
+                for (var pi = 0; pi < 3; pi++) {
+                    var pn = potongan[pi] ? potongan[pi].nama : (pi === 0 ? 'Iuran Wajib Pegawai Negeri' : (pi === 1 ? 'Tabungan Perumahan Pegawai' : '..............'));
+                    var pv = potongan[pi] ? C.rupiah(potongan[pi].nilai) + ',-' : '0';
+                    pRows += '<tr>' + td(pi + 1) + td(esc(pn)) + td(esc(pv), 'num') + td('') + '</tr>';
+                }
+                pRows += '<tr>' + td('') + td('') + td('', 'num') + td('') + '</tr>';
+
+                // Info kiri
+                var infoHtml =
+                    'SKPD &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; : ' + esc(skpd) + '<br>' +
+                    'Bendahara Pengeluaran &nbsp; : ' + esc(user.nama_lengkap) + '<br>' +
+                    'Nomor Rekening Bank &nbsp;&nbsp; : ' + '<br>' +
+                    'NPWP &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; : ' + '<br>' +
+                    'Dasar Pembayaran No. dan Tanggal SPD : ' + esc(r.nomor_spd || '') + ' / ' + C.tgl(r.tanggal);
+
+                // Untuk Keperluan (pilih sesuai jenis)
+                var keperluanSel = (js === 'UP' || js === 'GU' || js === 'TU') ? 'Uang Persediaan' : (js === 'LS Gaji' ? 'Belanja Tidak Langsung' : 'Belanja Langsung');
+                var keperluanHtml = 'Untuk Keperluan : ' + esc(keperluanSel) + '<br>' +
+                    ['Uang Persediaan', 'Belanja Tidak Langsung', 'Belanja Langsung'].map(function (o) {
+                        return o === keperluanSel ? '' : '<s>' + esc(o) + '</s>**<br>';
+                    }).join('');
+
+                // Pembebanan (kiri: kode/uraian belanja; kanan: informasi pajak)
+                var bList = details.length ? details : [{ kode_rekening: '', uraian: r.keperluan || 'Belanja Barang dan Jasa', jumlah: r.jumlah }];
+                var bRows = '';
+                for (var b = 0; b < 3; b++) {
+                    var bl = bList[b] || {};
+                    var bk = bl.kode_rekening || '';
+                    var bu = bl.uraian || '';
+                    var bv = bl.jumlah ? C.rupiah(bl.jumlah) + ',-' : '';
+                    var rn = b === 0 ? '1' : (b === 1 ? '2' : '');
+                    var ru = b === 0 ? (pajak[0] ? pajak[0].nama : 'PPN') : (b === 1 ? (pajak[1] ? pajak[1].nama : 'PPh psl') : 'Jumlah');
+                    var rv = b === 0 ? (pajak[0] ? C.rupiah(pajak[0].nilai) + ',-' : '0') : (b === 1 ? (pajak[1] ? C.rupiah(pajak[1].nilai) + ',-' : '0') : C.rupiah(totPaj) + ',-');
+                    bRows += '<tr>' + td(esc(bk)) + td(esc(bu)) + td(esc(bv), 'num') + td(esc(rn)) + td(esc(ru)) + td(esc(rv), 'num') + td('') + '</tr>';
+                }
+
+                // Kotak kuning (Jumlah SPP yang diminta)
+                var yellow =
+                    '<div>Jumlah SPP yang diminta : ' + C.rupiah(sppJml) + ',-</div>' +
+                    '<div>Tanggal dan Nomor SPP : ' + C.tglPanjang(r.tanggal) + '</div>' +
+                    '<div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' + esc(r.nomor_spp || '') + '</div>';
+
+                // Tanda tangan Kepala SKPKD
+                var sigHtml =
+                    '<div style="text-align:left;">' + esc(skpd) + ', ' + C.tgl(r.tanggal) + '</div>' +
+                    '<div style="text-align:center;font-weight:700;">Kepala SKPKD</div>' +
+                    '<div style="height:44px;"></div>' +
+                    '<div style="text-align:center;font-weight:700;">(' + esc(user.nama_lengkap) + ')</div>' +
+                    '<div style="text-align:center;">NIP. ........................</div>';
+
                 var body =
-                    C.paragraf('Kepada Yth. Kuasa Bendahara Umum Daerah') +
-                    '<div class="spm-info">' +
-                        C.itemLine('SKPD', skpd) +
-                        C.itemLine('Nama Bendahara Pengeluaran', '') +
-                        C.itemLine('Nomor Rekening Bank', '') +
-                        C.itemLine('NPWP', '') +
-                        C.itemLine('Dasar Pembayaran', (r.nomor_spp || '') + ' / ' + C.tgl(r.tanggal)) +
+                    '<div class="spm-head">' +
+                        '<div>Format ' + esc(fmt) + '*</div>' +
+                        '<div>Nomor SPM : ' + esc(r.nomor_spm || '') + '</div>' +
                     '</div>' +
-                    C.rincianTable([
-                        { uraian: 'Pembayaran sesuai ' + (r.nomor_spp || 'SPP'), jumlah: r.jumlah, ket: '' },
-                        { uraian: '', jumlah: '', ket: '' },
-                        { uraian: '', jumlah: '', ket: '' }
-                    ], [
-                        { t: 'No', key: null },
-                        { t: 'Uraian', key: 'uraian' },
-                        { t: 'Jumlah (Rp)', key: 'jumlah', num: true, fmt: function (v) { return (v === '' || v == null) ? '' : C.rupiah(v); } },
-                        { t: 'Keterangan', key: 'ket' }
-                    ]) +
-                    '<div class="spm-box">' +
-                        '<div class="item"><span class="lbl">Jumlah SPP yang diminta</span> : ' + jml + ',-</div>' +
-                        '<div class="item"><span class="lbl">Tanggal dan Nomor SPP</span> : ' + C.tglPanjang(r.tanggal) + ' ' + (r.nomor_spp || '') + '</div>' +
-                        '<div class="item"><span class="lbl">Jumlah yang Dibayarkan</span> : ' + jml + ',-</div>' +
-                        '<div class="item"><span class="lbl">Terbilang</span> : ' + C.terbilangRupiah(r.jumlah) + '</div>' +
-                        '<div class="item"><span class="lbl">Nomor SPM</span> : ' + (r.nomor_spm || '-') + '</div>' +
-                        '<div class="item"><span class="lbl">Tanggal</span> : ' + C.tgl(r.tanggal) + '</div>' +
-                    '</div>' +
-                    C.paragraf('SPM ini sah apabila sudah ditandatangani dan distempel oleh SKPD.') +
-                    C.ttdTunggal({ jabatan: 'Pejabat Penatausahaan Keuangan' });
+                    '<table class="spm-tbl">' +
+                        '<tr>' +
+                            '<td colspan="3" class="lbl">KUASA BENDAHARA UMUM DAERAH<br>' + esc(pem) + '<br>Supaya Menerbitkan SP2D Kepada :</td>' +
+                            '<td colspan="4" class="lbl">Potongan-Potongan</td>' +
+                        '</tr>' +
+                        '<tr>' +
+                            '<td colspan="3" rowspan="5">' + infoHtml + '</td>' +
+                            '<td class="lbl" style="text-align:center;">No</td>' +
+                            '<td class="lbl" style="text-align:center;">Uraian</td>' +
+                            '<td class="lbl" style="text-align:center;">Jumlah (Rp)</td>' +
+                            '<td class="lbl" style="text-align:center;">Keterangan</td>' +
+                        '</tr>' +
+                        pRows +
+                        '<tr>' +
+                            '<td colspan="3" rowspan="3">' + keperluanHtml + '</td>' +
+                            td('') + td('') + td('', 'num') + td('') +
+                        '</tr>' +
+                        '<tr>' + td('') + td('') + td('', 'num') + td('') + '</tr>' +
+                        '<tr>' + td('') + '<td class="lbl">Jumlah Potongan</td>' + td(esc(C.rupiah(totPot) + ',-'), 'num') + td('') + '</tr>' +
+                        '<tr>' +
+                            '<td colspan="3">Pembebanan Pada nomor rekening:</td>' +
+                            '<td colspan="4">Informasi (tidak mengurangi pembayaran SPM)</td>' +
+                        '</tr>' +
+                        '<tr>' +
+                            '<td class="lbl">Kode Rekening</td><td class="lbl">Uraian</td><td class="lbl">Jumlah (Rp)</td>' +
+                            '<td class="lbl">No</td><td class="lbl">Uraian</td><td class="lbl">Jumlah (Rp)</td><td class="lbl">Keterangan</td>' +
+                        '</tr>' +
+                        bRows +
+                        '<tr>' +
+                            '<td colspan="2" class="spm-yellow">' + yellow + '</td>' +
+                            td('') +
+                            '<td colspan="2">Jumlah SPM</td>' +
+                            td(esc(C.rupiah(r.jumlah) + ',-'), 'num') +
+                            td('') +
+                        '</tr>' +
+                        '<tr>' +
+                            '<td colspan="3" rowspan="2">* Coret yang tidak Perlu<br>** Pilih Yang Sesuai</td>' +
+                            '<td colspan="4">Uang sejumlah : ' + C.terbilangRupiah(r.jumlah) + '</td>' +
+                        '</tr>' +
+                        '<tr><td colspan="4">' + sigHtml + '</td></tr>' +
+                        '<tr><td colspan="7">SPM ini sah apabila sudah ditandatangani dan di stempel oleh SKPD</td></tr>' +
+                    '</table>';
 
                 C.bukaCetak({
                     title: 'SPM - Surat Perintah Membayar',
                     judul: 'SURAT PERINTAH MEMBAYAR (SPM)',
-                    subjudul: 'Format : ' + fmt,
-                    nomor: r.nomor_spm ? 'Nomor SPM : ' + r.nomor_spm : '',
+                    subjudul: 'TAHUN ANGGARAN ' + tahun,
+                    nomor: '',
                     garis2: true,
                     bodyHtml: body
                 });

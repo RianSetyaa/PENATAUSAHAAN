@@ -98,6 +98,19 @@
                         <div id="wrap-lpj" style="display:none;"><label>LPJ (untuk GU) *</label><select id="lpj_id"><option value="">-- Pilih LPJ --</option></select></div>
                         <div id="wrap-ptu" style="display:none;"><label>Pengajuan TU (untuk TU) *</label><select id="pengajuan_tu_id"><option value="">-- Pilih Pengajuan TU --</option></select></div>
                     </div>
+                    <div id="wrap-detail" style="display:none;margin-top:16px;">
+                        <div style="font-size:13px;font-weight:600;margin-bottom:8px;color:#1a3a6b;"><i class="fas fa-list-ul"></i> Rincian Rencana Penggunaan (LS Gaji)</div>
+                        <div style="overflow-x:auto;">
+                            <table class="data-table">
+                                <thead><tr><th>No.</th><th>Kode Rekening (Belanja)</th><th>Uraian</th><th>Jumlah (Rp)</th><th></th></tr></thead>
+                                <tbody id="detailRows"></tbody>
+                            </table>
+                        </div>
+                        <div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                            <button type="button" class="btn btn-sm" id="btnAddDetail"><i class="fas fa-plus"></i> Tambah Baris</button>
+                            <span id="detailSummary" style="font-size:12px;color:#5a6c7d;"></span>
+                        </div>
+                    </div>
                     <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
                         <button type="button" class="btn" id="btnPP" style="display:none;"><i class="fas fa-percent"></i> Potongan &amp; Pajak</button>
                         <button type="button" class="btn btn-primary" id="btnSimpan"><i class="fas fa-save"></i> Tambah SPP Sekarang</button>
@@ -148,6 +161,25 @@
             var ppRows = [];
             var dataRowCache = {};
             var spdSisa = {};
+            var detailRows = [];
+            var BELANJA_AKUNS = [];
+            var BELANJA_AKUNS_STATIC = [
+                ['5.1.1.01.01', 'Gaji Pokok ASN'],
+                ['5.1.1.01.02', 'Tunjangan Keluarga'],
+                ['5.1.1.01.03', 'Tunjangan Jabatan'],
+                ['5.1.1.01.04', 'Tunjangan Fungsional'],
+                ['5.1.1.01.05', 'Tunjangan Umum'],
+                ['5.1.1.01.06', 'Tunjangan Beras'],
+                ['5.1.1.01.07', 'Tunjangan PPh'],
+                ['5.1.1.01.08', 'Pembulatan Gaji'],
+                ['5.1.1.01.09', 'Iuran Asuransi Kesehatan'],
+                ['5.1.1.01.10', 'Iuran Jaminan Kecelakaan Kerja'],
+                ['5.1.1.01.11', 'Iuran Jaminan Kematian'],
+                ['5.1.1.01.12', 'Iuran Jaminan Hari Tua'],
+                ['5.1.2.01.01', 'Tambahan Penghasilan Berdasarkan Beban Kerja'],
+                ['5.1.2.01.02', 'Tambahan Penghasilan Berdasarkan Kondisi Kerja'],
+                ['5.1.2.01.03', 'Tambahan Penghasilan Berdasarkan Prestasi Kerja']
+            ];
             function toast(msg) { var t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(t._t); t._t = setTimeout(function () { t.classList.remove('show'); }, 2400); }
             function esc(s) { var d = document.createElement('div'); d.textContent = String(s || ''); return d.innerHTML; }
             function rupiah(v) { return Number(v || 0).toLocaleString('id-ID'); }
@@ -175,15 +207,59 @@
                     sel.innerHTML = '<option value="">-- Pilih Pengajuan TU --</option>' + ((d && d.success) ? (d.data || []).map(function (t) { return '<option value="' + t.id + '">' + esc(t.nomor_pengajuan) + ' (Rp ' + rupiah(t.jumlah) + ')</option>'; }).join('') : '');
                 });
             }
+            function loadBelanjaAkuns() {
+                fetch('../api/akun_penerimaan.php?aktif=1').then(function (r) { return r.json(); }).then(function (d) {
+                    var list = (d && d.success) ? (d.data || []).filter(function (a) { return String(a.kode_akun || '').indexOf('5.') === 0; }) : [];
+                    BELANJA_AKUNS = list.length ? list.map(function (a) { return [a.kode_akun, a.nama_akun]; }) : BELANJA_AKUNS_STATIC;
+                    renderDetailRows();
+                });
+            }
             function syncJenis() {
                 var j = document.getElementById('jenis_spp').value;
                 document.getElementById('wrap-rekanan').style.display = (j === 'LS Barang & Jasa' || j === 'LS Gaji') ? '' : 'none';
                 document.getElementById('wrap-lpj').style.display = (j === 'GU') ? '' : 'none';
                 document.getElementById('wrap-ptu').style.display = (j === 'TU') ? '' : 'none';
                 document.getElementById('btnPP').style.display = (j === 'LS Barang & Jasa') ? '' : 'none';
+                document.getElementById('wrap-detail').style.display = (j === 'LS Gaji') ? '' : 'none';
+                document.getElementById('jumlah').readOnly = (j === 'LS Gaji');
                 if (j !== 'LS Barang & Jasa') ppRows = [];
-                renderPPRows(); updatePPSummary();
+                renderPPRows(); updatePPSummary(); renderDetailRows();
             }
+            function renderDetailRows() {
+                var wrap = document.getElementById('detailRows');
+                if (!wrap) return;
+                if (!detailRows.length) { wrap.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#9098a5;font-size:12px;">Belum ada rincian gaji. Klik Tambah Baris untuk menambah kode rekening.</td></tr>'; updateDetailSummary(); return; }
+                wrap.innerHTML = detailRows.map(function (r, i) {
+                    var opts = '<option value="">-- Pilih Kode Rekening --</option>' + BELANJA_AKUNS.map(function (a) { return '<option value="' + a[0] + '"' + (r.kode === a[0] ? ' selected' : '') + '>' + a[0] + ' - ' + esc(a[1]) + '</option>'; }).join('');
+                    return '<tr>' +
+                        '<td>' + (i + 1) + '</td>' +
+                        '<td><select data-i="' + i + '" data-f="kode" style="min-width:240px;">' + opts + '</select></td>' +
+                        '<td><input data-i="' + i + '" data-f="uraian" value="' + esc(r.uraian) + '" placeholder="Uraian" style="width:100%;min-width:160px;"></td>' +
+                        '<td><input data-i="' + i + '" data-f="jumlah" type="number" min="0" step="0.01" value="' + esc(r.jumlah) + '" placeholder="0" style="width:140px;text-align:right;"></td>' +
+                        '<td><button type="button" class="btn btn-sm btn-danger" data-del="' + i + '" style="background:#e74c3c;border:none;color:#fff;height:30px;"><i class="fas fa-trash"></i></button></td>' +
+                    '</tr>';
+                }).join('');
+                updateDetailSummary();
+            }
+            function updateDetailSummary() {
+                var sum = 0; detailRows.forEach(function (r) { sum += Number(r.jumlah || 0); });
+                var el = document.getElementById('detailSummary');
+                if (el) el.textContent = 'Total Rincian: Rp ' + rupiah(sum);
+                var j = document.getElementById('jumlah');
+                if (document.getElementById('jenis_spp').value === 'LS Gaji') j.value = sum ? String(sum) : '';
+            }
+            document.getElementById('btnAddDetail').addEventListener('click', function () { detailRows.push({ kode: '', uraian: '', jumlah: '' }); renderDetailRows(); });
+            function detailSync(e) {
+                var t = e.target; if (!t.dataset.i) return;
+                detailRows[+t.dataset.i][t.dataset.f] = t.value;
+                updateDetailSummary();
+            }
+            document.getElementById('detailRows').addEventListener('input', detailSync);
+            document.getElementById('detailRows').addEventListener('change', detailSync);
+            document.getElementById('detailRows').addEventListener('click', function (e) {
+                var b = e.target.closest('[data-del]'); if (!b) return;
+                detailRows.splice(+b.getAttribute('data-del'), 1); renderDetailRows();
+            });
             function renderPPRows() {
                 var wrap = document.getElementById('ppRows');
                 if (!ppRows.length) { wrap.innerHTML = '<div style="font-size:12px;color:#9098a5;">Belum ada potongan / pajak. Klik Tambah Potongan atau Tambah Pajak.</div>'; return; }
@@ -251,6 +327,17 @@
                 if (spdId && spdSisa[spdId] != null && jml > spdSisa[spdId]) {
                     toast('Jumlah melebihi sisa SPD (sisa: Rp ' + rupiah(spdSisa[spdId]) + ').'); return;
                 }
+                var detail = [];
+                document.querySelectorAll('#detailRows tr').forEach(function (tr) {
+                    var kd = tr.querySelector('select[data-f="kode"]');
+                    var ur = tr.querySelector('input[data-f="uraian"]');
+                    var jm = tr.querySelector('input[data-f="jumlah"]');
+                    var k = kd ? kd.value : '';
+                    var u = ur ? ur.value : '';
+                    var n = jm ? Number(jm.value || 0) : 0;
+                    if ((k || u) && n > 0) detail.push({ kode_rekening: k, uraian: u, jumlah: n });
+                });
+                if (j === 'LS Gaji' && !detail.length) { toast('Tambahkan minimal satu baris rincian gaji (kode rekening + jumlah).'); return; }
                 var body = {
                     action: 'spp_create',
                     tanggal: document.getElementById('tanggal').value,
@@ -266,9 +353,10 @@
                     body.potongan = ppRows.filter(function (r) { return r.jenis === 'potongan'; });
                     body.pajak = ppRows.filter(function (r) { return r.jenis === 'pajak'; });
                 }
+                if (j === 'LS Gaji') body.detail = detail;
                 post(body, function (d) {
                     toast(d.message || (d.success ? 'Tersimpan.' : 'Gagal.'));
-                    if (d.success) { document.getElementById('tanggal').value = ''; document.getElementById('jumlah').value = ''; document.getElementById('keperluan').value = ''; ppRows = []; renderPPRows(); updatePPSummary(); load(); }
+                    if (d.success) { document.getElementById('tanggal').value = ''; document.getElementById('jumlah').value = ''; document.getElementById('keperluan').value = ''; ppRows = []; detailRows = []; renderPPRows(); updatePPSummary(); renderDetailRows(); load(); }
                 });
             });
             tbody.addEventListener('click', function (e) {
@@ -299,52 +387,114 @@
                 var netto = Number(r.jumlah || 0) - Number(r.total_potongan || 0) - Number(r.total_pajak || 0);
                 var ref = r.nama_rekanan || r.nomor_lpj || r.nomor_pengajuan || '';
 
-                var body =
+                // Rincian detail (SPP LS Gaji multi-baris)
+                var details = (r.details && r.details.length) ? r.details : null;
+                // Blok RINGKASAN DPA & RINGKASAN SPD (khusus LS Gaji) - data dari SPD yang dipilih
+                var lsBlocks = '';
+                if (j === 'LS Gaji') {
+                    var spdJml   = r.spd_jumlah != null ? Number(r.spd_jumlah) : 0;
+                    var spdSis   = r.spd_sisa != null ? Number(r.spd_sisa) : 0;
+                    var spdPakai = spdJml - spdSis;
+                    var recapCols = [
+                        { t: 'No', key: null },
+                        { t: 'Uraian', key: 'uraian' },
+                        { t: 'Jumlah (Rp)', key: 'jumlah', num: true, fmt: function (v) { return (v === '' || v == null) ? '' : C.rupiah(v); } }
+                    ];
+                    lsBlocks =
+                        '<div class="blok">' + C.blokTitle('RINGKASAN DPA-/DPPA-/DPAL-SKPD') + C.rincianTable([
+                            { uraian: 'Jumlah Anggaran', jumlah: spdJml },
+                            { uraian: 'Sudah Direalisasikan', jumlah: spdPakai },
+                            { uraian: 'Sisa Anggaran', jumlah: spdSis }
+                        ], recapCols) + '</div>' +
+                        '<div class="blok">' + C.blokTitle('RINGKASAN SPD') + C.rincianTable([
+                            { uraian: 'Jumlah SPD', jumlah: spdJml },
+                            { uraian: 'Sudah Diterbitkan SPP/SPM', jumlah: spdPakai },
+                            { uraian: 'Sisa SPD', jumlah: spdSis }
+                        ], recapCols) + '</div>';
+                }
+
+                // Pembuka sesuai jenis SPP
+                var pembuka = (j === 'UP')
+                    ? 'Dengan memperhatikan Peraturan Bupati Nomor 01 Tahun ' + tahun + ' tentang Penjabaran APBD, bersama ini kami mengajukan Surat Permintaan Pembayaran Uang Persediaan sebagai berikut :'
+                    : (j === 'GU'
+                        ? 'Dengan memperhatikan Peraturan Bupati Nomor 01 Tahun ' + tahun + ' tentang Penjabaran APBD, bersama ini kami mengajukan Surat Permintaan Pembayaran Ganti Uang sebagai berikut :'
+                        : (j === 'TU'
+                            ? 'Dengan memperhatikan Peraturan Bupati Nomor 01 Tahun ' + tahun + ' tentang Penjabaran APBD, bersama ini kami mengajukan Surat Permintaan Pembayaran Tambah Uang sebagai berikut :'
+                            : (j === 'LS Gaji'
+                                ? 'Dengan memperhatikan Peraturan Bupati Nomor 01 Tahun ' + tahun + ' tentang Penjabaran APBD, bersama ini kami mengajukan Surat Permintaan Pembayaran Langsung Gaji dan Tunjangan sebagai berikut :'
+                                : 'Dengan memperhatikan Peraturan Bupati Nomor 01 Tahun ' + tahun + ' tentang Penjabaran APBD, bersama ini kami mengajukan Surat Permintaan Pembayaran sebagai berikut :')));
+
+                var pem = 'PEMERINTAH KOTA BANDUNG';
+                function pgHeader() {
+                    return '<div class="kop">' +
+                        '<div class="pem">' + esc(pem) + '</div>' +
+                        '<div class="din">' + esc(skpd) + '</div>' +
+                        '<div class="garis2"></div>' +
+                    '</div>' +
+                    '<div class="judul">' + esc(judul) + '</div>' +
+                    (r.nomor_spp ? '<div class="nomor">Nomor : ' + esc(r.nomor_spp) + '</div>' : '');
+                }
+                var brk = '<div class="page-break"></div>';
+                var ttdBendahara = { jabatan: 'Bendahara Pengeluaran', nama: user.nama_lengkap };
+
+                // ==== HALAMAN 1 : SURAT PENGANTAR (kop dari bukaCetak) ====
+                var p1 =
                     C.suratPengantar({
                         kota: skpd,
                         tanggal: C.tgl(r.tanggal),
+                        pembuka: pembuka,
                         items: [
                             ['a. Urusan Pemerintahan', '1.20 Pemerintahan Umum'],
                             ['b. SKPD', skpd],
                             ['c. Tahun Anggaran', tahun],
                             ['d. Dasar Pengeluaran SPD Nomor', r.nomor_spd || ''],
-                            ['e. Jumlah Sisa Dana SPD', (r.spd_sisa != null ? C.rupiah(r.spd_sisa) + ',-' : '')],
+                            ['e. Jumlah Sisa Dana SPD', (r.spd_sisa != null ? C.rupiah(r.spd_sisa) + ',-' : ''), (r.spd_sisa != null ? C.terbilangRupiah(r.spd_sisa) : '')],
                             ['f. Nama Bendahara Pengeluaran', user.nama_lengkap || ''],
-                            ['g. Jumlah Pembayaran Yang Diminta', jml + ',-  (' + C.terbilangRupiah(r.jumlah) + ')'],
+                            ['g. Jumlah Pembayaran Yang Diminta', jml + ',-', C.terbilangRupiah(r.jumlah)],
                             ['h. Nama dan Nomor Rekening Bank', ref]
                         ],
-                        ttd: { jabatan: 'Bendahara Pengeluaran', nama: user.nama_lengkap }
-                    }) +
+                        ttd: ttdBendahara
+                    });
+
+                // ==== HALAMAN 2 : RINGKASAN (+ RINGKASAN DPA/SPD utk LS Gaji) ====
+                var p2 =
+                    lsBlocks +
                     C.ringkasanBlok('RINGKASAN', [
-                        'Berdasarkan Keputusan Bupati Nomor 03 Tanggal 3 Januari 200B tentang Penetapan Jumlah Uang Persediaan untuk SKPKD  Badan Pengelola Keuangan Daerah sejumlah  ' + jml + ',-',
+                        'Berdasarkan Keputusan Bupati Nomor 03 Tanggal 3 Januari ' + tahun + ' tentang Penetapan Jumlah Uang Persediaan untuk SKPKD Badan Pengelola Keuangan Daerah sejumlah ' + jml + ',-',
                         (Number(r.total_potongan) > 0 ? 'Potongan : ' + C.rupiah(r.total_potongan) + ',-' : ''),
                         (Number(r.total_pajak) > 0 ? 'Pajak : ' + C.rupiah(r.total_pajak) + ',-' : ''),
                         (Number(r.total_potongan) > 0 || Number(r.total_pajak) > 0 ? 'Netto Dibayar : ' + C.rupiah(netto) + ',-' : ''),
                         'Terbilang : ' + C.terbilangRupiah(r.jumlah),
                         { tgl: skpd + ', ' + C.tgl(r.tanggal) }
-                    ], { jabatan: 'Bendahara Pengeluaran', nama: user.nama_lengkap }) +
+                    ], ttdBendahara);
+
+                // ==== HALAMAN 3 : RINCIAN RENCANA PENGGUNAAN ====
+                var rincianRows = details ? details.map(function (dt) { return { kode: dt.kode_rekening, uraian: dt.uraian, jumlah: dt.jumlah }; }) : [
+                    { kode: '', uraian: r.keperluan || ('Belanja ' + j), jumlah: r.jumlah },
+                    { kode: '', uraian: '', jumlah: '' },
+                    { kode: '', uraian: '', jumlah: '' }
+                ];
+                var p3 =
                     '<div class="blok">' +
                         C.blokTitle('RINCIAN RENCANA PENGGUNAAN') +
-                        '<div class="rincian-ket">BULAN : ' + C.tgl(r.tanggal) + '</div>' +
-                        C.rincianTable([
-                            { kode: '', uraian: r.keperluan || ('Belanja ' + j), jumlah: r.jumlah },
-                            { kode: '', uraian: '', jumlah: '' },
-                            { kode: '', uraian: '', jumlah: '' }
-                        ], [
+                        C.rincianTable(rincianRows, [
                             { t: 'No', key: null },
-                            { t: 'Kode Rekening', key: 'kode' },
+                            { t: 'Kode Rekening (jenis)', key: 'kode' },
                             { t: 'Uraian', key: 'uraian' },
-                            { t: 'Jumlah (Rp)', key: 'jumlah', num: true, fmt: function (v) { return (v === '' || v == null) ? '' : C.rupiah(v); } }
-                        ]) +
-                        '<div class="total">Total : ' + jml + ',-</div>' +
+                            { t: 'Jumlah (Rp)', key: 'jumlah', num: true, fmt: function (v) { return (v === '' || v == null) ? '' : C.rupiah(v) + ',-'; } }
+                        ], { total: C.rupiah(r.jumlah) + ',-' }) +
                         '<div class="surat">Terbilang : ' + C.terbilangRupiah(r.jumlah) + '</div>' +
                         '<div class="surat tgl">' + skpd + ', ' + C.tgl(r.tanggal) + '</div>' +
-                        C.ttdTunggal({ jabatan: 'Bendahara Pengeluaran', nama: user.nama_lengkap }) +
+                        C.ttdTunggal(ttdBendahara) +
                     '</div>';
+
+                var body = p1 + brk + pgHeader() + p2 + brk + pgHeader() + p3;
 
                 C.bukaCetak({
                     title: judul,
                     judul: judul,
+                    pem: pem,
+                    kop: skpd,
                     nomor: r.nomor_spp ? 'Nomor : ' + r.nomor_spp : '',
                     garis2: true,
                     bodyHtml: body
@@ -357,7 +507,7 @@
                 });
             });
             document.getElementById('jenis_spp').addEventListener('change', syncJenis);
-            loadRefs(); syncJenis(); load();
+            loadRefs(); loadBelanjaAkuns(); syncJenis(); load();
         })();
     </script>
 </body>

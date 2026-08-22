@@ -121,6 +121,9 @@
         '#docArea .kepada { margin: 8px 0 12px; }',
         '#docArea .item { margin: 3px 0; }',
         '#docArea .item .lbl { display: inline-block; min-width: 215px; }',
+        '#docArea .item.terbilang { margin-left: 150pt; }',
+        '#docArea .page-break { page-break-after: always; }',
+        '#docArea table.d tr.total-row td { border-top: 2px solid var(--lc,#000) !important; font-weight: 700; }',
         '#docArea .rincian-title { text-align: center; font-weight: 700; text-decoration: underline; margin: 20px 0 8px; }',
         '#docArea .rincian-ket { margin: 2px 0 6px; }',
         '#docArea .ttd-single { width: 46%; margin: 30px 0 0 auto; text-align: center; }',
@@ -135,6 +138,12 @@
         '#docArea .spm-info .item .lbl { min-width: 175px; }',
         '#docArea .spm-box { border: var(--lw,1px) solid var(--lc,#000); background: #fdf6d8; padding: 10px 16px; margin: 12px 0; }',
         '#docArea .spm-box .item { margin: 2px 0; }',
+        '#docArea .spm-head { text-align: right; margin-bottom: 6px; font-size: var(--fs,13px); }',
+        '#docArea table.spm-tbl { width: 100%; border-collapse: collapse; font-size: 12px; margin: 8px 0 14px; color: var(--tc,#000); }',
+        '#docArea table.spm-tbl td, #docArea table.spm-tbl th { border: 1px solid var(--lc,#000); padding: 4px 6px; vertical-align: top; }',
+        '#docArea table.spm-tbl .lbl { font-weight: 700; }',
+        '#docArea table.spm-tbl .num { text-align: right; }',
+        '#docArea table.spm-tbl .spm-yellow { background: #fdf6d8; }',
         '',
         '@media print {',
         '  body { background: #fff; }',
@@ -193,7 +202,8 @@
         return '<tr><td class="lbl">' + esc(label) + '</td><td>' + esc(value == null ? '' : value) + '</td></tr>';
     }
 
-    function detailTable(rows, cols) {
+    function detailTable(rows, cols, opts) {
+        opts = opts || {};
         var head = '<tr>' + cols.map(function (c) { return '<th' + (c.num ? ' class="num"' : '') + '>' + esc(c.t) + '</th>'; }).join('') + '</tr>';
         var body = rows.map(function (r, i) {
             return '<tr>' + cols.map(function (c, ci) {
@@ -201,6 +211,9 @@
                 return '<td' + (c.num ? ' class="num"' : '') + '>' + (c.fmt ? c.fmt(v) : esc(v == null ? '' : v)) + '</td>';
             }).join('') + '</tr>';
         }).join('');
+        if (opts.total !== undefined && opts.total !== '') {
+            body += '<tr class="total-row"><td colspan="' + (cols.length - 1) + '" style="text-align:right;font-weight:700;">Total</td><td class="num">' + opts.total + '</td></tr>';
+        }
         return '<table class="d"><thead>' + head + '</thead><tbody>' + body + '</tbody></table>';
     }
 
@@ -258,7 +271,10 @@
         var h = '<div class="blok">' + blokTitle('SURAT PENGANTAR');
         h += kepada(d.kepada || ['Pengguna Anggaran / Kuasa Pengguna Anggaran', 'SKPKD - BPKD', 'Di Tempat']);
         h += paragraf(d.pembuka || 'Dengan memperhatikan Peraturan Bupati Nomor ...... Tahun ...... tentang Penjabaran APBD, bersama ini kami mengajukan permintaan pembayaran sebagai berikut :');
-        (d.items || []).forEach(function (it) { h += itemLine(it[0], it[1]); });
+        (d.items || []).forEach(function (it) {
+            h += itemLine(it[0], it[1]);
+            if (it[2]) h += '<div class="item terbilang">(terbilang : ' + esc(it[2]) + ')</div>';
+        });
         h += '<div class="surat tgl">' + esc((d.kota || 'Bandung') + ', ' + (d.tanggal || '.......................')) + '</div>';
         h += ttdTunggal(d.ttd || { jabatan: 'Bendahara Pengeluaran' });
         h += '</div>';
@@ -276,8 +292,8 @@
         return h;
     }
     // Tabel Rincian Rencana Penggunaan (nomor, kode, uraian, jumlah)
-    function rincianTable(rows, cols) {
-        return detailTable(rows || [], cols || []);
+    function rincianTable(rows, cols, opts) {
+        return detailTable(rows || [], cols || [], opts);
     }
 
     function bukaCetak(o) {

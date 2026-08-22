@@ -102,19 +102,59 @@ if ($method === 'GET') {
         if ($status !== '' && $status !== 'semua') { $sql .= " AND s.status = ?"; $c[1][] = $status; }
         $sql .= " ORDER BY s.tanggal DESC, s.id DESC";
         $stmt = $pdo->prepare($sql); $stmt->execute($c[1]);
-        jsonResponse(true, 'OK', ['data' => $stmt->fetchAll()]);
+        $rows = $stmt->fetchAll();
+        // Lampirkan rincian detail (spp_detail) per SPP
+        $ids = array_map(function ($r) { return (int) $r['id']; }, $rows);
+        $details = [];
+        if ($ids) {
+            $ph = implode(',', array_fill(0, count($ids), '?'));
+            $st = $pdo->prepare("SELECT * FROM spp_detail WHERE spp_id IN ($ph) ORDER BY id ASC");
+            $st->execute($ids);
+            foreach ($st->fetchAll() as $dd) {
+                $details[(int) $dd['spp_id']][] = [
+                    'kode_rekening' => (string) $dd['kode_rekening'],
+                    'uraian'        => (string) $dd['uraian'],
+                    'jumlah'        => (float) $dd['jumlah'],
+                ];
+            }
+        }
+        foreach ($rows as &$r) { $r['details'] = $details[(int) $r['id']] ?? []; }
+        unset($r);
+        jsonResponse(true, 'OK', ['data' => $rows]);
     }
 
     if ($action === 'spm_list') {
         $status = (string) ($_GET['status'] ?? '');
         $c = skpdCond('s', $skpd);
-        $sql = "SELECT s.*, p.nomor_spp, p.jenis_spp FROM spm s
+        $sql = "SELECT s.*, p.nomor_spp, p.jenis_spp, p.keperluan, p.jumlah AS spp_jumlah, p.total_potongan, p.total_pajak, d.nomor_spd FROM spm s
                 LEFT JOIN spp p ON p.id = s.spp_id
+                LEFT JOIN spd d ON d.id = p.spd_id
                 WHERE 1=1{$c[0]}";
         if ($status !== '' && $status !== 'semua') { $sql .= " AND s.status = ?"; $c[1][] = $status; }
         $sql .= " ORDER BY s.tanggal DESC, s.id DESC";
         $stmt = $pdo->prepare($sql); $stmt->execute($c[1]);
-        jsonResponse(true, 'OK', ['data' => $stmt->fetchAll()]);
+        $rows = $stmt->fetchAll();
+        // Lampirkan potongan, pajak (dari spp_potongan_pajak) & rincian detail (spp_detail) per SPM via spp_id
+        foreach ($rows as &$r) {
+            $r['potongan'] = [];
+            $r['pajak']    = [];
+            $r['details']  = [];
+            if (!empty($r['spp_id'])) {
+                $st = $pdo->prepare("SELECT jenis, nama, nilai FROM spp_potongan_pajak WHERE spp_id = ? ORDER BY id ASC");
+                $st->execute([(int) $r['spp_id']]);
+                foreach ($st->fetchAll() as $pp) {
+                    $arr = ($pp['jenis'] === 'pajak') ? 'pajak' : 'potongan';
+                    $r[$arr][] = ['nama' => (string) $pp['nama'], 'nilai' => (float) $pp['nilai']];
+                }
+                $st2 = $pdo->prepare("SELECT kode_rekening, uraian, jumlah FROM spp_detail WHERE spp_id = ? ORDER BY id ASC");
+                $st2->execute([(int) $r['spp_id']]);
+                foreach ($st2->fetchAll() as $dd) {
+                    $r['details'][] = ['kode_rekening' => (string) $dd['kode_rekening'], 'uraian' => (string) $dd['uraian'], 'jumlah' => (float) $dd['jumlah']];
+                }
+            }
+        }
+        unset($r);
+        jsonResponse(true, 'OK', ['data' => $rows]);
     }
 
     if ($action === 'sp2d_list') {
@@ -287,6 +327,20 @@ if ($method === 'POST') {
         $jumlah   = (float) ($body['jumlah'] ?? 0);
         $lpjId    = (int) ($body['lpj_id'] ?? 0);
         $ptuId    = (int) ($body['pengajuan_tu_id'] ?? 0);
+        // Rincian detail (kode rekening belanja + uraian + jumlah) - SPP LS Gaji multi-baris
+        $detailItems = [];
+        $detailTotal = 0.0;
+        $detailRows  = isset($body['detail']) && is_array($body['detail']) ? $body['detail'] : [];
+        foreach ($detailRows as $row) {
+            $kd = trim((string) ($row['kode_rekening'] ?? ''));
+            $ur = trim((string) ($row['uraian'] ?? ''));
+            $nl = (float) ($row['jumlah'] ?? 0);
+            if ($kd === '' && $ur === '') continue;
+            if ($nl <= 0) continue;
+            $detailItems[] = ['kode_rekening' => $kd, 'uraian' => $ur, 'jumlah' => $nl];
+            $detailTotal += $nl;
+        }
+        if ($detailItems) $jumlah = $detailTotal;
         if ($tanggal === '') jsonResponse(false, 'Tanggal SPP wajib diisi.', ['field' => 'tanggal'], 422);
         if ($spdId <= 0) jsonResponse(false, 'Pilih SPD.', ['field' => 'spd_id'], 422);
         if ($jumlah <= 0) jsonResponse(false, 'Jumlah harus lebih dari 0.', ['field' => 'jumlah'], 422);
@@ -341,6 +395,12 @@ if ($method === 'POST') {
             $ins = $pdo->prepare("INSERT INTO spp_potongan_pajak (skpd, spp_id, jenis, nama, nilai_persen, nilai, id_billing, tgl_billing, ntpn, tgl_ntpn) VALUES (?,?,?,?,?,?,?,?,?,?)");
             foreach (array_merge($potongan, $pajak) as $r) {
                 $ins->execute([$skpd, $sppId, $r['jenis'], $r['nama'], $r['persen'], $r['nilai'], $r['id_billing'], $r['tgl_billing'] ?: null, $r['ntpn'], $r['tgl_ntpn'] ?: null]);
+            }
+        }
+        if ($detailItems) {
+            $insD = $pdo->prepare("INSERT INTO spp_detail (skpd, spp_id, kode_rekening, uraian, jumlah) VALUES (?,?,?,?,?)");
+            foreach ($detailItems as $d) {
+                $insD->execute([$skpd, $sppId, $d['kode_rekening'], $d['uraian'], $d['jumlah']]);
             }
         }
         jsonResponse(true, 'SPP berhasil dibuat.', ['id' => $sppId, 'nomor_spp' => $nomor], 201);
