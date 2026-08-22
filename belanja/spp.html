@@ -220,8 +220,8 @@
                 document.getElementById('wrap-lpj').style.display = (j === 'GU') ? '' : 'none';
                 document.getElementById('wrap-ptu').style.display = (j === 'TU') ? '' : 'none';
                 document.getElementById('btnPP').style.display = (j === 'LS Barang & Jasa') ? '' : 'none';
-                document.getElementById('wrap-detail').style.display = (j === 'LS Gaji') ? '' : 'none';
-                document.getElementById('jumlah').readOnly = (j === 'LS Gaji');
+                document.getElementById('wrap-detail').style.display = (j === 'LS Gaji' || j === 'LS Barang & Jasa') ? '' : 'none';
+                document.getElementById('jumlah').readOnly = (j === 'LS Gaji' || j === 'LS Barang & Jasa');
                 if (j !== 'LS Barang & Jasa') ppRows = [];
                 renderPPRows(); updatePPSummary(); renderDetailRows();
             }
@@ -246,9 +246,21 @@
                 var el = document.getElementById('detailSummary');
                 if (el) el.textContent = 'Total Rincian: Rp ' + rupiah(sum);
                 var j = document.getElementById('jumlah');
-                if (document.getElementById('jenis_spp').value === 'LS Gaji') j.value = sum ? String(sum) : '';
+                var jj = document.getElementById('jenis_spp').value;
+                if (jj === 'LS Gaji' || jj === 'LS Barang & Jasa') j.value = sum ? String(sum) : '';
             }
-            document.getElementById('btnAddDetail').addEventListener('click', function () { detailRows.push({ kode: '', uraian: '', jumlah: '' }); renderDetailRows(); });
+            function findBarjasKode() {
+                for (var i = 0; i < BELANJA_AKUNS.length; i++) {
+                    if (BELANJA_AKUNS[i][0].indexOf('5.2.2') === 0) return BELANJA_AKUNS[i][0];
+                }
+                return '5.2.2.01';
+            }
+            document.getElementById('btnAddDetail').addEventListener('click', function () {
+                var j = document.getElementById('jenis_spp').value;
+                var kode = (j === 'LS Barang & Jasa') ? findBarjasKode() : '';
+                var uraian = (j === 'LS Barang & Jasa') ? 'Belanja Barang dan Jasa' : '';
+                detailRows.push({ kode: kode, uraian: uraian, jumlah: '' }); renderDetailRows();
+            });
             function detailSync(e) {
                 var t = e.target; if (!t.dataset.i) return;
                 detailRows[+t.dataset.i][t.dataset.f] = t.value;
@@ -353,7 +365,7 @@
                     body.potongan = ppRows.filter(function (r) { return r.jenis === 'potongan'; });
                     body.pajak = ppRows.filter(function (r) { return r.jenis === 'pajak'; });
                 }
-                if (j === 'LS Gaji') body.detail = detail;
+                if (j === 'LS Gaji' || j === 'LS Barang & Jasa') body.detail = detail;
                 post(body, function (d) {
                     toast(d.message || (d.success ? 'Tersimpan.' : 'Gagal.'));
                     if (d.success) { document.getElementById('tanggal').value = ''; document.getElementById('jumlah').value = ''; document.getElementById('keperluan').value = ''; ppRows = []; detailRows = []; renderPPRows(); updatePPSummary(); renderDetailRows(); load(); }

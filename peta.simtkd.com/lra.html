@@ -765,9 +765,17 @@
                             return total;
                         }
 
-                        // Anggaran tidak bersumber per akun -> 0; realisasi asli dari DB (agregat sub-pohon per kode)
+                        // Anggaran LRA dari setting (tabel anggaran_lra); realisasi asli dari DB (agregat sub-pohon per kode)
+                        var angg = data.anggaran_by_akun || {};
+                        function sumAnggaran(kode) {
+                            var total = 0;
+                            Object.keys(angg).forEach(function (k) {
+                                if (k === kode || k.indexOf(kode + '.') === 0) total += (angg[k] || 0);
+                            });
+                            return total;
+                        }
                         DATA.forEach(function (r) {
-                            r.anggaran = 0;
+                            r.anggaran = r.kode ? sumAnggaran(r.kode) : 0;
                             r.r2023 = 0;
                             r.realisasi = r.kode ? sumRekap(r.kode) : 0;
                         });

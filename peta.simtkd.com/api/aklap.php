@@ -230,9 +230,23 @@ if ($action === 'lra_rekap') {
     $belanjaCond = "status = 'sudah_dicairkan' AND jurnal_status = 'sudah_approve'" . (($skpdUser !== '') ? " AND skpd = " . $pdo->quote($skpdUser) : '');
     $totalBelanja = (float) $pdo->query("SELECT COALESCE(SUM(jumlah),0) FROM sp2d WHERE {$belanjaCond}")->fetchColumn();
 
+    // Anggaran LRA dari setting (pengaturan/anggaran-neraca.php) per akun
+    $anggaranByAkun = [];
+    $tahunLra = (string) ($_GET['tahun'] ?? date('Y'));
+    $agSql = "SELECT kode_akun, SUM(anggaran) AS total FROM anggaran_lra WHERE 1=1";
+    $agParams = [];
+    if ($skpdUser !== '') { $agSql .= " AND skpd = ?"; $agParams[] = $skpdUser; }
+    $agSql .= " AND tahun = ? GROUP BY kode_akun";
+    $ag = $pdo->prepare($agSql);
+    $ag->execute(array_merge($agParams, [$tahunLra]));
+    foreach ($ag->fetchAll() as $r) {
+        $anggaranByAkun[$r['kode_akun']] = (float) $r['total'];
+    }
+
     echo json_encode([
         'success'           => true,
         'realisasi_by_akun' => $realisasiByAkun,
+        'anggaran_by_akun'  => $anggaranByAkun,
         'total_pagu'        => $totalPagu,
         'total_realisasi'   => $totalRealisasi,
         'jumlah_kegiatan'   => $jumlahKegiatan,

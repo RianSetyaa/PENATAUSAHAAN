@@ -310,6 +310,33 @@ CREATE TABLE IF NOT EXISTS npd (
     INDEX idx_npd_skpd (skpd)
 ) ENGINE=InnoDB;
 
+-- 4.13 Anggaran LRA (setting anggaran per akun utk Laporan Realisasi Anggaran)
+CREATE TABLE IF NOT EXISTS anggaran_lra (
+    id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    skpd        VARCHAR(150) DEFAULT NULL,
+    tahun       VARCHAR(10)  DEFAULT NULL,
+    kode_akun   VARCHAR(50)  DEFAULT NULL,
+    nama_akun   VARCHAR(200) DEFAULT NULL,
+    anggaran    DECIMAL(18,2) DEFAULT 0,
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_al_skpd (skpd)
+) ENGINE=InnoDB;
+
+-- 4.14 Neraca Awal (setting saldo awal utk Neraca / saldo pembukuan)
+CREATE TABLE IF NOT EXISTS neraca_awal (
+    id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    skpd        VARCHAR(150) DEFAULT NULL,
+    tahun       VARCHAR(10)  DEFAULT NULL,
+    kode_akun   VARCHAR(50)  DEFAULT NULL,
+    nama_akun   VARCHAR(200) DEFAULT NULL,
+    saldo       DECIMAL(18,2) DEFAULT 0,
+    jenis       ENUM('aset','kewajiban','ekuitas') DEFAULT 'aset',
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_na_skpd (skpd)
+) ENGINE=InnoDB;
+
 -- ============================================================================
 -- 5) KOLOM TAMBAHAN (Belanja v2 + jurnal belanja AKLAP)
 --    dijalankan SETELAH tabel di atas dibuat, agar tabel tersedia.
