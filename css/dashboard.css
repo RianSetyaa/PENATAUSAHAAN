@@ -79,6 +79,7 @@ a {
     padding: 18px 16px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     min-height: var(--topbar-height);
+    overflow: hidden;
 }
 
 .sidebar-logo {
@@ -86,6 +87,8 @@ a {
     align-items: center;
     gap: 10px;
     min-width: 0;
+    overflow: hidden;
+    flex: 1;
 }
 
 .sidebar-logo img {
@@ -102,7 +105,9 @@ a {
     display: flex;
     flex-direction: column;
     white-space: nowrap;
-    transition: opacity var(--transition);
+    transition: opacity var(--transition), max-width var(--transition);
+    max-width: 160px;
+    overflow: hidden;
 }
 
 .title-main {
@@ -143,6 +148,8 @@ a {
     padding: 16px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     white-space: nowrap;
+    overflow: hidden;
+    transition: padding var(--transition);
 }
 
 .user-avatar {
@@ -168,7 +175,9 @@ a {
     display: flex;
     flex-direction: column;
     min-width: 0;
-    transition: opacity var(--transition);
+    transition: opacity var(--transition), max-width var(--transition);
+    max-width: 200px;
+    overflow: hidden;
 }
 
 .user-name {
@@ -213,6 +222,7 @@ a {
     font-weight: 500;
     transition: all var(--transition);
     white-space: nowrap;
+    overflow: hidden;
 }
 
 .menu-item i {
@@ -252,33 +262,72 @@ a {
     text-align: center;
     white-space: nowrap;
     transition: opacity var(--transition);
+    overflow: hidden;
 }
 
-/* Sidebar collapsed state */
+/* ============================================
+   Sidebar Collapsed State
+   ============================================ */
 .sidebar.collapsed {
     width: var(--sidebar-width-collapsed);
 }
 
+/* Sembunyikan teks & elemen yang tidak perlu saat collapsed */
 .sidebar.collapsed .sidebar-title,
 .sidebar.collapsed .user-info,
 .sidebar.collapsed .menu-label,
-.sidebar.collapsed .menu-item span,
 .sidebar.collapsed .sidebar-footer {
     opacity: 0;
     pointer-events: none;
+    max-width: 0;
+    overflow: hidden;
+}
+
+.sidebar.collapsed .menu-item span {
+    opacity: 0;
+    pointer-events: none;
+    width: 0;
+    overflow: hidden;
+    display: inline-block;
+    white-space: nowrap;
+}
+
+/* Sembunyikan submenu-arrow saat collapsed */
+.sidebar.collapsed .submenu-arrow {
+    opacity: 0;
+    width: 0;
+    pointer-events: none;
+    overflow: hidden;
 }
 
 .sidebar.collapsed .menu-item {
     justify-content: center;
     padding: 12px;
+    gap: 0;
 }
 
-.sidebar.collapsed .menu-item i {
+.sidebar.collapsed .menu-item i:first-of-type {
     margin: 0;
 }
 
+.sidebar.collapsed .sidebar-header {
+    justify-content: center;
+    padding: 18px 10px;
+}
+
+.sidebar.collapsed .sidebar-logo {
+    flex: 0 0 auto;
+    gap: 0;
+}
+
 .sidebar.collapsed .sidebar-toggle {
-    margin: 0 auto;
+    margin: 0;
+}
+
+.sidebar.collapsed .sidebar-user {
+    justify-content: center;
+    padding: 12px;
+    gap: 0;
 }
 
 /* ============================================
@@ -298,8 +347,9 @@ a {
     margin-left: auto;
     font-size: 11px;
     opacity: 0.7;
-    transition: transform var(--transition);
+    transition: transform var(--transition), opacity var(--transition), width var(--transition);
     flex-shrink: 0;
+    overflow: hidden;
 }
 
 .menu-group.open > .menu-item.has-submenu .submenu-arrow {
