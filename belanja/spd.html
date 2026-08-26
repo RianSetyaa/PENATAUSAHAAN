@@ -83,6 +83,7 @@
             <div class="card" id="tab-pembuatan">
                 <div class="card-head"><i class="fas fa-file-invoice"></i> Tambah SPD</div>
                 <div class="card-body">
+                    <p id="infoKebijakan" style="display:none;font-size:12.5px;color:#16305a;background:#eef4ff;border:1px solid #c7d7f5;border-radius:8px;padding:9px 12px;margin:0 0 12px;"></p>
                     <div class="form-grid">
                         <div><label>Tanggal *</label><input type="date" id="tanggal"></div>
                         <div><label>Jenis SPD</label><select id="jenis"><option>Gaji</option><option>Barang &amp; Jasa</option><option>Modal</option><option>Lainnya</option></select></div>
@@ -140,7 +141,39 @@
                 fetch('../api/belanja.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
                     .then(function (r) { return r.json(); }).then(cb).catch(function () { toast('Gagal terhubung ke server.'); });
             }
+
+            // ===== Kebijakan SPD aktif: tampilkan info & isi periode otomatis =====
+            var kebPeriode = ''; // jenis periode dari kebijakan (mis. "Bulanan")
+            function muatKebijakan() {
+                fetch('../api/belanja.php?action=kebijakan_spd_list').then(function (r) { return r.json(); }).then(function (d) {
+                    var list = (d && d.success) ? (d.data || []) : [];
+                    var keb = null;
+                    for (var i = 0; i < list.length; i++) { if ((list[i].status || '') === 'aktif') { keb = list[i]; break; } }
+                    var info = document.getElementById('infoKebijakan');
+                    if (!keb) { info.style.display = 'none'; kebPeriode = ''; return; }
+                    kebPeriode = String(keb.jenis_periode || '');
+                    info.style.display = '';
+                    info.innerHTML = '<i class="fas fa-circle-info"></i> <b>Kebijakan SPD aktif:</b> ' + esc(keb.jenis_penerbitan || '-') + ' &middot; Periode <b>' + esc(kebPeriode) + '</b>' + (keb.tanggal ? ' &middot; Berlaku sejak ' + fmtTgl(keb.tanggal) : '') + '. Label periode diisi otomatis dari tanggal.';
+                    sinkronPeriode(); // jika tanggal sudah dipilih lebih dulu
+                }).catch(function () {});
+            }
+            function hitungPeriodeLokal(tgl, jenisPeriode) {
+                if (!tgl) return '';
+                var p = tgl.split('-'); if (p.length !== 3) return '';
+                var y = parseInt(p[0], 10), m = parseInt(p[1], 10);
+                var bulan = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+                if (jenisPeriode === 'Triwulanan') return 'Triwulan ' + ['I','II','III','IV'][Math.floor((m - 1) / 3)] + ' ' + y;
+                if (jenisPeriode === 'Tahunan') return String(y);
+                return bulan[m - 1] + ' ' + y;
+            }
+            function sinkronPeriode() {
+                if (!kebPeriode) return;
+                var inp = document.getElementById('periode');
+                inp.value = hitungPeriodeLokal(document.getElementById('tanggal').value, kebPeriode);
+            }
+            document.getElementById('tanggal').addEventListener('change', sinkronPeriode);
             document.getElementById('btnSimpan').addEventListener('click', function () {
+                sinkronPeriode(); // pastikan periode sesuai kebijakan sebelum kirim
                 post({ action: 'spd_create', tanggal: document.getElementById('tanggal').value, jenis: document.getElementById('jenis').value, periode: document.getElementById('periode').value, jumlah: document.getElementById('jumlah').value }, function (d) {
                     toast(d.message || (d.success ? 'Tersimpan.' : 'Gagal.')); if (d.success) { document.getElementById('tanggal').value = ''; document.getElementById('periode').value = ''; document.getElementById('jumlah').value = ''; load(); }
                 });
@@ -180,7 +213,7 @@
                     b.classList.add('active'); curTab = b.getAttribute('data-tab'); load();
                 });
             });
-            load();
+            load(); muatKebijakan();
         })();
     </script>
 </body>

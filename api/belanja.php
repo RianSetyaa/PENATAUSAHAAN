@@ -28,6 +28,39 @@ function genNomor(string $prefix, PDO $pdo, string $table): string {
     $suffix = strtoupper(substr(bin2hex(random_bytes(2)), 0, 4));
     return $prefix . '-' . date('Ymd') . '-' . $suffix;
 }
+
+/**
+ * Hitung label periode SPD dari tanggal + jenis periode (sesuai Kebijakan SPD).
+ * Bulanan -> "Januari 2026" | Triwulanan -> "Triwulan I 2026" | Tahunan -> "2026".
+ */
+function hitungPeriodeSpd(string $tgl, string $jenisPeriode): string
+{
+    $bulanID = [1 => 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    $y = (int) substr($tgl, 0, 4);
+    $m = (int) substr($tgl, 5, 2);
+    if ($y < 2000 || $m < 1 || $m > 12) return '';
+    if ($jenisPeriode === 'Triwulanan') {
+        $rom = ['I', 'II', 'III', 'IV'][(intdiv($m - 1, 3))];
+        return "Triwulan {$rom} {$y}";
+    }
+    if ($jenisPeriode === 'Tahunan') return (string) $y;
+    return $bulanID[$m] . ' ' . $y; // Bulanan (default)
+}
+
+/**
+ * Ambil Kebijakan SPD aktif milik instansi (terbaru).
+ */
+function kebijakanSpdAktif(PDO $pdo, string $skpd): ?array
+{
+    try {
+        $stmt = $pdo->prepare("SELECT * FROM kebijakan_spd WHERE skpd = ? AND status = 'aktif' ORDER BY id DESC LIMIT 1");
+        $stmt->execute([$skpd]);
+        $row = $stmt->fetch();
+        return $row ?: null;
+    } catch (Throwable $e) {
+        return null; // tabel belum ada -> lewati validasi
+    }
+}
 function skpdCond(string $alias, string $skpd): array {
     if ($skpd === '') return ['', []];
     return [" AND {$alias}.skpd = ?", [$skpd]];
@@ -301,11 +334,29 @@ if ($method === 'POST') {
         $periode  = trim((string) ($body['periode'] ?? ''));
         $jumlah   = (float) ($body['jumlah'] ?? 0);
         if ($tanggal === '') jsonResponse(false, 'Tanggal SPD wajib diisi.', ['field' => 'tanggal'], 422);
+        if (!isValidTanggal($tanggal)) jsonResponse(false, 'Format tanggal tidak valid.', ['field' => 'tanggal'], 422);
         if ($jumlah <= 0) jsonResponse(false, 'Jumlah harus lebih dari 0.', ['field' => 'jumlah'], 422);
+
+        // ===== Validasi Kebijakan SPD (aturan penerbitan dari BUD) =====
+        // Jika ada kebijakan aktif: jenis periode SPD wajib sesuai kebijakan,
+        // dan label periode diisi otomatis dari tanggal + jenis periode.
+        $keb = kebijakanSpdAktif($pdo, $skpd);
+        if ($keb) {
+            $jenisPeriodeKeb = trim((string) ($keb['jenis_periode'] ?? ''));
+            $penerbitanKeb   = trim((string) ($keb['jenis_penerbitan'] ?? ''));
+            // Kebijakan "Sekali Bayar" tidak membatasi periode
+            if ($penerbitanKeb !== '' && stripos($penerbitanKeb, 'Sekali Bayar') === false && $jenisPeriodeKeb !== '') {
+                if ($periode !== '' && $periode !== $jenisPeriodeKeb) {
+                    jsonResponse(false, 'Kebijakan SPD aktif menetapkan periode "' . $jenisPeriodeKeb . '". Ubah kebijakan terlebih dahulu bila ingin berbeda.', ['field' => 'periode'], 422);
+                }
+                $periode = hitungPeriodeSpd($tanggal, $jenisPeriodeKeb);
+            }
+        }
+
         $nomor = genNomor('SPD', $pdo, 'spd');
         $stmt = $pdo->prepare("INSERT INTO spd (user_id, skpd, nomor_spd, tanggal, jenis, periode, jumlah, status) VALUES (?,?,?,?,?,?,?, 'belum_otorisasi')");
         $stmt->execute([$_SESSION['user_id'] ?? null, $skpd, $nomor, $tanggal, $jenis, $periode, $jumlah]);
-        jsonResponse(true, 'SPD berhasil dibuat.', ['id' => (int) $pdo->lastInsertId(), 'nomor_spd' => $nomor], 201);
+        jsonResponse(true, 'SPD berhasil dibuat.' . ($keb ? ' Periode mengikuti Kebijakan SPD (' . trim((string) ($keb['jenis_periode'] ?? '')) . ').' : ''), ['id' => (int) $pdo->lastInsertId(), 'nomor_spd' => $nomor], 201);
     }
     if ($action === 'spd_otorisasi') {
         $id = (int) ($body['id'] ?? 0);
