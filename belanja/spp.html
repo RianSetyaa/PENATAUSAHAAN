@@ -24,6 +24,27 @@
         .pp-grid input:focus, .pp-grid select:focus { outline:none; border-color:#2c5aa0; box-shadow:0 0 0 3px rgba(44,90,160,.12); }
         .pp-head { display:grid; grid-template-columns:1.1fr 1.5fr 90px 160px 160px 150px 160px 150px 44px; gap:8px; font-size:12px; color:#5a6c7d; font-weight:700; margin-bottom:6px; }
         .modal-overlay.show { display:flex; }
+
+        /* ===== Rincian Penggunaan / Pengeluaran ===== */
+        .rincian-box { margin-top:16px; border:1px solid #dbe3ef; border-radius:12px; overflow:hidden; background:#fbfcfe; }
+        .rincian-head { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; padding:11px 14px; background:linear-gradient(90deg,#f2f6fd,#eaf1fb); border-bottom:1px solid #dbe3ef; }
+        .rincian-title { font-size:13px; font-weight:700; color:#1a3a6b; display:flex; align-items:center; gap:8px; }
+        .rincian-title i { color:#2c5aa0; }
+        .rincian-hint { font-size:11.5px; color:#64748b; font-weight:600; background:#fff; border:1px dashed #c9d6ea; padding:4px 10px; border-radius:999px; }
+        .rincian-table thead th { background:#f4f7fc; color:#41546e; font-size:11.5px; text-transform:uppercase; letter-spacing:.3px; padding:9px 12px; text-align:left; border-bottom:1px solid #e3e9f2; white-space:nowrap; position:static; }
+        .rincian-table td { padding:8px 12px; border-bottom:1px solid #eef2f8; vertical-align:middle; }
+        .rincian-table tbody tr:hover { background:#f6f9ff; }
+        .rincian-table tbody tr:last-child td { border-bottom:none; }
+        .rincian-num { width:40px; color:#8a97ab; font-size:12px; text-align:center; font-weight:600; }
+        .rincian-sel { min-width:260px; height:36px; border:1px solid #d6dee8; border-radius:8px; padding:0 30px 0 10px; font-size:12.5px; font-family:inherit; color:#1f2937; background:#fff url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7a90' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") no-repeat right 10px center; appearance:none; -webkit-appearance:none; cursor:pointer; }
+        .rincian-inp { height:36px; border:1px solid #d6dee8; border-radius:8px; padding:0 10px; font-size:12.5px; width:100%; min-width:160px; font-family:inherit; color:#1f2937; background:#fff; }
+        .rincian-jml { width:150px; min-width:130px; text-align:right; }
+        .rincian-sel:focus, .rincian-inp:focus { outline:none; border-color:#2c5aa0; box-shadow:0 0 0 3px rgba(44,90,160,.12); }
+        .rincian-del { width:32px; height:32px; border-radius:8px; border:1px solid #f3c1c1; background:#fdf1f1; color:#c0392b; cursor:pointer; transition:background .15s ease; }
+        .rincian-del:hover { background:#fbe3e3; }
+        .rincian-foot { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; padding:10px 14px; background:#f7fafd; border-top:1px solid #e3e9f2; }
+        .rincian-total { font-size:12.5px; font-weight:700; color:#16305a; background:#e8effb; padding:6px 14px; border-radius:999px; }
+        .rincian-empty { text-align:center; color:#9098a5; font-size:12px; padding:20px 12px !important; }
     </style>
 </head>
 <body>
@@ -105,17 +126,20 @@
                         <div id="wrap-lpj" style="display:none;"><label>LPJ (untuk GU) *</label><select id="lpj_id"><option value="">-- Pilih LPJ --</option></select></div>
                         <div id="wrap-ptu" style="display:none;"><label>Pengajuan TU (untuk TU) *</label><select id="pengajuan_tu_id"><option value="">-- Pilih Pengajuan TU --</option></select></div>
                     </div>
-                    <div id="wrap-detail" style="display:none;margin-top:16px;">
-                        <div style="font-size:13px;font-weight:600;margin-bottom:8px;color:#1a3a6b;"><i class="fas fa-list-ul"></i> Rincian Rencana Penggunaan (LS Gaji)</div>
+                    <div id="wrap-detail" class="rincian-box" style="display:none;">
+                        <div class="rincian-head">
+                            <div class="rincian-title"><i class="fas fa-list-ul"></i> <span id="detailTitle">Rincian Rencana Penggunaan</span></div>
+                            <div class="rincian-hint" id="detailHint"></div>
+                        </div>
                         <div style="overflow-x:auto;">
-                            <table class="data-table">
-                                <thead><tr><th>No.</th><th>Kode Rekening (Belanja)</th><th>Uraian</th><th>Jumlah (Rp)</th><th></th></tr></thead>
+                            <table class="data-table rincian-table">
+                                <thead><tr><th class="rincian-num">No.</th><th>Kode Rekening (Akun Belanja)</th><th>Uraian</th><th style="text-align:right;">Jumlah (Rp)</th><th style="width:52px;"></th></tr></thead>
                                 <tbody id="detailRows"></tbody>
                             </table>
                         </div>
-                        <div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                        <div class="rincian-foot">
                             <button type="button" class="btn btn-sm" id="btnAddDetail"><i class="fas fa-plus"></i> Tambah Baris</button>
-                            <span id="detailSummary" style="font-size:12px;color:#5a6c7d;"></span>
+                            <span class="rincian-total" id="detailSummary">Total Rincian: Rp 0</span>
                         </div>
                     </div>
                     <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
@@ -187,6 +211,33 @@
                 ['5.1.2.01.02', 'Tambahan Penghasilan Berdasarkan Kondisi Kerja'],
                 ['5.1.2.01.03', 'Tambahan Penghasilan Berdasarkan Prestasi Kerja']
             ];
+            // Akun Belanja Barang & Jasa (5.2.2.x) untuk Rincian Pengeluaran LS B&J
+            var BARJAS_AKUNS_STATIC = [
+                ['5.2.2.01.01', 'Belanja Telepon'],
+                ['5.2.2.01.02', 'Belanja Air'],
+                ['5.2.2.01.03', 'Belanja Listrik'],
+                ['5.2.2.01.04', 'Belanja Alat Tulis Kantor'],
+                ['5.2.2.01.05', 'Belanja Perangko, Materai'],
+                ['5.2.2.01.06', 'Belanja Cetak'],
+                ['5.2.2.01.07', 'Belanja Sewa Rumah/Gedung'],
+                ['5.2.2.01.09', 'Belanja Makan Minum Rapat'],
+                ['5.2.2.01.11', 'Belanja Makan Minum Kegiatan'],
+                ['5.2.2.01.12', 'Belanja Dokumen/Administrasi Tender'],
+                ['5.2.2.01.14', 'Belanja Penginapan'],
+                ['5.2.2.01.15', 'Belanja Perjalanan Dinas'],
+                ['5.2.2.01.16', 'Belanja Perjalanan Dinas Luar Daerah'],
+                ['5.2.2.07.04', 'Sewa Rumah Kontrakan Tugas Belajar'],
+                ['5.2.2.16.03', 'Belanja Beasiswa Tugas Belajar S2'],
+                ['5.2.2.21.13', 'Belanja Jasa Konsultan Akuntansi dan Keuangan']
+            ];
+            // Gabungan akun utk dropdown rincian: gaji (5.1.x) + barang & jasa (5.2.2.x)
+            function semuaAkunRincian() {
+                var map = {}, out = [];
+                BELANJA_AKUNS.concat(BARJAS_AKUNS_STATIC).forEach(function (a) {
+                    if (!map[a[0]]) { map[a[0]] = true; out.push(a); }
+                });
+                return out;
+            }
             function toast(msg) { var t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(t._t); t._t = setTimeout(function () { t.classList.remove('show'); }, 2400); }
             function esc(s) { var d = document.createElement('div'); d.textContent = String(s || ''); return d.innerHTML; }
             function rupiah(v) { return Number(v || 0).toLocaleString('id-ID'); }
@@ -230,20 +281,47 @@
                 document.getElementById('wrap-detail').style.display = (j === 'LS Gaji' || j === 'LS Barang & Jasa') ? '' : 'none';
                 document.getElementById('jumlah').readOnly = (j === 'LS Gaji' || j === 'LS Barang & Jasa');
                 if (j !== 'LS Barang & Jasa') ppRows = [];
+                // Judul & petunjuk dinamis sesuai jenis SPP
+                var dTtl = document.getElementById('detailTitle');
+                var dHnt = document.getElementById('detailHint');
+                if (j === 'LS Gaji') {
+                    dTtl.textContent = 'Rincian Rencana Penggunaan (LS Gaji)';
+                    dHnt.textContent = 'Dicetak pada lampiran surat SPP';
+                } else if (j === 'LS Barang & Jasa') {
+                    dTtl.textContent = 'Rincian Pengeluaran per Akun (LS Barang & Jasa)';
+                    dHnt.textContent = 'Tidak dicetak di surat — untuk Buku Rincian Objek Belanja';
+                }
+                // Otomatis sediakan satu baris saat memilih jenis LS
+                if ((j === 'LS Gaji' || j === 'LS Barang & Jasa') && !detailRows.length) {
+                    var autoKode = (j === 'LS Barang & Jasa') ? findBarjasKode() : '';
+                    var autoUraian = (j === 'LS Barang & Jasa') ? 'Belanja Barang dan Jasa' : '';
+                    detailRows.push({ kode: autoKode, uraian: autoUraian, jumlah: '' });
+                }
+                // Baris LS B&J yang masih kosong -> isi otomatis kode default
+                if (j === 'LS Barang & Jasa') {
+                    detailRows.forEach(function (r) {
+                        if (!r.kode) { r.kode = findBarjasKode(); if (!r.uraian) r.uraian = 'Belanja Barang dan Jasa'; }
+                    });
+                }
                 renderPPRows(); updatePPSummary(); renderDetailRows();
             }
             function renderDetailRows() {
                 var wrap = document.getElementById('detailRows');
                 if (!wrap) return;
-                if (!detailRows.length) { wrap.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#9098a5;font-size:12px;">Belum ada rincian gaji. Klik Tambah Baris untuk menambah kode rekening.</td></tr>'; updateDetailSummary(); return; }
+                var jj = document.getElementById('jenis_spp').value;
+                var kosong = (jj === 'LS Barang & Jasa')
+                    ? 'Belum ada rincian pengeluaran. Klik Tambah Baris untuk memilih akun belanja.'
+                    : 'Belum ada rincian gaji. Klik Tambah Baris untuk menambah kode rekening.';
+                if (!detailRows.length) { wrap.innerHTML = '<tr><td colspan="5" class="rincian-empty">' + kosong + '</td></tr>'; updateDetailSummary(); return; }
+                var AKUN_RINCIAN = semuaAkunRincian();
                 wrap.innerHTML = detailRows.map(function (r, i) {
-                    var opts = '<option value="">-- Pilih Kode Rekening --</option>' + BELANJA_AKUNS.map(function (a) { return '<option value="' + a[0] + '"' + (r.kode === a[0] ? ' selected' : '') + '>' + a[0] + ' - ' + esc(a[1]) + '</option>'; }).join('');
+                    var opts = '<option value="">-- Pilih Kode Rekening --</option>' + AKUN_RINCIAN.map(function (a) { return '<option value="' + a[0] + '"' + (r.kode === a[0] ? ' selected' : '') + '>' + a[0] + ' - ' + esc(a[1]) + '</option>'; }).join('');
                     return '<tr>' +
-                        '<td>' + (i + 1) + '</td>' +
-                        '<td><select data-i="' + i + '" data-f="kode" style="min-width:240px;">' + opts + '</select></td>' +
-                        '<td><input data-i="' + i + '" data-f="uraian" value="' + esc(r.uraian) + '" placeholder="Uraian" style="width:100%;min-width:160px;"></td>' +
-                        '<td><input data-i="' + i + '" data-f="jumlah" type="number" min="0" step="0.01" value="' + esc(r.jumlah) + '" placeholder="0" style="width:140px;text-align:right;"></td>' +
-                        '<td><button type="button" class="btn btn-sm btn-danger" data-del="' + i + '" style="background:#e74c3c;border:none;color:#fff;height:30px;"><i class="fas fa-trash"></i></button></td>' +
+                        '<td class="rincian-num">' + (i + 1) + '</td>' +
+                        '<td><select class="rincian-sel" data-i="' + i + '" data-f="kode">' + opts + '</select></td>' +
+                        '<td><input class="rincian-inp" data-i="' + i + '" data-f="uraian" value="' + esc(r.uraian) + '" placeholder="Uraian"></td>' +
+                        '<td><input class="rincian-inp rincian-jml" data-i="' + i + '" data-f="jumlah" type="number" min="0" step="0.01" value="' + esc(r.jumlah) + '" placeholder="0"></td>' +
+                        '<td style="text-align:center;"><button type="button" class="rincian-del" data-del="' + i + '" title="Hapus baris"><i class="fas fa-trash"></i></button></td>' +
                     '</tr>';
                 }).join('');
                 updateDetailSummary();
@@ -257,10 +335,10 @@
                 if (jj === 'LS Gaji' || jj === 'LS Barang & Jasa') j.value = sum ? String(sum) : '';
             }
             function findBarjasKode() {
-                for (var i = 0; i < BELANJA_AKUNS.length; i++) {
-                    if (BELANJA_AKUNS[i][0].indexOf('5.2.2') === 0) return BELANJA_AKUNS[i][0];
+                for (var i = 0; i < BARJAS_AKUNS_STATIC.length; i++) {
+                    if (BARJAS_AKUNS_STATIC[i][0].indexOf('5.2.2') === 0) return BARJAS_AKUNS_STATIC[i][0];
                 }
-                return '5.2.2.01';
+                return '5.2.2.01.01';
             }
             document.getElementById('btnAddDetail').addEventListener('click', function () {
                 var j = document.getElementById('jenis_spp').value;
@@ -356,7 +434,7 @@
                     var n = jm ? Number(jm.value || 0) : 0;
                     if ((k || u) && n > 0) detail.push({ kode_rekening: k, uraian: u, jumlah: n });
                 });
-                if (j === 'LS Gaji' && !detail.length) { toast('Tambahkan minimal satu baris rincian gaji (kode rekening + jumlah).'); return; }
+                if ((j === 'LS Gaji' || j === 'LS Barang & Jasa') && !detail.length) { toast('Tambahkan minimal satu baris rincian penggunaan (akun + jumlah).'); return; }
                 var body = {
                     action: 'spp_create',
                     tanggal: document.getElementById('tanggal').value,
@@ -488,26 +566,31 @@
                     ], ttdBendahara);
 
                 // ==== HALAMAN 3 : RINCIAN RENCANA PENGGUNAAN ====
-                var rincianRows = details ? details.map(function (dt) { return { kode: dt.kode_rekening, uraian: dt.uraian, jumlah: dt.jumlah }; }) : [
-                    { kode: '', uraian: r.keperluan || ('Belanja ' + j), jumlah: r.jumlah },
-                    { kode: '', uraian: '', jumlah: '' },
-                    { kode: '', uraian: '', jumlah: '' }
-                ];
-                var p3 =
-                    '<div class="blok">' +
-                        C.blokTitle('RINCIAN RENCANA PENGGUNAAN') +
-                        C.rincianTable(rincianRows, [
-                            { t: 'No', key: null },
-                            { t: 'Kode Rekening (jenis)', key: 'kode' },
-                            { t: 'Uraian', key: 'uraian' },
-                            { t: 'Jumlah (Rp)', key: 'jumlah', num: true, fmt: function (v) { return (v === '' || v == null) ? '' : C.rupiah(v) + ',-'; } }
-                        ], { total: C.rupiah(r.jumlah) + ',-' }) +
-                        '<div class="surat">Terbilang : ' + C.terbilangRupiah(r.jumlah) + '</div>' +
-                        '<div class="surat tgl">' + skpd + ', ' + C.tgl(r.tanggal) + '</div>' +
-                        C.ttdTunggal(ttdBendahara) +
-                    '</div>';
+                // Hanya untuk LS Gaji. Rincian LS Barang & Jasa TIDAK dicetak di
+                // surat — datanya hanya untuk Buku Rincian Objek Belanja.
+                var p3 = '';
+                if (j === 'LS Gaji') {
+                    var rincianRows = details ? details.map(function (dt) { return { kode: dt.kode_rekening, uraian: dt.uraian, jumlah: dt.jumlah }; }) : [
+                        { kode: '', uraian: r.keperluan || ('Belanja ' + j), jumlah: r.jumlah },
+                        { kode: '', uraian: '', jumlah: '' },
+                        { kode: '', uraian: '', jumlah: '' }
+                    ];
+                    p3 =
+                        '<div class="blok">' +
+                            C.blokTitle('RINCIAN RENCANA PENGGUNAAN') +
+                            C.rincianTable(rincianRows, [
+                                { t: 'No', key: null },
+                                { t: 'Kode Rekening (jenis)', key: 'kode' },
+                                { t: 'Uraian', key: 'uraian' },
+                                { t: 'Jumlah (Rp)', key: 'jumlah', num: true, fmt: function (v) { return (v === '' || v == null) ? '' : C.rupiah(v) + ',-'; } }
+                            ], { total: C.rupiah(r.jumlah) + ',-' }) +
+                            '<div class="surat">Terbilang : ' + C.terbilangRupiah(r.jumlah) + '</div>' +
+                            '<div class="surat tgl">' + skpd + ', ' + C.tgl(r.tanggal) + '</div>' +
+                            C.ttdTunggal(ttdBendahara) +
+                        '</div>';
+                }
 
-                var body = p1 + brk + pgHeader() + p2 + brk + pgHeader() + p3;
+                var body = p1 + brk + pgHeader() + p2 + (p3 ? (brk + pgHeader() + p3) : '');
 
                 C.bukaCetak({
                     title: judul,
