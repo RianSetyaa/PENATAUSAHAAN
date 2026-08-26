@@ -895,7 +895,7 @@
                 reader.onload = function (ev) {
                     sheet.style.setProperty('--wm', 'url("' + ev.target.result + '")');
                     sheet.classList.add('watermarked');
-                    wmText.innerHTML = 'File: <b>' + file.name + '</b>';
+                    wmText.textContent = 'File: ' + file.name;
                     wmClear.style.display = 'inline-flex';
                 };
                 reader.readAsDataURL(file);

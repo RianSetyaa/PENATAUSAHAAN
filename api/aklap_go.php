@@ -24,10 +24,10 @@ if (!isLoggedIn()) {
 // Ambil token dari sesi; auto-provisi bila kosong (akun lama)
 $token = (string) ($_SESSION['api_token'] ?? '');
 if ($token === '') {
-    $token = bin2hex(random_bytes(16));
+    $token = generateApiToken();
     try {
         $stmt = db()->prepare("UPDATE users SET api_token = ? WHERE id = ?");
-        $stmt->execute([$token, (int) $_SESSION['user_id']]);
+        $stmt->execute([hashApiToken($token), (int) $_SESSION['user_id']]);
         $_SESSION['api_token'] = $token;
     } catch (Throwable $e) {
         // biarkan kosong; AKLAP akan menolak tanpa token

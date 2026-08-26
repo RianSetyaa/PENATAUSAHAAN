@@ -22,7 +22,7 @@ if (!isLoggedIn()) {
 }
 
 $pdo  = db();
-$skpd = (string) ($_SESSION['instansi'] ?? ''); // pemisahan data multi-dinas
+$skpd = requireInstansi(); // pemisahan data multi-dinas (fail-closed)
 
 $STATUS_LIST = ['aktif', 'dihapus'];
 
@@ -164,7 +164,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nama_rek     = trim((string) ($body['nama_rekening'] ?? ''));
     $keterangan   = trim((string) ($body['keterangan'] ?? ''));
     // skpd selalu dari sesi (jangan percaya input klien)
-    $skpd         = trim((string) ($_SESSION['instansi'] ?? ''));
+    $skpd         = requireInstansi();
     $stbp_ids     = is_array($body['stbp_ids'] ?? null) ? array_map('intval', $body['stbp_ids']) : [];
 
     // Auto-generate nomor STS jika tidak diisi

@@ -343,7 +343,12 @@
                 const toast = document.createElement('div');
                 toast.className = 'toast toast-' + (type || 'success');
                 const icons = { success: 'fa-check-circle', error: 'fa-times-circle', warning: 'fa-exclamation-triangle' };
-                toast.innerHTML = '<i class="fas ' + (icons[type] || icons.success) + '"></i><span>' + message + '</span>';
+                const span = document.createElement('span');
+                span.textContent = message; // aman dari XSS
+                const icon = document.createElement('i');
+                icon.className = 'fas ' + (icons[type] || icons.success);
+                toast.appendChild(icon);
+                toast.appendChild(span);
                 document.body.appendChild(toast);
                 setTimeout(function () { toast.remove(); }, 3200);
             }

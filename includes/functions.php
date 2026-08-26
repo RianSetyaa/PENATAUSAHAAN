@@ -77,3 +77,96 @@ function generateCaptchaCode(int $length = 5): string
     }
     return $code;
 }
+
+/**
+ * Ambil instansi (tenant key) dari sesi — WAJIB terisi.
+ * Fail-closed: jika kosong, akses ditolak (bukan melewatkan filter skpd).
+ * Return: string instansi. Menghentikan eksekusi dengan 403 jika kosong.
+ */
+function requireInstansi(): string
+{
+    $skpd = trim((string) ($_SESSION['instansi'] ?? ''));
+    if ($skpd === '') {
+        jsonResponse(false, 'Instansi belum diatur pada akun Anda. Hubungi administrator.', [], 403);
+    }
+    return $skpd;
+}
+
+/**
+ * Validasi tahun anggaran (int, rentang wajar).
+ */
+function isValidTahun($tahun): bool
+{
+    return is_numeric($tahun) && (int) $tahun >= 2000 && (int) $tahun <= 2100;
+}
+
+/**
+ * Validasi tanggal format YYYY-MM-DD.
+ */
+function isValidTanggal(string $tgl): bool
+{
+    if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $tgl)) {
+        return false;
+    }
+    [$y, $m, $d] = array_map('intval', explode('-', $tgl));
+    return checkdate($m, $d, $y);
+}
+
+/**
+ * Generate token API acak (32 hex char). Token MENTAH hanya diketahui user;
+ * yang disimpan di DB adalah HASH-nya (lihat hashApiToken()).
+ */
+function generateApiToken(): string
+{
+    return bin2hex(random_bytes(16));
+}
+
+/**
+ * Hash token API untuk penyimpanan di DB (SHA-256 hex, 64 char).
+ * DB tidak pernah menyimpan token mentah -> kebocoran DB tidak langsung
+ * memungkinkan impersonasi akun.
+ */
+function hashApiToken(string $token): string
+{
+    return hash('sha256', $token);
+}
+
+/**
+ * Rate limit sederhana berbasis file (tanpa DB/Redis).
+ * Key bebas (mis. "login:user" atau "login:ip"). Max $max percobaan dalam $windowDetik.
+ * Return true jika DIIZINKAN (dan mencatat percobaan), false jika melebihi batas.
+ */
+function rateLimitCheck(string $key, int $max = 5, int $windowDetik = 300): bool
+{
+    $dir = sys_get_temp_dir() . '/simtkd_ratelimit';
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0700, true);
+    }
+    $file = $dir . '/' . hash('sha256', $key) . '.json';
+    $now = time();
+    $attempts = [];
+    if (is_file($file)) {
+        $attempts = json_decode((string) @file_get_contents($file), true) ?: [];
+        // buang entri di luar jendela waktu
+        $attempts = array_values(array_filter($attempts, function ($t) use ($now, $windowDetik) {
+            return ($now - (int) $t) < $windowDetik;
+        }));
+    }
+    if (count($attempts) >= $max) {
+        return false;
+    }
+    $attempts[] = $now;
+    @file_put_contents($file, json_encode($attempts), LOCK_EX);
+    return true;
+}
+
+/**
+ * Hapus catatan rate limit untuk key (mis. setelah login sukses).
+ */
+function rateLimitClear(string $key): void
+{
+    $path = sys_get_temp_dir() . '/simtkd_ratelimit/' . hash('sha256', $key) . '.json';
+    if (is_file($path)) {
+        @unlink($path);
+    }
+}

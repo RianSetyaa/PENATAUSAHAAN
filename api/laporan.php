@@ -21,7 +21,7 @@ if (!isLoggedIn()) {
 }
 
 $pdo  = db();
-$skpd = (string) ($_SESSION['instansi'] ?? ''); // pemisahan data multi-dinas
+$skpd = requireInstansi(); // pemisahan data multi-dinas (fail-closed)
 
 $action = input('action', 'bku');
 

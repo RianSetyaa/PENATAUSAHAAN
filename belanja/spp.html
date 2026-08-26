@@ -61,6 +61,13 @@
                 </div>
             </div>
             <a href="../api/aklap_go.php" class="menu-item"><i class="fas fa-book"></i><span>Akuntansi</span></a>
+            <div class="menu-group" data-menu="pengaturan">
+                <a href="#" class="menu-item has-submenu"><i class="fas fa-cog"></i><span>Pengaturan</span><i class="fas fa-chevron-down submenu-arrow"></i></a>
+                <div class="submenu">
+                    <a href="../pengaturan/akun-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-coins"></i><span>Akun Penerimaan</span></a>
+                    <a href="../pengaturan/anggaran-neraca.html" class="menu-item submenu-item"><i class="fas fa-chart-line"></i><span>Anggaran &amp; Neraca</span></a>
+                </div>
+            </div>
             <span class="menu-label">AKUN</span>
             <a href="../api/logout.php" class="menu-item menu-logout"><i class="fas fa-sign-out-alt"></i><span>Keluar</span></a>
         </nav>
@@ -193,26 +200,26 @@
                     spdSisa = {};
                     var opts = (d && d.success) ? (d.data || []).map(function (s) { spdSisa[s.id] = Number(s.sisa || 0); return '<option value="' + s.id + '">' + esc(s.nomor_spd) + ' — Sisa: Rp ' + rupiah(s.sisa) + '</option>'; }).join('') : '';
                     sel.innerHTML = '<option value="">-- Pilih SPD (sisa) --</option>' + opts;
-                });
+                }).catch(function () { toast('Gagal memuat daftar SPD.'); });
                 fetch('../api/belanja.php?action=rekanan_list').then(function (r) { return r.json(); }).then(function (d) {
                     var sel = document.getElementById('rekanan_id');
                     sel.innerHTML = '<option value="">-- Pilih Rekanan --</option>' + ((d && d.success) ? (d.data || []).map(function (r) { return '<option value="' + r.id + '">' + esc(r.nama_rekanan) + '</option>'; }).join('') : '');
-                });
+                }).catch(function () { toast('Gagal memuat daftar rekanan.'); });
                 fetch('../api/belanja.php?action=lpj_list').then(function (r) { return r.json(); }).then(function (d) {
                     var sel = document.getElementById('lpj_id');
                     sel.innerHTML = '<option value="">-- Pilih LPJ --</option>' + ((d && d.success) ? (d.data || []).map(function (l) { return '<option value="' + l.id + '">' + esc(l.nomor_lpj) + ' (Rp ' + rupiah(l.jumlah) + ')</option>'; }).join('') : '');
-                });
+                }).catch(function () { toast('Gagal memuat daftar LPJ.'); });
                 fetch('../api/belanja.php?action=pengajuan_tu_list&status=sudah_divalidasi').then(function (r) { return r.json(); }).then(function (d) {
                     var sel = document.getElementById('pengajuan_tu_id');
                     sel.innerHTML = '<option value="">-- Pilih Pengajuan TU --</option>' + ((d && d.success) ? (d.data || []).map(function (t) { return '<option value="' + t.id + '">' + esc(t.nomor_pengajuan) + ' (Rp ' + rupiah(t.jumlah) + ')</option>'; }).join('') : '');
-                });
+                }).catch(function () { toast('Gagal memuat daftar Pengajuan TU.'); });
             }
             function loadBelanjaAkuns() {
                 fetch('../api/akun_penerimaan.php?aktif=1').then(function (r) { return r.json(); }).then(function (d) {
                     var list = (d && d.success) ? (d.data || []).filter(function (a) { return String(a.kode_akun || '').indexOf('5.') === 0; }) : [];
                     BELANJA_AKUNS = list.length ? list.map(function (a) { return [a.kode_akun, a.nama_akun]; }) : BELANJA_AKUNS_STATIC;
                     renderDetailRows();
-                });
+                }).catch(function () { BELANJA_AKUNS = BELANJA_AKUNS_STATIC; renderDetailRows(); });
             }
             function syncJenis() {
                 var j = document.getElementById('jenis_spp').value;

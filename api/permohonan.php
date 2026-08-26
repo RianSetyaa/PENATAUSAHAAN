@@ -28,7 +28,7 @@ $method = $_SERVER['REQUEST_METHOD'];
 if ($method === 'GET') {
     $q     = input('q');
     $aktif = input('aktif', ''); // '1' = hanya rekening yang disetujui & aktif (untuk STBP)
-    $skpd  = (string) ($_SESSION['instansi'] ?? ''); // pemisahan data multi-dinas
+    $skpd  = requireInstansi(); // pemisahan data multi-dinas (fail-closed)
 
     $sql    = "SELECT p.*, u.nama_lengkap AS dibuat_oleh
                FROM permohonan p
@@ -94,7 +94,7 @@ if ($method === 'POST') {
         if ($id <= 0) {
             jsonResponse(false, 'ID tidak valid.', [], 422);
         }
-        $skpdS = (string) ($_SESSION['instansi'] ?? ''); // scope multi-dinas
+        $skpdS = $skpd; // scope multi-dinas (fail-closed di atas)
         $stmt = $pdo->prepare("UPDATE permohonan SET status_aktif = ? WHERE id = ? AND (? = '' OR skpd = ?)");
         $stmt->execute([$status, $id, $skpdS, $skpdS]);
         if ($stmt->rowCount() === 0) {
@@ -109,7 +109,7 @@ if ($method === 'POST') {
         if ($id <= 0) {
             jsonResponse(false, 'ID tidak valid.', [], 422);
         }
-        $skpdS = (string) ($_SESSION['instansi'] ?? ''); // scope multi-dinas
+        $skpdS = $skpd; // scope multi-dinas (fail-closed di atas)
         $stmt = $pdo->prepare("UPDATE permohonan SET status_terbit = 1, status_disetujui = 1, status_aktif = 1 WHERE id = ? AND (? = '' OR skpd = ?)");
         $stmt->execute([$id, $skpdS, $skpdS]);
         if ($stmt->rowCount() === 0) {
@@ -122,7 +122,7 @@ if ($method === 'POST') {
     $nama   = input('nama_rekening');
     $nomor  = input('nomor_rekening');
     // skpd selalu dari sesi (jangan percaya input klien)
-    $skpd   = (string) ($_SESSION['instansi'] ?? '');
+    $skpd   = requireInstansi();
 
     if ($bank === '') {
         jsonResponse(false, 'Silakan pilih bank.', ['field' => 'bank'], 422);

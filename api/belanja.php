@@ -20,7 +20,7 @@ if (!isLoggedIn()) {
 }
 
 $pdo  = db();
-$skpd = (string) ($_SESSION['instansi'] ?? '');
+$skpd = requireInstansi(); // fail-closed: tolak jika instansi kosong
 $method = $_SERVER['REQUEST_METHOD'];
 
 // Helper nomor dokumen otomatis

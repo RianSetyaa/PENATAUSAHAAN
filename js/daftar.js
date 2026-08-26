@@ -204,7 +204,13 @@
             error: 'fa-times-circle',
             warning: 'fa-exclamation-triangle'
         };
-        toast.innerHTML = '<i class="fas ' + (icons[type] || icons.success) + '"></i><span>' + message + '</span>';
+        const span = document.createElement('span');
+        // textContent (bukan innerHTML) agar pesan dari API tidak bisa menyuntik HTML (XSS)
+        span.textContent = message;
+        const icon = document.createElement('i');
+        icon.className = 'fas ' + (icons[type] || icons.success);
+        toast.appendChild(icon);
+        toast.appendChild(span);
         toastContainer.appendChild(toast);
 
         setTimeout(function () {

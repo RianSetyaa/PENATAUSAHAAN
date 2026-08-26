@@ -24,7 +24,7 @@ if (!isLoggedIn()) {
 
 $pdo = db();
 $method = $_SERVER['REQUEST_METHOD'];
-$skpd = (string) ($_SESSION['instansi'] ?? '');
+$skpd = requireInstansi(); // fail-closed: tolak jika instansi kosong
 
 function requestBody(): array
 {

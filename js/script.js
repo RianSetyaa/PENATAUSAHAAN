@@ -174,10 +174,13 @@
             warning: 'fa-exclamation-triangle'
         };
 
-        toast.innerHTML = `
-            <i class="fas ${icons[type] || icons.success}"></i>
-            <span>${message}</span>
-        `;
+        // textContent (bukan innerHTML) agar pesan dari API tidak bisa menyuntik HTML (XSS)
+        const span = document.createElement('span');
+        span.textContent = message;
+        const icon = document.createElement('i');
+        icon.className = 'fas ' + (icons[type] || icons.success);
+        toast.appendChild(icon);
+        toast.appendChild(span);
 
         toastContainer.appendChild(toast);
 
@@ -325,7 +328,6 @@
         generateCaptcha();
 
         console.log('SIM-TKD - Sistem Informasi Manajemen Tata Kelola Daerah (Modul Edukasi) - Login Page Ready');
-        console.log('Demo credentials: username=admin, password=admin123');
     }
 
     // Run on DOM ready

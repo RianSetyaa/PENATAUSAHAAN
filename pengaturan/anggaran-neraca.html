@@ -442,6 +442,8 @@
                         (d && d.success ? d.data : []).forEach(function (s) { savedMap[s.kode_akun] = Number(s.anggaran); });
                         anggaranRows = LRA_FALLBACK.map(function (a, i) { return { _i: i, kode: a[0], nama: a[1], anggaran: savedMap[a[0]] || '' }; });
                         updateSumAnggaran(); renderAnggaran();
+                    }).catch(function () {
+                        document.getElementById('tbAnggaran').innerHTML = '<tr><td colspan="4" style="text-align:center;color:#b91c1c;padding:24px;">Gagal memuat data. Periksa koneksi lalu klik Muat Akun.</td></tr>';
                     });
             }
             document.getElementById('btnMuatAnggaran').addEventListener('click', loadAnggaran);
@@ -539,6 +541,8 @@
                         _nextNeracaId = i;
                         sortNeracaRows(); // urutkan menurut nomor akun
                         updateSumNeraca(); renderNeraca();
+                    }).catch(function () {
+                        document.getElementById('tbNeraca').innerHTML = '<tr><td colspan="6" style="text-align:center;color:#b91c1c;padding:24px;">Gagal memuat data. Periksa koneksi lalu klik Muat Akun.</td></tr>';
                     });
             }
             document.getElementById('btnMuatNeraca').addEventListener('click', loadNeraca);

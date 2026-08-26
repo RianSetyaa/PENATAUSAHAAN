@@ -21,7 +21,7 @@ if (!isLoggedIn()) {
 }
 
 $pdo  = db();
-$skpd = (string) ($_SESSION['instansi'] ?? ''); // pemisahan data multi-dinas
+$skpd = requireInstansi(); // pemisahan data multi-dinas (fail-closed)
 
 $STATUS_LIST = ['belum_diverifikasi', 'sudah_diverifikasi', 'sudah_diotorisasi', 'sudah_divalidasi', 'dihapus'];
 
@@ -170,7 +170,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'update_status') {
         $id     = (int) ($body['id'] ?? 0);
         $target = (string) ($body['status'] ?? '');
-        $skpdS  = (string) ($_SESSION['instansi'] ?? '');
+        $skpdS  = $skpd; // fail-closed di atas
 
         if ($id <= 0) {
             jsonResponse(false, 'ID tidak valid.', [], 422);
@@ -212,7 +212,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $jumlah = (float) ($body['jumlah'] ?? 0);
     $uraian = trim((string) ($body['uraian'] ?? ''));
     // skpd selalu dari sesi (jangan percaya input klien)
-    $skpd   = trim((string) ($_SESSION['instansi'] ?? ''));
+    $skpd   = requireInstansi();
     $payments  = is_array($body['data_pembayaran'] ?? null) ? $body['data_pembayaran'] : [];
     $pendapatan = is_array($body['data_pendapatan'] ?? null) ? $body['data_pendapatan'] : [];
 

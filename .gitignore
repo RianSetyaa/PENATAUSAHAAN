@@ -1,2 +1,10 @@
 .DS_Store
 **/.DS_Store
+
+# Kredensial database (jangan pernah di-commit)
+config/credentials.php
+peta.simtkd.com/config/credentials.php
+
+# Secret webhook deploy
+.webhook_secret
+.webhook_secret_staging

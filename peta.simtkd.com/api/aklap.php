@@ -24,6 +24,7 @@ $action = (string) ($_GET['action'] ?? 'jurnal');
 
 // ---------- Verifikasi token (per-user / multi-tenant) ----------
 // Token = api_token milik pengguna di tabel users.
+// DB menyimpan HASH SHA-256 dari token -> cocokkan hash token yang dikirim.
 $token = (string) ($_GET['token'] ?? '');
 if ($token === '') {
     $auth = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
@@ -31,16 +32,39 @@ if ($token === '') {
         $token = trim($m[1]);
     }
 }
+$tokenHash = hash('sha256', $token);
 $stmtUser = $pdo->prepare("SELECT id, nama_lengkap, username, email, instansi, kota, provinsi, peran FROM users WHERE api_token = ? LIMIT 1");
-$stmtUser->execute([$token]);
+$stmtUser->execute([$tokenHash]);
 $user = $stmtUser->fetch();
+if (!$user && $token !== '' && preg_match('/^[a-f0-9]{32}$/', $token)) {
+    // MIGRASI OTOMATIS: token lama tersimpan plaintext (32 hex). Cocokkan mentah,
+    // lalu upgrade ke hash SHA-256 agar format penyimpanan seragam.
+    try {
+        $stmtLegacy = $pdo->prepare("SELECT id FROM users WHERE api_token = ? LIMIT 1");
+        $stmtLegacy->execute([$token]);
+        $legacyId = $stmtLegacy->fetchColumn();
+        if ($legacyId) {
+            $pdo->prepare("UPDATE users SET api_token = ? WHERE id = ?")->execute([$tokenHash, (int) $legacyId]);
+            $stmtUser->execute([$tokenHash]);
+            $user = $stmtUser->fetch();
+        }
+    } catch (Throwable $e) {
+        error_log('[AKLAP] migrasi token legacy gagal: ' . $e->getMessage());
+    }
+}
 if (!$user) {
     http_response_code(401);
     echo json_encode(['success' => false, 'message' => 'Token API tidak valid.'], JSON_UNESCAPED_UNICODE);
     exit;
 }
-// SKPD/instansi pemilik token -> pemisahan data antar dinas (multi-tenant)
-$skpdUser = (string) ($user['instansi'] ?? '');
+// SKPD/instansi pemilik token -> pemisahan data antar dinas (multi-tenant).
+// Fail-closed: token tanpa instansi ditolak (bukan melihat semua data).
+$skpdUser = trim((string) ($user['instansi'] ?? ''));
+if ($skpdUser === '') {
+    http_response_code(403);
+    echo json_encode(['success' => false, 'message' => 'Instansi akun belum diatur. Hubungi administrator.'], JSON_UNESCAPED_UNICODE);
+    exit;
+}
 
 // Seluruh aksi dibungkus try/catch: jika ada kolom/tabel yang belum ada di
 // database (mis. jurnal_status, tabel sp2d/spm), API tetap mengembalikan JSON
@@ -332,12 +356,12 @@ http_response_code(400);
 echo json_encode(['success' => false, 'message' => 'Aksi tidak dikenal.'], JSON_UNESCAPED_UNICODE);
 
 } catch (Throwable $e) {
-    // Jangan biarkan error database mematikan seluruh API
+    // Jangan biarkan error database mematikan seluruh API.
+    // Detail error HANYA ke log server — tidak dikirim ke client (keamanan).
+    error_log('[AKLAP] ' . $e->getMessage() . ' @ ' . $e->getFile() . ':' . $e->getLine());
     http_response_code(500);
     echo json_encode([
         'success' => false,
-        'message' => 'Kesalahan pada API AKLAP: ' . $e->getMessage() .
-                     ' — Kemungkinan skema database belum lengkap. ' .
-                     'Login sebagai admin lalu buka: api/aklap_migrate.php?run=1',
+        'message' => 'Kesalahan pada server. Silakan coba beberapa saat lagi atau hubungi administrator.',
     ], JSON_UNESCAPED_UNICODE);
 }
