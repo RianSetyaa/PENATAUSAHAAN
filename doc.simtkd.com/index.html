@@ -8,15 +8,24 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+    <!-- ================= TOPBAR (senada AKLAP) ================= -->
     <header class="topbar">
-        <div class="brand">
-            <i class="fas fa-file-signature"></i>
-            SIM-TKD <span>&nbsp;· Dokumen &amp; Tanda Tangan</span>
+        <div class="topbar-left">
+            <div class="logo-badge"><img src="img/Logo Polban.png" alt="Logo POLBAN"></div>
+            <div class="brand">
+                <b>DOKUMEN · SIM-TKD</b>
+                <span>Tanda Tangan Elektronik</span>
+            </div>
         </div>
-        <div class="top-right">
-            <div class="user-chip" id="userChip"><i class="fas fa-user"></i> Memuat…</div>
-            <a href="https://simtkd.com/dashboard.html" data-back-main class="btn-link"><i class="fas fa-arrow-left"></i> SIM-TKD</a>
-            <button type="button" class="btn-link" id="btnKeluar"><i class="fas fa-sign-out-alt"></i> Keluar</button>
+        <div class="topbar-right">
+            <div class="region">
+                <b id="userNama">-</b>
+                <span id="userInstansi">-</span>
+            </div>
+            <div class="topbar-user">
+                <div class="avatar" id="userAvatar">?</div>
+                <button type="button" class="btn-keluar" id="btnKeluar"><i class="fas fa-sign-out-alt"></i> Keluar</button>
+            </div>
         </div>
     </header>
 
@@ -25,37 +34,76 @@
         <strong>"Tanda Tangan Dokumen"</strong> di SIM-TKD (simtkd.com).
     </div>
 
-    <main class="wrap">
-        <div class="page-head">
-            <h1>Dokumen Saya</h1>
-            <p>Daftar dokumen yang dikirim dari laman cetak SIM-TKD untuk ditandatangani elektronik.</p>
-        </div>
+    <div class="body-wrap">
+        <!-- ================= SIDEBAR (senada AKLAP) ================= -->
+        <aside class="sidebar">
+            <div class="side-title">Menu</div>
+            <a href="index.html" class="side-link active"><i class="fas fa-file-lines"></i> Daftar Dokumen</a>
+            <a href="verify.html" class="side-link"><i class="fas fa-shield-halved"></i> Verifikasi Dokumen</a>
+            <div class="side-title">Lainnya</div>
+            <a href="https://simtkd.com/dashboard.html" data-back-main class="side-link"><i class="fas fa-arrow-left"></i> Kembali ke SIM-TKD</a>
+        </aside>
 
-        <div class="tabs">
-            <button type="button" class="tab-btn active" data-tab="menunggu">Menunggu Tanda Tangan</button>
-            <button type="button" class="tab-btn" data-tab="ditandatangani">Ditandatangani</button>
-            <button type="button" class="btn-refresh" id="btnRefresh"><i class="fas fa-rotate-right"></i> Muat ulang</button>
-        </div>
+        <!-- ================= MAIN ================= -->
+        <main class="main">
+            <div class="breadcrumb-bar">
+                <div class="crumb">
+                    <i class="fas fa-house"></i> <a href="index.html">Home</a>
+                    <i class="fas fa-chevron-right"></i> <span class="current">Dokumen Saya</span>
+                </div>
+                <a href="https://simtkd.com/dashboard.html" data-back-main class="btn-back"><i class="fas fa-arrow-left"></i> Kembali ke Penatausahaan</a>
+            </div>
 
-        <div class="card">
-            <table class="tbl">
-                <thead>
-                    <tr>
-                        <th style="width:44px;">No</th>
-                        <th style="width:90px;">Jenis</th>
-                        <th style="width:150px;">Nomor</th>
-                        <th>Judul</th>
-                        <th style="width:110px;">Tanggal</th>
-                        <th style="width:140px;">Status</th>
-                        <th style="width:130px;">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody id="tbody">
-                    <tr><td colspan="7" class="muted">Memuat data…</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </main>
+            <div class="content">
+                <div class="page-head">
+                    <h1>Dokumen Saya</h1>
+                    <p>Daftar dokumen yang dikirim dari laman cetak SIM-TKD untuk ditandatangani elektronik.</p>
+                </div>
+
+                <div class="stat-grid">
+                    <div class="stat-card">
+                        <div class="ic amber"><i class="fas fa-hourglass-half"></i></div>
+                        <div class="info"><b id="stMenunggu">-</b><span>Menunggu Tanda Tangan</span></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="ic green"><i class="fas fa-file-signature"></i></div>
+                        <div class="info"><b id="stSelesai">-</b><span>Ditandatangani</span></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-head">
+                        <i class="fas fa-list"></i> Daftar Dokumen
+                        <div class="right">
+                            <button type="button" class="btn btn-outline btn-sm active" data-tab="menunggu">Menunggu</button>
+                            <button type="button" class="btn btn-outline btn-sm" data-tab="ditandatangani">Ditandatangani</button>
+                            <button type="button" class="btn btn-outline btn-sm" id="btnRefresh" title="Muat ulang"><i class="fas fa-rotate-right"></i></button>
+                        </div>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width:44px;">No</th>
+                                    <th style="width:90px;">Jenis</th>
+                                    <th style="width:150px;">Nomor</th>
+                                    <th>Judul</th>
+                                    <th style="width:110px;">Tanggal</th>
+                                    <th style="width:160px;">Status</th>
+                                    <th style="width:150px;">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody">
+                                <tr><td colspan="7" class="empty">Memuat data…</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="footer">SIM-TKD · Tanda Tangan Elektronik Dokumen — doc.simtkd.com</div>
 
     <div id="toast" class="toast"></div>
 
@@ -78,7 +126,8 @@
 
         function tampilkanPeringatan() {
             document.getElementById('tokenWarning').classList.remove('hidden');
-            document.getElementById('userChip').textContent = 'Tidak terhubung';
+            document.getElementById('userNama').textContent = 'Tidak terhubung';
+            document.getElementById('userInstansi').textContent = '-';
         }
 
         function muatProfil() {
@@ -87,28 +136,31 @@
                 .then(function (d) {
                     if (!d.success) { tampilkanPeringatan(); return; }
                     var u = d.user || {};
-                    document.getElementById('userChip').innerHTML =
-                        '<i class="fas fa-user"></i> ' + esc(u.nama || '-') +
-                        ' · ' + esc(u.instansi || '-');
+                    document.getElementById('userNama').textContent = u.nama || '-';
+                    document.getElementById('userInstansi').textContent = u.instansi || '-';
+                    var inisial = (u.nama || '?').trim().charAt(0).toUpperCase();
+                    document.getElementById('userAvatar').textContent = inisial;
                 })
                 .catch(function () { tampilkanPeringatan(); });
         }
 
         function muatDokumen() {
             var tbody = document.getElementById('tbody');
-            tbody.innerHTML = '<tr><td colspan="7" class="muted">Memuat data…</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" class="empty">Memuat data…</td></tr>';
             fetch(T.url(T.endpoint + '?action=list'))
                 .then(function (r) { return r.json(); })
                 .then(function (d) {
                     if (!d.success) {
-                        tbody.innerHTML = '<tr><td colspan="7" class="muted">' + esc(d.message || 'Gagal memuat.') + '</td></tr>';
+                        tbody.innerHTML = '<tr><td colspan="7" class="empty">' + esc(d.message || 'Gagal memuat.') + '</td></tr>';
                         return;
                     }
                     dataCache = d.data || [];
+                    document.getElementById('stMenunggu').textContent = dataCache.filter(function (r) { return r.status === 'menunggu_ttd'; }).length;
+                    document.getElementById('stSelesai').textContent = dataCache.filter(function (r) { return r.status === 'ditandatangani'; }).length;
                     render();
                 })
                 .catch(function () {
-                    tbody.innerHTML = '<tr><td colspan="7" class="muted">Gagal memuat data (jaringan).</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="7" class="empty">Gagal memuat data (jaringan).</td></tr>';
                 });
         }
 
@@ -118,7 +170,7 @@
                 return curTab === 'menunggu' ? r.status === 'menunggu_ttd' : r.status === 'ditandatangani';
             });
             if (!rows.length) {
-                tbody.innerHTML = '<tr><td colspan="7" class="muted">' +
+                tbody.innerHTML = '<tr><td colspan="7" class="empty">' +
                     (curTab === 'menunggu'
                         ? 'Tidak ada dokumen menunggu tanda tangan. Kirim dari laman cetak di SIM-TKD (tombol "Kirim ke Tanda Tangan").'
                         : 'Belum ada dokumen yang ditandatangani.') +
@@ -127,11 +179,11 @@
             }
             tbody.innerHTML = rows.map(function (r, i) {
                 var aksi = (curTab === 'menunggu')
-                    ? '<a class="btn btn-teal btn-sm" href="' + T.url('dokumen.html?id=' + r.id) + '"><i class="fas fa-pen-nib"></i> Lihat &amp; TTD</a>'
+                    ? '<a class="btn btn-green btn-sm" href="' + T.url('dokumen.html?id=' + r.id) + '"><i class="fas fa-pen-nib"></i> Lihat &amp; TTD</a>'
                     : '<a class="btn btn-outline btn-sm" href="' + T.url('dokumen.html?id=' + r.id) + '"><i class="fas fa-eye"></i> Lihat</a>';
                 var badge = (r.status === 'ditandatangani')
-                    ? '<span class="badge selesai"><i class="fas fa-check"></i> Ditandatangani</span>'
-                    : '<span class="badge menunggu"><i class="fas fa-hourglass-half"></i> Menunggu TTD</span>';
+                    ? '<span class="badge badge-approved"><i class="fas fa-check"></i> Ditandatangani</span>'
+                    : '<span class="badge badge-pending"><i class="fas fa-hourglass-half"></i> Menunggu TTD</span>';
                 return '<tr>' +
                     '<td>' + (i + 1) + '</td>' +
                     '<td>' + esc(r.jenis || '-') + '</td>' +
@@ -144,9 +196,9 @@
             }).join('');
         }
 
-        document.querySelectorAll('.tab-btn').forEach(function (b) {
+        document.querySelectorAll('[data-tab]').forEach(function (b) {
             b.addEventListener('click', function () {
-                document.querySelectorAll('.tab-btn').forEach(function (x) { x.classList.remove('active'); });
+                document.querySelectorAll('[data-tab]').forEach(function (x) { x.classList.remove('active'); });
                 b.classList.add('active');
                 curTab = b.getAttribute('data-tab');
                 render();

@@ -95,6 +95,35 @@ function ttdVerifyBlock(string $nama, string $jabatan, string $waktu, string $ko
         . '</div>';
 }
 
+/**
+ * Sisipkan gambar TTD ke HTML dokumen.
+ * - $posX null  -> otomatis pada slot pertama (.ttd-slot) di template.
+ * - $posX float -> penempatan MANUAL: absolute di dalam #docArea
+ *   (posisi dipilih user: x = % lebar dokArea, y = px dari atas dokArea,
+ *   w = lebar gambar dalam px).
+ */
+function ttdSisipkan(string $html, string $gambar, $posX, int $posY, int $posW): string
+{
+    $imgSlot   = '<img class="ttd-img" alt="Tanda tangan elektronik" src="' . $gambar . '">';
+    $imgManual = '<img class="ttd-img" style="width:100%;display:block;" alt="Tanda tangan elektronik" src="' . $gambar . '">';
+    if ($posX !== null) {
+        $xp = rtrim(rtrim(sprintf('%.2f', (float) $posX), '0'), '.');
+        if ($xp === '' || $xp === '-') {
+            $xp = '0';
+        }
+        $manual = '<div style="position:absolute;left:' . $xp . '%;top:' . $posY . 'px;width:' . $posW . 'px;z-index:50;">' . $imgManual . '</div>';
+        if (strpos($html, '<div id="docArea">') !== false) {
+            return preg_replace('/<div id="docArea">/', '<div id="docArea" style="position:relative;">' . $manual, $html, 1);
+        }
+        return $html . $manual;
+    }
+    if (strpos($html, '<div class="ttd-slot"></div>') !== false) {
+        return preg_replace('/<div class="ttd-slot"><\/div>/', '<div class="ttd-slot">' . $imgSlot . '</div>', $html, 1);
+    }
+    return $html;
+}
+
+
 header('Content-Type: application/json; charset=utf-8');
 $pdo    = db();
 $action = (string) ($_GET['action'] ?? ($_POST['action'] ?? ''));
@@ -340,12 +369,23 @@ if ($action === 'ttd') {
             jsonOut(false, 'Gambar tanda tangan belum dibuat. Gambar tanda tangan terlebih dahulu.', [], 422);
         }
 
-        // 1) Sisipkan gambar TTD ke slot pertama pada dokumen
-        $html   = (string) $d['konten_html'];
-        $imgTag = '<img class="ttd-img" alt="Tanda tangan elektronik" src="' . $gambar . '">';
-        if (strpos($html, '<div class="ttd-slot"></div>') !== false) {
-            $html = preg_replace('/<div class="ttd-slot"><\/div>/', '<div class="ttd-slot">' . $imgTag . '</div>', $html, 1);
+        // 1) Sisipkan gambar TTD: posisi MANUAL (pilihan user di viewer)
+        //    atau otomatis pada slot pertama template (.ttd-slot)
+        $html = (string) $d['konten_html'];
+        $posX = null;
+        $posY = 0;
+        $posW = 180;
+        if (isset($_POST['pos_x'], $_POST['pos_y'], $_POST['pos_w'])) {
+            $px = (float) $_POST['pos_x'];
+            $py = (int) $_POST['pos_y'];
+            $pw = (int) $_POST['pos_w'];
+            if ($px >= 0 && $px <= 100 && $py >= 0 && $py <= 100000 && $pw >= 60 && $pw <= 600) {
+                $posX = $px;
+                $posY = $py;
+                $posW = $pw;
+            }
         }
+        $html = ttdSisipkan($html, $gambar, $posX, $posY, $posW);
 
         // 2) Blok verifikasi elektronik sebagai elemen terakhir halaman dokumen
         $kode  = (string) $d['kode_verifikasi'];

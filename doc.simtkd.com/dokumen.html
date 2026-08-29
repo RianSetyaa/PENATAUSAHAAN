@@ -9,13 +9,23 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+    <!-- ================= TOPBAR (senada AKLAP) ================= -->
     <header class="topbar">
-        <div class="brand">
-            <i class="fas fa-file-signature"></i>
-            SIM-TKD <span>&nbsp;· Dokumen &amp; Tanda Tangan</span>
+        <div class="topbar-left">
+            <div class="logo-badge"><img src="img/Logo Polban.png" alt="Logo POLBAN"></div>
+            <div class="brand">
+                <b>DOKUMEN · SIM-TKD</b>
+                <span>Tanda Tangan Elektronik</span>
+            </div>
         </div>
-        <div class="top-right">
-            <a href="index.html" class="btn-link"><i class="fas fa-arrow-left"></i> Daftar Dokumen</a>
+        <div class="topbar-right">
+            <div class="region">
+                <b id="userNama">-</b>
+                <span id="userInstansi">-</span>
+            </div>
+            <div class="topbar-user">
+                <div class="avatar" id="userAvatar">?</div>
+            </div>
         </div>
     </header>
 
@@ -24,23 +34,43 @@
         <strong>"Tanda Tangan Dokumen"</strong> di SIM-TKD (simtkd.com).
     </div>
 
-    <main class="wrap">
-        <div class="page-head">
-            <h1 id="docJudul">Memuat dokumen…</h1>
-            <p id="docSub">—</p>
-        </div>
+    <div class="body-wrap">
+        <!-- ================= SIDEBAR (senada AKLAP) ================= -->
+        <aside class="sidebar">
+            <div class="side-title">Menu</div>
+            <a href="index.html" class="side-link"><i class="fas fa-file-lines"></i> Daftar Dokumen</a>
+            <a href="verify.html" class="side-link"><i class="fas fa-shield-halved"></i> Verifikasi Dokumen</a>
+            <div class="side-title">Lainnya</div>
+            <a href="https://simtkd.com/dashboard.html" data-back-main class="side-link"><i class="fas fa-arrow-left"></i> Kembali ke SIM-TKD</a>
+        </aside>
 
-        <div class="doc-grid">
-            <!-- Kiri: pratinjau dokumen -->
-            <div>
-                <div class="viewer-card">
-                    <iframe id="frameDoc" title="Pratinjau dokumen"></iframe>
+        <!-- ================= MAIN ================= -->
+        <main class="main">
+            <div class="breadcrumb-bar">
+                <div class="crumb">
+                    <i class="fas fa-house"></i> <a href="index.html">Home</a>
+                    <i class="fas fa-chevron-right"></i> <span class="current">Lihat &amp; Tanda Tangan</span>
                 </div>
+                <a href="index.html" class="btn-back"><i class="fas fa-arrow-left"></i> Daftar Dokumen</a>
             </div>
 
-            <!-- Kanan: info + panel tanda tangan -->
-            <div>
-                <div class="side-card">
+            <div class="content">
+                <div class="page-head">
+                    <h1 id="docJudul">Memuat dokumen…</h1>
+                    <p id="docSub">—</p>
+                </div>
+
+                <div class="doc-grid">
+                    <!-- Kiri: pratinjau dokumen -->
+                    <div>
+                        <div class="viewer-card">
+                            <iframe id="frameDoc" title="Pratinjau dokumen"></iframe>
+                        </div>
+                    </div>
+
+                    <!-- Kanan: info + panel tanda tangan -->
+                    <div>
+                        <div class="side-card">
                     <h3><i class="fas fa-circle-info"></i> Informasi Dokumen</h3>
                     <div class="info-row"><span class="k">Jenis</span><span class="v" id="iJenis">—</span></div>
                     <div class="info-row"><span class="k">Nomor</span><span class="v" id="iNomor">—</span></div>
@@ -58,7 +88,23 @@
                     </div>
                     <div style="display:flex;gap:8px;flex-wrap:wrap;">
                         <button type="button" class="btn btn-outline btn-sm" id="btnBersih"><i class="fas fa-eraser"></i> Bersihkan</button>
-                        <button type="button" class="btn btn-teal" id="btnTtd"><i class="fas fa-pen-nib"></i> Tanda Tangan Dokumen</button>
+                        <button type="button" class="btn btn-blue btn-sm" id="btnTempatkan"><i class="fas fa-hand-pointer"></i> Tempatkan Manual</button>
+                    </div>
+                    <div id="placeBox" style="display:none;">
+                        <div class="place-row">
+                            <span class="lbl">Ukuran:</span>
+                            <button type="button" class="btn btn-outline btn-sm wbtn" data-w="120">Kecil</button>
+                            <button type="button" class="btn btn-outline btn-sm wbtn active" data-w="180">Sedang</button>
+                            <button type="button" class="btn btn-outline btn-sm wbtn" data-w="240">Besar</button>
+                            <button type="button" class="btn btn-outline btn-sm" id="btnHapusPos" title="Hapus penempatan"><i class="fas fa-trash"></i></button>
+                        </div>
+                        <div class="pad-note">
+                            <i class="fas fa-circle-info"></i> Mode penempatan aktif — <strong>klik pada dokumen</strong> untuk
+                            menempatkan tanda tangan, lalu <strong>geser (drag)</strong> untuk mengatur posisi persis.
+                        </div>
+                    </div>
+                    <div style="margin-top:10px;">
+                        <button type="button" class="btn btn-green" id="btnTtd" style="width:100%;justify-content:center;"><i class="fas fa-pen-nib"></i> Tanda Tangan Dokumen</button>
                     </div>
                     <div id="qrBox" style="position:absolute;left:-9999px;" aria-hidden="true"></div>
                 </div>
@@ -73,9 +119,13 @@
                         <a class="btn btn-outline btn-sm" id="btnVerifPublik" href="verify.html" target="_blank"><i class="fas fa-shield-halved"></i> Halaman Verifikasi</a>
                     </div>
                 </div>
+                    </div>
+                </div>
             </div>
-        </div>
-    </main>
+        </main>
+    </div>
+
+    <div class="footer">SIM-TKD · Tanda Tangan Elektronik Dokumen — doc.simtkd.com</div>
 
     <div id="toast" class="toast"></div>
 
@@ -86,6 +136,10 @@
         var T = SIMTKD_DOC;
         var id = 0;
         var detailCache = null;
+        var savedGambar = '';      // gambar TTD tersimpan milik user (data URI)
+        var placeMode = false;     // mode penempatan manual aktif?
+        var ghost = null;          // elemen <img> pratinjau di dalam iframe
+        var ghostW = 180;          // lebar gambar TTD saat penempatan (px)
 
         function esc(s) { var d = document.createElement('div'); d.textContent = String(s == null ? '' : s); return d.innerHTML; }
         function toast(msg) {
@@ -216,6 +270,7 @@
                 .then(function (r) { return r.json(); })
                 .then(function (d) {
                     if (d && d.success && d.gambar) {
+                        savedGambar = d.gambar;
                         var img = new Image();
                         img.onload = function () {
                             ctx.drawImage(img, 0, 0, pad.width, pad.height);
@@ -228,6 +283,113 @@
                 })
                 .catch(function () {});
         }
+
+        // ===== Penempatan MANUAL tanda tangan di atas dokumen =====
+        function iframeDoc() {
+            var f = document.getElementById('frameDoc');
+            try { return f.contentDocument || (f.contentWindow && f.contentWindow.document) || null; }
+            catch (e) { return null; }
+        }
+        function areaEl() {
+            var d = iframeDoc();
+            return d ? d.getElementById('docArea') : null;
+        }
+        function dataTtdSaatIni() {
+            if (hasInk) return pad.toDataURL('image/png');
+            return savedGambar || null;
+        }
+        function placementCleanup() { ghost = null; }
+
+        function setGhost(dataUrl, x, y) {
+            var d = iframeDoc();
+            var area = areaEl();
+            if (!d || !area) return false;
+            area.style.position = 'relative';
+            if (!ghost || ghost.ownerDocument !== d) {
+                ghost = d.createElement('img');
+                ghost.alt = 'Tanda tangan';
+                ghost.style.cssText = 'position:absolute;z-index:60;cursor:move;max-width:none;display:block;box-shadow:0 1px 4px rgba(0,0,0,.18);';
+                // geser posisi (drag) langsung di dalam dokumen
+                ghost.addEventListener('mousedown', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    var doc2 = iframeDoc();
+                    var a2 = areaEl();
+                    if (!doc2 || !a2) return;
+                    function mv(ev) {
+                        var ar = a2.getBoundingClientRect();
+                        ghost.style.left = (ev.clientX - ar.left - ghostW / 2) + 'px';
+                        ghost.style.top = (ev.clientY - ar.top - 24) + 'px';
+                    }
+                    function up() {
+                        doc2.removeEventListener('mousemove', mv);
+                        doc2.removeEventListener('mouseup', up);
+                    }
+                    doc2.addEventListener('mousemove', mv);
+                    doc2.addEventListener('mouseup', up);
+                });
+                area.appendChild(ghost);
+            }
+            ghost.src = dataUrl;
+            ghost.style.width = ghostW + 'px';
+            ghost.style.left = x + 'px';
+            ghost.style.top = y + 'px';
+            return true;
+        }
+
+        // Posisi terpilih -> dikirim ke server (x = % lebar dokArea,
+        // y = px dari atas dokArea, w = lebar gambar px)
+        function posisiTtd() {
+            if (!ghost || !ghost.parentNode) return null;
+            var area = areaEl();
+            if (!area) return null;
+            var ar = area.getBoundingClientRect();
+            var gr = ghost.getBoundingClientRect();
+            var x = ar.width > 0 ? ((gr.left - ar.left) / ar.width) * 100 : 0;
+            var y = gr.top - ar.top;
+            return { x: Math.max(0, Math.min(100, x)), y: Math.max(0, Math.round(y)), w: Math.round(gr.width) };
+        }
+
+        function frameClick(e) {
+            if (!placeMode) return;
+            e.preventDefault();
+            var area = areaEl();
+            if (!area) { toast('Dokumen belum siap, tunggu sebentar.'); return; }
+            var data = dataTtdSaatIni();
+            if (!data) { toast('Gambar tanda tangan terlebih dahulu.'); return; }
+            var ar = area.getBoundingClientRect();
+            setGhost(data, e.clientX - ar.left - ghostW / 2, e.clientY - ar.top - 24);
+        }
+
+        var frameEl = document.getElementById('frameDoc');
+        frameEl.addEventListener('load', function () {
+            placementCleanup();
+            var d = iframeDoc();
+            if (d) d.addEventListener('click', frameClick, true);
+        });
+
+        document.getElementById('btnTempatkan').addEventListener('click', function () {
+            placeMode = !placeMode;
+            this.classList.toggle('active', placeMode);
+            document.getElementById('placeBox').style.display = placeMode ? '' : 'none';
+            document.querySelector('.viewer-card').classList.toggle('placing', placeMode);
+            if (placeMode && !dataTtdSaatIni()) {
+                toast('Gambar tanda tangan dulu, lalu klik di dokumen untuk menempatkan.');
+            }
+        });
+        document.querySelectorAll('.wbtn').forEach(function (b) {
+            b.addEventListener('click', function () {
+                document.querySelectorAll('.wbtn').forEach(function (x) { x.classList.remove('active'); });
+                b.classList.add('active');
+                ghostW = parseInt(b.getAttribute('data-w'), 10) || 180;
+                if (ghost) ghost.style.width = ghostW + 'px';
+            });
+        });
+        document.getElementById('btnHapusPos').addEventListener('click', function () {
+            if (ghost && ghost.parentNode) ghost.parentNode.removeChild(ghost);
+            placementCleanup();
+            toast('Penempatan dihapus — tanda tangan otomatis di slot bawaan template.');
+        });
 
         // ===== QR verifikasi (dibuat di sisi klien, opsional) =====
         function buatQr() {
@@ -263,12 +425,28 @@
                     if (!d.success) { throw new Error(d.message || 'Gagal menyimpan tanda tangan.'); }
                     return buatQr();
                 })
-                // 2) tanda tangani dokumen
-                .then(function (qr) { return postForm(T.url(T.endpoint + '?action=ttd'), { id: String(id), qr: qr }); })
+                // 2) tanda tangani dokumen (dengan posisi manual bila dipasang)
+                .then(function (qr) {
+                    var fields = { id: String(id), qr: qr };
+                    var pos = posisiTtd();
+                    if (pos) {
+                        fields.pos_x = pos.x.toFixed(2);
+                        fields.pos_y = String(pos.y);
+                        fields.pos_w = String(pos.w);
+                    }
+                    return postForm(T.url(T.endpoint + '?action=ttd'), fields);
+                })
                 .then(function (d) {
                     if (!d.success) { throw new Error(d.message || 'Gagal menandatangani dokumen.'); }
                     toast('Dokumen berhasil ditandatangani.');
                     btn.innerHTML = '<i class="fas fa-check"></i> Ditandatangani';
+                    // matikan mode penempatan & bersihkan pratinjau
+                    placeMode = false;
+                    document.getElementById('placeBox').style.display = 'none';
+                    document.querySelector('.viewer-card').classList.remove('placing');
+                    var vt = document.getElementById('btnTempatkan');
+                    if (vt) vt.classList.remove('active');
+                    placementCleanup();
                     muatDetail();
                     muatFrame();
                 })
@@ -287,6 +465,25 @@
                 f.contentWindow.print();
             }
         });
+
+        // ===== Profil user di topbar =====
+        (function muatProfil() {
+            fetch(T.url(T.endpoint + '?action=me'))
+                .then(function (r) { return r.json(); })
+                .then(function (d) {
+                    if (!d.success) {
+                        document.getElementById('tokenWarning').classList.remove('hidden');
+                        return;
+                    }
+                    var u = d.user || {};
+                    document.getElementById('userNama').textContent = u.nama || '-';
+                    document.getElementById('userInstansi').textContent = u.instansi || '-';
+                    document.getElementById('userAvatar').textContent = (u.nama || '?').trim().charAt(0).toUpperCase();
+                })
+                .catch(function () {
+                    document.getElementById('tokenWarning').classList.remove('hidden');
+                });
+        })();
 
         muatDetail();
         muatFrame();
