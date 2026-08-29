@@ -159,11 +159,14 @@ Semua endpoint mengembalikan JSON:
 
 ## ✍️ Dokumen & Tanda Tangan Elektronik (doc.simtkd.com)
 
-Dokumen hasil laman cetak (SPP, SPD, dst.) dapat dikirim ke antrean tanda
+Dokumen hasil laman cetak (belanja & penerimaan) dapat dikirim ke antrean tanda
 tangan lalu ditandatangani elektronik dengan **tanda tangan tangan** (ala Privy):
 
 1. Saat mencetak dokumen, klik **"✎ Kirim ke Tanda Tangan"** pada panel
-   pengaturan cetak → dokumen tersimpan di tabel `dokumen` (database sama).
+   pengaturan cetak (modul Belanja: SPD, SPP, SPM, SP2D, LPJ, NPD, Pengajuan TU
+   lewat `CetakBelanja`; modul Penerimaan: STBP & STS lewat tombol di halaman
+   `penerimaan/stbp-cetak.html` & `penerimaan/sts-cetak.html`)
+   → dokumen tersimpan di tabel `dokumen` (database sama).
 2. Buka **menu "Tanda Tangan Dokumen"** → SSO otomatis ke doc.simtkd.com
    (membawa token API user, pola sama dengan modul Akuntansi/AKLAP).
 3. Di doc.simtkd.com: pilih dokumen → gambar tanda tangan di kanvas

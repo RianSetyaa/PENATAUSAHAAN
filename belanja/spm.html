@@ -272,7 +272,9 @@
                     subjudul: 'TAHUN ANGGARAN ' + tahun,
                     nomor: '',
                     garis2: true,
-                    bodyHtml: body
+                    bodyHtml: body,
+                    // Kirim ke antrean tanda tangan (doc.simtkd.com)
+                    dokumen: { jenis: 'SPM', refId: r.id, nomor: r.nomor_spm || r.nomor_spp || '', tanggal: r.tanggal || '', url: new URL('../api/dokumen.php', location.href).toString() }
                 });
             }
             document.querySelectorAll('.tab-btn').forEach(function (b) {

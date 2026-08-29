@@ -207,7 +207,9 @@
                     ttd: {
                         left: { jabatan: 'Mengetahui,', nama: 'Kepala SKPD' },
                         right: { jabatan: 'Kuasa Bendahara Umum Daerah', nama: '(................................)' }
-                    }
+                    },
+                    // Kirim ke antrean tanda tangan (doc.simtkd.com)
+                    dokumen: { jenis: 'SP2D', refId: r.id, nomor: r.nomor_sp2d || '', tanggal: r.tanggal || '', url: new URL('../api/dokumen.php', location.href).toString() }
                 });
             }
             document.querySelectorAll('.tab-btn').forEach(function (b) {

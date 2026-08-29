@@ -143,7 +143,9 @@
                     ttd: {
                         left: { jabatan: 'Mengetahui,', nama: 'Kepala SKPD' },
                         right: { jabatan: 'Bendahara Pengeluaran', nama: '(................................)' }
-                    }
+                    },
+                    // Kirim ke antrean tanda tangan (doc.simtkd.com)
+                    dokumen: { jenis: 'LPJ', refId: r.id, nomor: r.nomor_lpj || '', tanggal: r.tanggal || '', url: new URL('../api/dokumen.php', location.href).toString() }
                 });
             });
             document.getElementById('btnSimpan').addEventListener('click', function () {
