@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lihat &amp; Tanda Tangan Dokumen — SIM-TKD</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header class="topbar">
+        <div class="brand">
+            <i class="fas fa-file-signature"></i>
+            SIM-TKD <span>&nbsp;· Dokumen &amp; Tanda Tangan</span>
+        </div>
+        <div class="top-right">
+            <a href="index.html" class="btn-link"><i class="fas fa-arrow-left"></i> Daftar Dokumen</a>
+        </div>
+    </header>
+
+    <div id="tokenWarning" class="warning hidden">
+        Anda belum terhubung ke akun. Buka laman ini melalui menu
+        <strong>"Tanda Tangan Dokumen"</strong> di SIM-TKD (simtkd.com).
+    </div>
+
+    <main class="wrap">
+        <div class="page-head">
+            <h1 id="docJudul">Memuat dokumen…</h1>
+            <p id="docSub">—</p>
+        </div>
+
+        <div class="doc-grid">
+            <!-- Kiri: pratinjau dokumen -->
+            <div>
+                <div class="viewer-card">
+                    <iframe id="frameDoc" title="Pratinjau dokumen"></iframe>
+                </div>
+            </div>
+
+            <!-- Kanan: info + panel tanda tangan -->
+            <div>
+                <div class="side-card">
+                    <h3><i class="fas fa-circle-info"></i> Informasi Dokumen</h3>
+                    <div class="info-row"><span class="k">Jenis</span><span class="v" id="iJenis">—</span></div>
+                    <div class="info-row"><span class="k">Nomor</span><span class="v" id="iNomor">—</span></div>
+                    <div class="info-row"><span class="k">Tanggal</span><span class="v" id="iTanggal">—</span></div>
+                    <div class="info-row"><span class="k">Kode Verifikasi</span><span class="v" id="iKode">—</span></div>
+                    <div class="info-row"><span class="k">Status</span><span class="v" id="iStatus">—</span></div>
+                    <div class="info-row hidden" id="rowTtd"><span class="k">Ditandatangani</span><span class="v" id="iTtd">—</span></div>
+                </div>
+
+                <div class="side-card" id="panelTtd">
+                    <h3><i class="fas fa-pen-nib"></i> Tanda Tangan Tangan</h3>
+                    <canvas id="pad" width="560" height="180"></canvas>
+                    <div class="pad-note" id="padNote">
+                        Gambar tanda tangan Anda di kotak di atas (mouse atau sentuh/layar sentuh).
+                    </div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                        <button type="button" class="btn btn-outline btn-sm" id="btnBersih"><i class="fas fa-eraser"></i> Bersihkan</button>
+                        <button type="button" class="btn btn-teal" id="btnTtd"><i class="fas fa-pen-nib"></i> Tanda Tangan Dokumen</button>
+                    </div>
+                    <div id="qrBox" style="position:absolute;left:-9999px;" aria-hidden="true"></div>
+                </div>
+
+                <div class="side-card" id="panelSelesai" style="display:none;">
+                    <h3><i class="fas fa-circle-check" style="color:#065f46;"></i> Dokumen Ditandatangani</h3>
+                    <div class="info-row"><span class="k">Penandatangan</span><span class="v" id="sNama">—</span></div>
+                    <div class="info-row"><span class="k">Jabatan</span><span class="v" id="sJabatan">—</span></div>
+                    <div class="info-row"><span class="k">Waktu</span><span class="v" id="sWaktu">—</span></div>
+                    <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+                        <button type="button" class="btn btn-sm" id="btnCetak"><i class="fas fa-print"></i> Cetak / Simpan PDF</button>
+                        <a class="btn btn-outline btn-sm" id="btnVerifPublik" href="verify.html" target="_blank"><i class="fas fa-shield-halved"></i> Halaman Verifikasi</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="toast" class="toast"></div>
+
+    <script src="js/config.js"></script>
+    <script>
+    (function () {
+        'use strict';
+        var T = SIMTKD_DOC;
+        var id = 0;
+        var detailCache = null;
+
+        function esc(s) { var d = document.createElement('div'); d.textContent = String(s == null ? '' : s); return d.innerHTML; }
+        function toast(msg) {
+            var t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            clearTimeout(t._t);
+            t._t = setTimeout(function () { t.classList.remove('show'); }, 2800);
+        }
+        function postForm(url, fields) {
+            var body = new URLSearchParams();
+            Object.keys(fields).forEach(function (k) { body.append(k, fields[k]); });
+            return fetch(url, { method: 'POST', body: body }).then(function (r) { return r.json(); });
+        }
+
+        // ===== Inisialisasi ID dari URL =====
+        try {
+            id = parseInt(new URLSearchParams(window.location.search).get('id') || '0', 10);
+        } catch (e) { id = 0; }
+        if (!id) {
+            document.getElementById('docJudul').textContent = 'Dokumen tidak valid';
+            document.getElementById('docSub').textContent = 'Buka dokumen melalui daftar dokumen.';
+        }
+
+        // ===== Muat detail =====
+        function muatDetail() {
+            if (!id) return;
+            fetch(T.url(T.endpoint + '?action=detail&id=' + id))
+                .then(function (r) { return r.json(); })
+                .then(function (d) {
+                    if (!d.success) { toast(d.message || 'Gagal memuat dokumen.'); return; }
+                    detailCache = d.dokumen;
+                    renderDetail();
+                })
+                .catch(function () { toast('Gagal memuat dokumen (jaringan).'); });
+        }
+
+        function renderDetail() {
+            var d = detailCache || {};
+            document.getElementById('docJudul').textContent = d.judul || 'Dokumen';
+            document.getElementById('docSub').textContent =
+                (d.jenis || '-') + (d.nomor ? ' · Nomor ' + d.nomor : '') +
+                (d.tanggal ? ' · ' + d.tanggal : '');
+            document.getElementById('iJenis').textContent = d.jenis || '-';
+            document.getElementById('iNomor').textContent = d.nomor || '-';
+            document.getElementById('iTanggal').textContent = d.tanggal || '-';
+            document.getElementById('iKode').textContent = d.kode_verifikasi || '-';
+            var st = document.getElementById('iStatus');
+            if (d.status === 'ditandatangani') {
+                st.innerHTML = '<span class="badge selesai"><i class="fas fa-check"></i> Ditandatangani</span>';
+                document.getElementById('panelTtd').style.display = 'none';
+                document.getElementById('panelSelesai').style.display = '';
+                document.getElementById('rowTtd').classList.remove('hidden');
+                document.getElementById('iTtd').textContent = d.signed_at_fmt || '-';
+                document.getElementById('sNama').textContent = d.ttd_nama || '-';
+                document.getElementById('sJabatan').textContent = d.ttd_jabatan || '-';
+                document.getElementById('sWaktu').textContent = d.waktu_ttd || '-';
+                document.getElementById('btnVerifPublik').href = 'verify.html?kode=' + encodeURIComponent(d.kode_verifikasi || '');
+            } else {
+                st.innerHTML = '<span class="badge menunggu"><i class="fas fa-hourglass-half"></i> Menunggu TTD</span>';
+                document.getElementById('panelTtd').style.display = '';
+                document.getElementById('panelSelesai').style.display = 'none';
+            }
+        }
+
+        // ===== Viewer iframe =====
+        function muatFrame() {
+            if (!id) return;
+            document.getElementById('frameDoc').src =
+                T.url(T.endpoint + '?action=konten&id=' + id) + '&ts=' + Date.now();
+        }
+
+        // ===== Kanvas tanda tangan (mouse + layar sentuh) =====
+        var pad = document.getElementById('pad');
+        var ctx = pad.getContext('2d');
+        ctx.lineWidth = 2.4;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.strokeStyle = '#1e3a8a';
+        var drawing = false;
+        var hasInk = false;
+
+        function posisi(e) {
+            var r = pad.getBoundingClientRect();
+            var x, y;
+            if (e.touches && e.touches.length) {
+                x = e.touches[0].clientX - r.left;
+                y = e.touches[0].clientY - r.top;
+            } else {
+                x = e.clientX - r.left;
+                y = e.clientY - r.top;
+            }
+            return { x: x * (pad.width / r.width), y: y * (pad.height / r.height) };
+        }
+        function mulai(e) {
+            e.preventDefault();
+            drawing = true;
+            hasInk = true;
+            var p = posisi(e);
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+        }
+        function gambar(e) {
+            if (!drawing) return;
+            e.preventDefault();
+            var p = posisi(e);
+            ctx.lineTo(p.x, p.y);
+            ctx.stroke();
+        }
+        function berhenti() { drawing = false; }
+
+        pad.addEventListener('mousedown', mulai);
+        document.addEventListener('mousemove', gambar);
+        document.addEventListener('mouseup', berhenti);
+        pad.addEventListener('touchstart', mulai, { passive: false });
+        pad.addEventListener('touchmove', gambar, { passive: false });
+        pad.addEventListener('touchend', berhenti);
+
+        function bersihkan() {
+            ctx.clearRect(0, 0, pad.width, pad.height);
+            hasInk = false;
+        }
+        document.getElementById('btnBersih').addEventListener('click', bersihkan);
+
+        // Muat tanda tangan tersimpan (bila ada) ke kanvas
+        function muatTtdTersimpan() {
+            fetch(T.url(T.endpoint + '?action=ttd_gambar_saya'))
+                .then(function (r) { return r.json(); })
+                .then(function (d) {
+                    if (d && d.success && d.gambar) {
+                        var img = new Image();
+                        img.onload = function () {
+                            ctx.drawImage(img, 0, 0, pad.width, pad.height);
+                            hasInk = true;
+                            document.getElementById('padNote').textContent =
+                                'Tanda tangan tersimpan Anda dimuat di atas — gambar ulang bila ingin mengganti.';
+                        };
+                        img.src = d.gambar;
+                    }
+                })
+                .catch(function () {});
+        }
+
+        // ===== QR verifikasi (dibuat di sisi klien, opsional) =====
+        function buatQr() {
+            return new Promise(function (resolve) {
+                try {
+                    var kode = (detailCache && detailCache.kode_verifikasi) || '';
+                    if (!kode || typeof QRCode === 'undefined') { resolve(''); return; }
+                    var base = window.location.href.replace(/dokumen\.html[\s\S]*$/, '');
+                    var url = base + 'verify.html?kode=' + encodeURIComponent(kode);
+                    var el = document.getElementById('qrBox');
+                    el.innerHTML = '';
+                    new QRCode(el, { text: url, width: 148, height: 148, correctLevel: QRCode.CorrectLevel.M });
+                    setTimeout(function () {
+                        var img = el.querySelector('img');
+                        resolve(img ? img.src : '');
+                    }, 80);
+                } catch (e) { resolve(''); }
+            });
+        }
+
+        // ===== Tanda tangani dokumen =====
+        document.getElementById('btnTtd').addEventListener('click', function () {
+            if (!id) return;
+            if (!hasInk) { toast('Gambar tanda tangan terlebih dahulu.'); return; }
+            if (!confirm('Tanda tangani dokumen ini?\nTanda tangan elektronik tidak dapat dibatalkan.')) return;
+            var btn = this;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-hourglass-half"></i> Memproses…';
+            var data = pad.toDataURL('image/png');
+            // 1) simpan gambar TTD milik user (dipakai ulang dokumen berikutnya)
+            postForm(T.url(T.endpoint + '?action=ttd_gambar'), { gambar: data })
+                .then(function (d) {
+                    if (!d.success) { throw new Error(d.message || 'Gagal menyimpan tanda tangan.'); }
+                    return buatQr();
+                })
+                // 2) tanda tangani dokumen
+                .then(function (qr) { return postForm(T.url(T.endpoint + '?action=ttd'), { id: String(id), qr: qr }); })
+                .then(function (d) {
+                    if (!d.success) { throw new Error(d.message || 'Gagal menandatangani dokumen.'); }
+                    toast('Dokumen berhasil ditandatangani.');
+                    btn.innerHTML = '<i class="fas fa-check"></i> Ditandatangani';
+                    muatDetail();
+                    muatFrame();
+                })
+                .catch(function (e) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-pen-nib"></i> Tanda Tangan Dokumen';
+                    toast(e.message || 'Gagal memproses tanda tangan.');
+                });
+        });
+
+        // ===== Cetak dokumen final =====
+        document.getElementById('btnCetak').addEventListener('click', function () {
+            var f = document.getElementById('frameDoc');
+            if (f && f.contentWindow) {
+                f.contentWindow.focus();
+                f.contentWindow.print();
+            }
+        });
+
+        muatDetail();
+        muatFrame();
+        muatTtdTersimpan();
+
+
+    })();
+
+    </script>
+</body>
+</html>

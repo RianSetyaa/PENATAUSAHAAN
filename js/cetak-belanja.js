@@ -85,6 +85,10 @@
         '.cs-actions .cs-print { background: #1a3a6b; color: #fff; }',
         '.cs-actions .cs-print:hover { background: #2c5aa0; }',
         '.cs-actions .cs-close { background: #eef1f6; color: #5a6c7d; border: 1px solid #d0d5dd; }',
+        '.cs-actions .cs-ttd { background: #0f766e; color: #fff; }',
+        '.cs-actions .cs-ttd:hover { background: #0d9488; }',
+        '.cs-actions .cs-ttd:disabled { opacity: .75; cursor: default; }',
+        '.cs-ttd-status { width: 100%; min-height: 15px; font-size: 12px; font-weight: 600; color: #0f766e; }',
         '.cs-hint { margin-top: 8px; font-size: 11px; color: #9098a5; }',
         '',
         '/* ===== Dokumen ===== */',
@@ -117,6 +121,8 @@
         '#docArea .ttd .nama { font-weight: 700; margin-top: 56px; }',
         '#docArea .ttd .nip { font-size: calc(var(--fs,13px) - 1px); margin-top: 2px; }',
         '#docArea .ttd .kosong { height: 56px; }',
+        '#docArea .ttd-slot { min-height: 0; }',
+        '#docArea .ttd-slot img { display: block; margin: 0 auto; max-width: 220px; max-height: 64px; }',
         '',
         '/* ===== Format surat resmi (SPP / SPM / SP2D) ===== */',
         '#docArea .kop .garis2 { border-bottom: 3px double var(--lc, #000); margin: 7px 0 16px; }',
@@ -201,6 +207,36 @@
         '  });',
         '  csApply();',
         '}',
+        'function csKirimTtd() {',
+        '  var btn = document.getElementById("csKirimTtd");',
+        '  var out = document.getElementById("csTtdStatus");',
+        '  if (!btn || !window.CS_TTD_META) return;',
+        '  btn.disabled = true; btn.innerHTML = "&#8987; Mengirim...";',
+        '  var body = new URLSearchParams();',
+        '  body.append("action", "kirim");',
+        '  body.append("jenis", window.CS_TTD_META.jenis || "");',
+        '  body.append("ref_id", window.CS_TTD_META.ref_id || "");',
+        '  body.append("nomor", window.CS_TTD_META.nomor || "");',
+        '  body.append("judul", window.CS_TTD_META.judul || "");',
+        '  body.append("tanggal", window.CS_TTD_META.tanggal || "");',
+        '  body.append("konten_html", window.CS_TTD_HTML || "");',
+        '  fetch(window.CS_TTD_META.url, { method: "POST", body: body })',
+        '    .then(function (r) { return r.json(); })',
+        '    .then(function (d) {',
+        '      if (d && d.success) {',
+        '        btn.innerHTML = "&#10003; Terkirim ke antrean TTD";',
+        '        if (out) out.textContent = d.message || "Dokumen terkirim."; }',
+        '      else {',
+        '        btn.disabled = false;',
+        '        btn.innerHTML = "&#9998; Kirim ke Tanda Tangan";',
+        '        if (out) out.textContent = (d && d.message) ? d.message : "Gagal mengirim dokumen."; }',
+        '    })',
+        '    .catch(function () {',
+        '      btn.disabled = false;',
+        '      btn.innerHTML = "&#9998; Kirim ke Tanda Tangan";',
+        '      if (out) out.textContent = "Gagal mengirim (jaringan).";',
+        '    });',
+        '}',
         'if (document.readyState === "loading") { document.addEventListener("DOMContentLoaded", csInit); } else { csInit(); }'
     ].join('\n');
 
@@ -228,12 +264,14 @@
             '<div class="col">' +
                 (left && left.jabatan ? '<div>' + esc(left.jabatan) + '</div>' : '<div>&nbsp;</div>') +
                 '<div class="kosong"></div>' +
+                '<div class="ttd-slot"></div>' +
                 '<div class="nama">' + esc((left && left.nama) || '(.........................)') + '</div>' +
                 '<div class="nip">' + esc((left && left.nip) || '') + '</div>' +
             '</div>' +
             '<div class="col">' +
                 (right && right.jabatan ? '<div>' + esc(right.jabatan) + '</div>' : '<div>&nbsp;</div>') +
                 '<div class="kosong"></div>' +
+                '<div class="ttd-slot"></div>' +
                 '<div class="nama">' + esc((right && right.nama) || '(.........................)') + '</div>' +
                 '<div class="nip">' + esc((right && right.nip) || '') + '</div>' +
             '</div>' +
@@ -267,6 +305,7 @@
         return '<div class="ttd-single">' +
             '<div class="ttd-jabatan">' + esc((t && t.jabatan) || 'Bendahara Pengeluaran') + '</div>' +
             '<div class="ttd-space"></div>' +
+            '<div class="ttd-slot"></div>' +
             '<div class="ttd-nama">' + esc((t && t.nama) || '(................................)') + '</div>' +
             (t && t.nip ? '<div class="ttd-nip">NIP. ' + esc(t.nip) + '</div>' : '') +
         '</div>';
@@ -403,6 +442,24 @@
             (o.nomor ? '<div class="nomor">' + esc(o.nomor) + '</div>' : '') +
             (o.bodyHtml ? o.bodyHtml : bodyDefault);
 
+        // Meta kirim ke antrean tanda tangan (doc.simtkd.com) - opsional.
+        // Dipasang lewat opsi o.dokumen = { jenis, refId, nomor, tanggal, url }.
+        var ttdMeta = null;
+        if (o.dokumen && o.dokumen.url) {
+            ttdMeta = {
+                url: String(o.dokumen.url),
+                jenis: String(o.dokumen.jenis || ''),
+                ref_id: (o.dokumen.refId != null && o.dokumen.refId !== '') ? String(o.dokumen.refId) : '',
+                nomor: String(o.dokumen.nomor || ''),
+                judul: String(o.judul || ''),
+                tanggal: String(o.dokumen.tanggal || '')
+            };
+        }
+        // HTML dokumen mandiri (CSS tertanam) untuk dikirim ke antrean TTD
+        var ttdDocHtml = ttdMeta
+            ? '<style>' + CSS + '</style><div id="docArea">' + docHtml + '</div>'
+            : '';
+
         var panel =
             '<div class="cetak-settings no-print">' +
                 '<div class="cs-head"><i class="fa fa-sliders-h"></i> Pengaturan Laman Cetak</div>' +
@@ -417,7 +474,9 @@
                 '</div>' +
                 '<div class="cs-actions">' +
                     '<button type="button" class="cs-print" onclick="window.print()">&#128424; Cetak / Simpan PDF</button>' +
+                    (ttdMeta ? '<button type="button" class="cs-ttd" id="csKirimTtd" onclick="csKirimTtd()">&#9998; Kirim ke Tanda Tangan</button>' : '') +
                     '<button type="button" class="cs-close" onclick="window.close()">Tutup</button>' +
+                    (ttdMeta ? '<div class="cs-ttd-status" id="csTtdStatus"></div>' : '') +
                 '</div>' +
                 '<div class="cs-hint">Setelan tersimpan otomatis dan dipakai untuk dokumen berikutnya.</div>' +
             '</div>';
@@ -429,6 +488,8 @@
             '<style>' + CSS + '</style></head><body>' +
             panel +
             '<div id="docArea">' + docHtml + '</div>' +
+            (ttdMeta ? '<script>var CS_TTD_META=' + JSON.stringify(ttdMeta).replace(/<\//g, '<\\/') +
+                ';var CS_TTD_HTML=' + JSON.stringify(ttdDocHtml).replace(/<\//g, '<\\/') + ';<\/script>' : '') +
             '<script>' + PANEL_JS + '<\/script>' +
             '</body></html>';
 

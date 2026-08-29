@@ -32,7 +32,10 @@ PENATAUSAHAAN/
 │   ├── register.php    #   POST: pendaftaran akun
 │   ├── logout.php      #   GET : hapus sesi (logout)
 │   ├── session.php     #   GET : cek status login
-│   └── summary.php     #   GET : data ringkasan dashboard
+│   ├── summary.php     #   GET : data ringkasan dashboard
+│   ├── dokumen.php     #   POST: simpan dokumen ke antrean TTD (doc.simtkd.com)
+│   ├── dokumen_go.php  #   GET : SSO redirect ke doc.simtkd.com (?token=)
+│   └── aklap_go.php    #   GET : SSO redirect ke peta.simtkd.com (?token=)
 ├── config/
 │   └── db.php          # Koneksi database (PDO)
 ├── includes/
@@ -40,6 +43,9 @@ PENATAUSAHAAN/
 │   └── auth.php        # Sesi & proteksi halaman
 ├── database/
 │   └── simtkd.sql      # Skema database (referensi)
+│   └── dokumen_ttd.sql # Tabel dokumen & tanda tangan elektronik
+├── peta.simtkd.com/    # Subdomain modul AKLAP (SSO via ?token=)
+├── doc.simtkd.com/     # Subdomain dokumen & tanda tangan elektronik
 ├── setup.php           # Installer otomatis (DB + admin)
 └── README.md
 ```
@@ -148,6 +154,29 @@ Semua endpoint mengembalikan JSON:
 | Penerimaan → Rekening → Permohonan | `permohonan.html` | `api/permohonan.php` | `permohonan` |
 | Pengaturan → Akun Penerimaan | `akun-penerimaan.html` | `api/akun_penerimaan.php` | `akun_penerimaan` |
 | Penerimaan → STBP (Pembuatan) | `stbp-pembuatan.html` · `stbp-tambah.html` | `api/stbp.php` | `stbp`, `stbp_pembayaran`, `stbp_pendapatan` |
+
+---
+
+## ✍️ Dokumen & Tanda Tangan Elektronik (doc.simtkd.com)
+
+Dokumen hasil laman cetak (SPP, SPD, dst.) dapat dikirim ke antrean tanda
+tangan lalu ditandatangani elektronik dengan **tanda tangan tangan** (ala Privy):
+
+1. Saat mencetak dokumen, klik **"✎ Kirim ke Tanda Tangan"** pada panel
+   pengaturan cetak → dokumen tersimpan di tabel `dokumen` (database sama).
+2. Buka **menu "Tanda Tangan Dokumen"** → SSO otomatis ke doc.simtkd.com
+   (membawa token API user, pola sama dengan modul Akuntansi/AKLAP).
+3. Di doc.simtkd.com: pilih dokumen → gambar tanda tangan di kanvas
+   (mouse/sentuh) → **Tanda Tangan Dokumen**. Sistem menyematkan gambar TTD,
+   waktu, kode verifikasi unik, hash SHA-256, dan QR verifikasi ke dokumen
+   (HTML final bersifat mandiri & tidak dapat diubah).
+4. Dokumen final dapat dicetak/simpan PDF; keaslian dapat dicek publik di
+   `doc.simtkd.com/verify.html?kode=TTD-XXXXXXXX`.
+
+Endpoint doc.simtkd.com (`api/dokumen.php`): `list`, `me`, `detail`, `konten`,
+`ttd_gambar`, `ttd` — dilindungi token; `verify` publik (rate-limited).
+Skema database: `database/dokumen_ttd.sql` (tabel `dokumen`, `dokumen_ttd`,
+`user_ttd`). Deployment: `.cpanel.doc.yml`.
 
 ---
 

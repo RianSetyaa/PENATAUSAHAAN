@@ -204,3 +204,27 @@ flowchart LR
     A --> L[LRA]
     C --> L
 ```
+
+---
+
+## 6. Tanda Tangan Elektronik Dokumen (doc.simtkd.com)
+
+```mermaid
+flowchart TD
+    A[Cetak dokumen di SIM-TKD] --> B[Kirim ke Tanda Tangan: simpan HTML + hash ke tabel dokumen]
+    B --> C[Menu Tanda Tangan Dokumen: SSO ke doc.simtkd.com ?token=]
+    C --> D{Token valid?}
+    D -->|Tidak| E[Peringatan: tidak terhubung akun]
+    D -->|Ya| F[Daftar dokumen menunggu TTD]
+    F --> G[Buka dokumen: viewer + gambar TTD di kanvas]
+    G --> H[Konfirmasi: simpan gambar TTD user + QR verifikasi]
+    H --> I{Integritas hash + status menunggu_ttd?}
+    I -->|Ya| J[Sematkan TTD + blok verifikasi ke dokumen]
+    J --> K[status: ditandatangani + hash_signed]
+    I -->|Tidak| L[Tolak: kirim ulang dokumen]
+    K --> M[Cetak / simpan PDF final]
+    K --> N[Verifikasi publik via kode / QR]
+```
+
+---
+

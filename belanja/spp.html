@@ -603,7 +603,15 @@
                     kop: skpd,
                     nomor: r.nomor_spp ? 'Nomor : ' + r.nomor_spp : '',
                     garis2: true,
-                    bodyHtml: body
+                    bodyHtml: body,
+                    // Kirim ke antrean tanda tangan (doc.simtkd.com)
+                    dokumen: {
+                        jenis: 'SPP',
+                        refId: r.id,
+                        nomor: r.nomor_spp || '',
+                        tanggal: r.tanggal || '',
+                        url: new URL('../api/dokumen.php', location.href).toString()
+                    }
                 });
             }
             document.querySelectorAll('.tab-btn').forEach(function (b) {

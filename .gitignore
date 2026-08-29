@@ -4,6 +4,7 @@
 # Kredensial database (jangan pernah di-commit)
 config/credentials.php
 peta.simtkd.com/config/credentials.php
+doc.simtkd.com/config/credentials.php
 
 # Secret webhook deploy
 .webhook_secret
