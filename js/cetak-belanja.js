@@ -104,6 +104,12 @@
         '#docArea table.d th, #docArea table.d td { border: var(--lw, 1px) solid var(--lc, #000); padding: 6px 8px; vertical-align: top; color: var(--tc, #000); }',
         '#docArea table.d th { background: #e8eef7; text-align: center; }',
         '#docArea table.d td.num, #docArea table.d th.num { text-align: right; }',
+        '#docArea table.rd { width: 100%; border-collapse: collapse; font-size: var(--fs,13px); margin: 8px 0 16px; }',
+        '#docArea table.rd td { border: var(--lw,1px) solid var(--lc,#000); padding: 5px 8px; vertical-align: top; color: var(--tc,#000); }',
+        '#docArea table.rd tr.dot td { border-bottom-style: dotted; }',
+        '#docArea table.rd td.ctr { text-align: center; }',
+        '#docArea table.rd td.num { text-align: right; }',
+        '#docArea table.rd td.b { font-weight: 700; }',
         '#docArea .catatan { font-size: calc(var(--fs,13px) - 2px); font-style: italic; margin: 4px 0 12px; }',
         '#docArea .total { font-weight: 700; text-align: right; }',
         '#docArea .ttd { display: flex; justify-content: space-between; margin-top: 60px; font-size: var(--fs,13px); }',
@@ -296,6 +302,77 @@
         return detailTable(rows || [], cols || [], opts);
     }
 
+    // ===== Tabel Ringkasan resmi SPP (format Modul Belanja SKPKD) =====
+    // Satu tabel bergaris berisi: RINGKASAN DPA-/DPPA-/DPAL-SKPD (baris I),
+    // RINGKASAN SPD (kolom No Urut / Nomor SPD / Tanggal SPD / Jumlah Dana,
+    // baris II dan I - II) serta Ringkasan Belanja (baris III dan II - III).
+    // Baris isian mengikuti formulir: batas bawah bergaris putus-putus (dotted).
+    // o = {
+    //   jumlahDpa     : number|null -> nilai I  (jumlah dana DPA-/DPPA-/DPAL-SKPD)
+    //   spdRows       : [{nomor, tanggal, jumlah}] -> isi tabel SPD; minimal
+    //                   2 baris bernomor seperti formulir (tanpa data = kosong)
+    //   jumlahSpd     : number|null -> nilai II (jumlah kolom Jumlah Dana)
+    //   sisaBelumSpd  : number|null -> nilai (I - II); null/undefined = dihitung otomatis
+    //   belanja       : { upgu, tu, lsgaji, lsbj } -> nilai per jenis belanja
+    //   jumlahBelanja : number|null -> nilai III (jumlah ringkasan belanja)
+    //   sisaBelanja   : number|null -> nilai (II - III)
+    //   fmt           : function(v)->string, format angka tanpa awalan "Rp"
+    // }
+    function ringkasanDpaTable(o) {
+        o = o || {};
+        var fmt = o.fmt || function (v) { return (v == null || v === '') ? '' : Number(v).toLocaleString('id-ID'); };
+        function val(v) { return (v == null || v === '') ? '' : esc(fmt(v)); }
+        function sec(t, bold) {
+            return '<tr><td colspan="4" class="ctr' + (bold ? ' b' : '') + '">' + esc(t) + '</td></tr>';
+        }
+        // Baris label (colspan 3) + sel angka berawalan I / II / III / (I - II) / (II - III) Rp
+        function baris(label, prefix, v, dot) {
+            var s = val(v);
+            return '<tr' + (dot ? ' class="dot"' : '') + '><td colspan="3">' + esc(label) + '</td>' +
+                '<td>' + prefix + (s !== '' ? '&nbsp;' + s : '') + '</td></tr>';
+        }
+        var h = '<table class="rd">' +
+            '<colgroup><col style="width:8.5%"><col style="width:27%"><col style="width:29.5%"><col style="width:35%"></colgroup>' +
+            '<tbody>';
+        // -- Ringkasan DPA-/DPPA-/DPAL-SKPD
+        h += sec('RINGKASAN DPA-/DPPA-/DPAL-SKPD', true);
+        h += baris('Jumlah dana DPA-/DPPA-/DPAL-SKPD', 'I &nbsp;Rp ', o.jumlahDpa, false);
+        // -- Ringkasan SPD
+        h += sec('RINGKASAN SPD', true);
+        h += '<tr>' +
+            '<td class="ctr">No Urut</td>' +
+            '<td class="ctr">Nomor SPD</td>' +
+            '<td class="ctr">Tanggal SPD</td>' +
+            '<td class="ctr">Jumlah Dana</td>' +
+            '</tr>';
+        var rows = o.spdRows || [];
+        var n = Math.max(2, rows.length);
+        for (var i = 0; i < n; i++) {
+            var d = rows[i] || {};
+            h += '<tr' + (i < n - 1 ? ' class="dot"' : '') + '>' +
+                '<td class="ctr">' + (i + 1) + '</td>' +
+                '<td>' + esc(d.nomor || '') + '</td>' +
+                '<td>' + esc(d.tanggal || '') + '</td>' +
+                '<td class="num">' + val(d.jumlah) + '</td>' +
+                '</tr>';
+        }
+        var sisa1 = (o.sisaBelumSpd !== undefined && o.sisaBelumSpd !== null) ? o.sisaBelumSpd
+            : ((o.jumlahDpa != null && o.jumlahSpd != null) ? Number(o.jumlahDpa) - Number(o.jumlahSpd) : null);
+        h += baris('Jumlah', 'II. Rp', o.jumlahSpd, false);
+        h += baris('Sisa dana yang belum di SPD-kan', '(I &ndash; II) Rp ', sisa1, false);
+        // -- Ringkasan Belanja
+        var bl = o.belanja || {};
+        h += sec('Ringkasan Belanja', false);
+        h += baris('Belanja UP/GU', '', bl.upgu, true);
+        h += baris('Belanja TU', '', bl.tu, true);
+        h += baris('Belanja LS Pembayaran Gaji dan Tunjangan', '', bl.lsgaji, true);
+        h += baris('Belanja Pengadaan Barang dan Jasa', '', bl.lsbj, false);
+        h += baris('Jumlah', 'III. Rp ', o.jumlahBelanja, false);
+        h += baris('Sisa SPD yang telah diterbitkan, belum dibelanjakan', '(II - III) &nbsp;Rp', o.sisaBelanja, false);
+        h += '</tbody></table>';
+        return h;
+    }
+
     function bukaCetak(o) {
         var w = window.open('', '_blank', 'width=980,height=780');
         if (!w) { alert('Izinkan pop-up agar dokumen dapat dicetak.'); return; }
@@ -380,6 +457,7 @@
         ttdTunggal: ttdTunggal,
         suratPengantar: suratPengantar,
         ringkasanBlok: ringkasanBlok,
-        rincianTable: rincianTable
+        rincianTable: rincianTable,
+        ringkasanDpaTable: ringkasanDpaTable
     };
 })(window);

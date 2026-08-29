@@ -124,7 +124,7 @@ if ($method === 'GET') {
     if ($action === 'spp_list') {
         $status = (string) ($_GET['status'] ?? '');
         $c = skpdCond('s', $skpd);
-        $sql = "SELECT s.*, d.nomor_spd, d.jumlah AS spd_jumlah,
+        $sql = "SELECT s.*, d.nomor_spd, d.tanggal AS spd_tanggal, d.jumlah AS spd_jumlah,
                        (d.jumlah - COALESCE((SELECT SUM(x.jumlah) FROM spp x WHERE x.spd_id = s.spd_id AND x.status <> 'ditolak'), 0)) AS spd_sisa,
                        r.nama_rekanan, l.nomor_lpj, t.nomor_pengajuan FROM spp s
                 LEFT JOIN spd d ON d.id = s.spd_id

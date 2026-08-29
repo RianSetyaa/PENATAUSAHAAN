@@ -487,27 +487,31 @@
                 // Rincian detail (SPP LS Gaji multi-baris)
                 var details = (r.details && r.details.length) ? r.details : null;
                 // Blok RINGKASAN DPA & RINGKASAN SPD (khusus LS Gaji) - data dari SPD yang dipilih
+                // Tabel ringkasan resmi satu tabel: RINGKASAN DPA-/DPPA-/DPAL-SKPD +
+                // RINGKASAN SPD + Ringkasan Belanja (format Modul Belanja SKPKD).
+                //   I  = jumlah dana DPA-/DPPA-/DPAL-SKPD (tercatat sebesar alokasi SPD terkait)
+                //   II = jumlah seluruh SPD (baris 1 = SPD terkait, baris 2 kosong seperti
+                //        formulir), sehingga (I - II) = sisa dana yang belum di-SPD-kan
+                //   III = total belanja atas SPD tsb (= seluruh SPP yang diterbitkan),
+                //        sehingga (II - III) = sisa SPD = spdSis
                 var lsBlocks = '';
                 if (j === 'LS Gaji') {
                     var spdJml   = r.spd_jumlah != null ? Number(r.spd_jumlah) : 0;
                     var spdSis   = r.spd_sisa != null ? Number(r.spd_sisa) : 0;
                     var spdPakai = spdJml - spdSis;
-                    var recapCols = [
-                        { t: 'No', key: null },
-                        { t: 'Uraian', key: 'uraian' },
-                        { t: 'Jumlah (Rp)', key: 'jumlah', num: true, fmt: function (v) { return (v === '' || v == null) ? '' : C.rupiah(v); } }
-                    ];
-                    lsBlocks =
-                        '<div class="blok">' + C.blokTitle('RINGKASAN DPA-/DPPA-/DPAL-SKPD') + C.rincianTable([
-                            { uraian: 'Jumlah Anggaran', jumlah: spdJml },
-                            { uraian: 'Sudah Direalisasikan', jumlah: spdPakai },
-                            { uraian: 'Sisa Anggaran', jumlah: spdSis }
-                        ], recapCols) + '</div>' +
-                        '<div class="blok">' + C.blokTitle('RINGKASAN SPD') + C.rincianTable([
-                            { uraian: 'Jumlah SPD', jumlah: spdJml },
-                            { uraian: 'Sudah Diterbitkan SPP/SPM', jumlah: spdPakai },
-                            { uraian: 'Sisa SPD', jumlah: spdSis }
-                        ], recapCols) + '</div>';
+                    lsBlocks = '<div class="blok">' + C.ringkasanDpaTable({
+                        jumlahDpa: spdJml,
+                        spdRows: [{
+                            nomor: r.nomor_spd || '',
+                            tanggal: r.spd_tanggal ? C.tgl(r.spd_tanggal) : '',
+                            jumlah: spdJml
+                        }],
+                        jumlahSpd: spdJml,
+                        belanja: { lsgaji: spdPakai },
+                        jumlahBelanja: spdPakai,
+                        sisaBelanja: spdSis,
+                        fmt: function (v) { return Number(v).toLocaleString('id-ID'); }
+                    }) + '</div>';
                 }
 
                 // Pembuka sesuai jenis SPP
