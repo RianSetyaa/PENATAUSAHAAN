@@ -23,7 +23,8 @@
             flex-wrap: wrap;
         }
         .print-toolbar .filter-group label { font-size: 13px; color: #0f172a; font-weight: 600; }
-        .print-toolbar .filter-group input[type="date"] {
+        .print-toolbar .filter-group input[type="date"],
+        .print-toolbar .filter-group input[type="text"] {
             padding: 6px 10px;
             border: 1px solid #d7dde5;
             border-radius: 8px;
@@ -293,6 +294,8 @@
                     <input type="date" id="dari">
                     <label for="akhir">s.d.</label>
                     <input type="date" id="akhir">
+                    <label for="namaPa">Pengguna Anggaran</label>
+                    <input type="text" id="namaPa" placeholder="Nama pengguna anggaran" style="min-width:220px;">
                     <button type="button" class="btn btn-outline" id="btnTampilkan"><i class="fas fa-sync-alt"></i> Tampilkan</button>
                 </div>
                 <div class="filter-group">
@@ -390,6 +393,8 @@
                 return Number(n || 0).toLocaleString('id-ID') + ',-';
             }
 
+            var lastRegisterData = null;
+
             function loadRegister() {
                 var dari = document.getElementById('dari').value;
                 var akhir = document.getElementById('akhir').value;
@@ -439,15 +444,33 @@
                 document.getElementById('signTanggal').textContent = formatTanggal(akhir || hariIni);
 
                 // Tanda tangan
-                document.getElementById('signNamaKuasa').textContent = data.kuasa_pengguna_anggaran || '…………………';
                 if (data.bendahara) {
                     document.getElementById('headBendahara').textContent = data.bendahara;
                     document.getElementById('signNamaBendahara').textContent = data.bendahara;
                 }
+                applySignatures(data);
+            }
+
+            // Nama Pengguna Anggaran: input manual di toolbar yang dipakai;
+            // jika kosong, terisi otomatis dari nama KPA pada STS dalam periode.
+            function applySignatures(data) {
+                if (data) lastRegisterData = data;
+                var inPa = document.getElementById('namaPa');
+                var pa = inPa.value.trim();
+                if (!pa && lastRegisterData && lastRegisterData.kuasa_pengguna_anggaran) {
+                    inPa.value = lastRegisterData.kuasa_pengguna_anggaran;
+                    pa = lastRegisterData.kuasa_pengguna_anggaran;
+                }
+                document.getElementById('signNamaKuasa').textContent = pa || '…………………';
             }
 
             document.getElementById('btnTampilkan').addEventListener('click', loadRegister);
             document.getElementById('btnCetak').addEventListener('click', function () { window.print(); });
+
+            // Ketik nama Pengguna Anggaran -> langsung tampil di blok tanda tangan kiri
+            document.getElementById('namaPa').addEventListener('input', function () {
+                document.getElementById('signNamaKuasa').textContent = this.value.trim() || '…………………';
+            });
 
             // ---------- Prefill: sesi + periode default (1 Jan tahun ini s.d. hari ini) ----------
             fetch('../api/session.php')
