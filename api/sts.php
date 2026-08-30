@@ -30,6 +30,69 @@ $STATUS_LIST = ['aktif', 'dihapus'];
 // GET - Daftar / Detail STS
 // ============================================
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    // --- Register STS (laporan rekap) ---
+    if (input('register', '') === '1') {
+        $dari  = input('dari', '');
+        $akhir = input('akhir', '');
+        if ($dari !== '' && !isValidTanggal($dari))   $dari = '';
+        if ($akhir !== '' && !isValidTanggal($akhir)) $akhir = '';
+
+        $where  = "st.status = 'aktif'";
+        $params = [];
+        if ($skpd !== '') { $where .= " AND st.skpd = ?"; $params[] = $skpd; }
+        if ($dari !== '') { $where .= " AND st.tanggal_sts >= ?"; $params[] = $dari; }
+        if ($akhir !== '') { $where .= " AND st.tanggal_sts <= ?"; $params[] = $akhir; }
+
+        // Satu baris = satu baris pendapatan (snapshot sts_detail);
+        // penyetor diambil dari STBP terkait, fallback ke penyetor STS.
+        $sql = "SELECT st.nomor_sts, st.tanggal_sts,
+                       sd.akun_kode, sd.akun_nama, sd.jumlah,
+                       COALESCE(NULLIF(sp.nama_penyetor, ''), st.nama_penyetor) AS nama_penyetor
+                FROM sts st
+                JOIN sts_detail sd ON sd.sts_id = st.id
+                LEFT JOIN stbp s ON s.id = sd.stbp_id
+                LEFT JOIN stbp_pembayaran sp ON sp.stbp_id = s.id
+                WHERE $where
+                ORDER BY st.tanggal_sts ASC, st.id ASC, sd.id ASC";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        $rows = $stmt->fetchAll();
+
+        $total = 0.0;
+        $data = array_map(function ($r) use (&$total) {
+            $jumlah = (float) $r['jumlah'];
+            $total += $jumlah;
+            return [
+                'nomor_sts'     => (string) $r['nomor_sts'],
+                'tanggal'       => (string) $r['tanggal_sts'],
+                'akun_kode'     => (string) $r['akun_kode'],
+                'akun_nama'     => (string) $r['akun_nama'],
+                'jumlah'        => $jumlah,
+                'nama_penyetor' => (string) ($r['nama_penyetor'] ?? ''),
+            ];
+        }, $rows);
+
+        // Kuasa Pengguna Anggaran: dari STS terbaru dalam periode (utk blok tanda tangan kiri)
+        $sqlK = "SELECT st.kuasa_pengguna_anggaran FROM sts st
+                 WHERE st.status = 'aktif' AND st.kuasa_pengguna_anggaran <> ''"
+              . ($skpd !== '' ? " AND st.skpd = ?" : "")
+              . ($dari !== '' ? " AND st.tanggal_sts >= ?" : "")
+              . ($akhir !== '' ? " AND st.tanggal_sts <= ?" : "")
+              . " ORDER BY st.tanggal_sts DESC, st.id DESC LIMIT 1";
+        $stmtK = $pdo->prepare($sqlK);
+        $stmtK->execute($params);
+        $kuasa = (string) ($stmtK->fetchColumn() ?: '');
+
+        jsonResponse(true, 'OK', [
+            'periode' => ['dari' => $dari, 'akhir' => $akhir],
+            'skpd'    => $skpd,
+            'rows'    => $data,
+            'total'   => $total,
+            'bendahara' => (string) ($_SESSION['nama'] ?? ''),
+            'kuasa_pengguna_anggaran' => $kuasa,
+        ]);
+    }
+
     // --- Detail satu STS ---
     $detailId = (int) input('id', '0');
     if ($detailId > 0) {
