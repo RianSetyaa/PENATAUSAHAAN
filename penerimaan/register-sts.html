@@ -74,7 +74,6 @@
         .register-sign .col { width: 48%; }
         .register-sign p { margin: 0; line-height: 1.6; }
         .register-sign .name { min-height: 48px; display: block; text-decoration: underline; }
-        .register-sign.hide-ttd { display: none !important; }
         .register-notfound { max-width: 820px; margin: 0 auto; }
 
         /* ===== Saat mencetak: hanya dokumen ===== */
@@ -300,9 +299,7 @@
                     <button type="button" class="btn btn-outline" id="btnTampilkan"><i class="fas fa-sync-alt"></i> Tampilkan</button>
                 </div>
                 <div class="filter-group">
-                    <label style="font-size:13px;display:flex;align-items:center;gap:4px;cursor:pointer;color:#0f172a;">
-                        <input type="checkbox" id="chkTtd" checked> Tampilkan Tanda Tangan
-                    </label>
+                    <button type="button" class="btn btn-primary" id="btnKirimTtd"><i class="fas fa-pen-nib"></i> Kirim ke Tanda Tangan</button>
                     <button type="button" class="btn btn-dark" id="btnCetak"><i class="fas fa-print"></i> Cetak Register</button>
                 </div>
             </div>
@@ -471,10 +468,78 @@
             document.getElementById('btnTampilkan').addEventListener('click', loadRegister);
             document.getElementById('btnCetak').addEventListener('click', function () { window.print(); });
 
-            // Toggle Tanda Tangan
-            document.getElementById('chkTtd').addEventListener('change', function () {
-                document.querySelector('.register-sign').classList.toggle('hide-ttd', !this.checked);
-            });
+            // ---------- Nama penandatangan dari dokumen (buang placeholder titik-titik) ----------
+            function bersihNama(v) {
+                v = String(v || '').trim();
+                return /^[.…\u2026]+$/.test(v) ? '' : v;
+            }
+
+            // ---------- Kirim ke antrean tanda tangan (doc.simtkd.com) ----------
+            function kirimTtd() {
+                var btn = document.getElementById('btnKirimTtd');
+                var sheet = document.getElementById('registerSheet');
+                if (!btn || !sheet) return;
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengirim...';
+
+                // Bangun HTML mandiri (CSS tertanam) agar bisa ditandatangani
+                var cssText = '';
+                try {
+                    var linkCss = document.querySelector('link[href*="dashboard.css"]');
+                    var req = new XMLHttpRequest();
+                    req.open('GET', linkCss ? linkCss.getAttribute('href') : '../css/dashboard.css', false);
+                    req.send();
+                    if (req.status >= 200 && req.status < 300) cssText += req.responseText;
+                } catch (e) { /* abaikan */ }
+                document.querySelectorAll('style').forEach(function (st) { cssText += '\n' + st.textContent; });
+                cssText += '\n.register-sheet{position:relative;}\n#docArea .ttd-slot img{max-width:200px;max-height:64px;display:block;}\n';
+
+                var dari = document.getElementById('dari').value;
+                var akhir = document.getElementById('akhir').value || new Date().toISOString().slice(0, 10);
+                var judul = 'Register STS - Periode ' + (dari ? formatTanggal(dari) : '-') + ' s.d. ' + formatTanggal(akhir);
+
+                var html = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + escapeHtml(judul) + '</title><style>' + cssText + '</style></head>' +
+                    '<body style="margin:0;background:#fff;"><div id="docArea">' + sheet.outerHTML + '</div></body></html>';
+
+                var body = new URLSearchParams();
+                body.append('action', 'kirim');
+                body.append('jenis', 'Register STS');
+                body.append('ref_id', '');
+                body.append('nomor', '');
+                body.append('judul', judul);
+                body.append('tanggal', akhir);
+                body.append('konten_html', html);
+                var pttd = [
+                    { user: '', urutan: 1, jabatan: 'Pengguna Anggaran', nama: bersihNama(document.getElementById('signNamaKuasa').textContent) },
+                    { user: 'self', urutan: 2, jabatan: 'Bendahara Penerimaan', nama: bersihNama(document.getElementById('signNamaBendahara').textContent) }
+                ];
+                if (pttd[0].nama || pttd[1].nama) {
+                    body.append('penandatangan', JSON.stringify(pttd));
+                }
+
+                fetch('../api/dokumen.php', { method: 'POST', body: body })
+                    .then(function (res) { return res.json(); })
+                    .then(function (d) {
+                        if (d && d.success) {
+                            btn.innerHTML = '<i class="fas fa-check"></i> Terkirim ke TTD';
+                            var t = document.createElement('div');
+                            t.style.cssText = 'position:fixed;bottom:20px;right:20px;background:#0e2140;color:#fff;padding:12px 18px;border-radius:8px;z-index:9999;font:13px -apple-system,system-ui,sans-serif;box-shadow:0 6px 18px rgba(0,0,0,.25)';
+                            t.textContent = d.message || 'Dokumen terkirim ke antrean tanda tangan.';
+                            document.body.appendChild(t);
+                            setTimeout(function () { t.remove(); }, 4000);
+                        } else {
+                            btn.disabled = false;
+                            btn.innerHTML = '<i class="fas fa-pen-nib"></i> Kirim ke Tanda Tangan';
+                            alert((d && d.message) || 'Gagal mengirim dokumen.');
+                        }
+                    })
+                    .catch(function () {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-pen-nib"></i> Kirim ke Tanda Tangan';
+                        alert('Gagal mengirim (jaringan).');
+                    });
+            }
+            document.getElementById('btnKirimTtd').addEventListener('click', kirimTtd);
 
             // Ketik nama Pengguna Anggaran -> langsung tampil di blok tanda tangan kiri
             document.getElementById('namaPa').addEventListener('input', function () {
