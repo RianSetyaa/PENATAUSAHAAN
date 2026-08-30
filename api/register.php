@@ -45,6 +45,13 @@ if (!isValidEmail($email)) {
     jsonResponse(false, 'Format email tidak valid.', ['field' => 'email'], 422);
 }
 
+// Pendaftaran hanya diizinkan via email domain POLBAN
+$allowedDomain = 'polban.ac.id';
+$emailDomain = strtolower(substr(strrchr($email, '@') ?: '', 1));
+if ($emailDomain !== $allowedDomain) {
+    jsonResponse(false, 'Pendaftaran hanya menggunakan email domain @' . $allowedDomain . '.', ['field' => 'email'], 422);
+}
+
 if (strlen($password) < 8) {
     jsonResponse(false, 'Kata sandi minimal 8 karakter.', ['field' => 'password'], 422);
 }

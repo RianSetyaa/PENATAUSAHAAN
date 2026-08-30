@@ -237,6 +237,14 @@
         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
     }
 
+    // Pendaftaran hanya diizinkan via email domain POLBAN
+    const ALLOWED_EMAIL_DOMAIN = 'polban.ac.id';
+
+    function isAllowedEmailDomain(value) {
+        const at = value.lastIndexOf('@');
+        return at !== -1 && value.slice(at + 1).toLowerCase() === ALLOWED_EMAIL_DOMAIN;
+    }
+
     // ==========================================
     // Form Submission
     // ==========================================
@@ -288,6 +296,9 @@
             hasError = true;
         } else if (!isValidEmail(mail)) {
             setError(email, document.getElementById('errEmail'), 'Format email tidak valid.');
+            hasError = true;
+        } else if (!isAllowedEmailDomain(mail)) {
+            setError(email, document.getElementById('errEmail'), 'Pendaftaran hanya menggunakan email @polban.ac.id.');
             hasError = true;
         }
 

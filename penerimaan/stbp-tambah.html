@@ -62,6 +62,12 @@
                         </div>
                     </div>
 
+                    <!-- SKP - Daerah (alur sebelum STBP) -->
+                    <a href="skp-daerah.html" class="menu-item">
+                        <i class="fas fa-receipt"></i>
+                        <span>SKP - Daerah</span>
+                    </a>
+
                     <!-- STBP (aktif) -->
                     <a href="stbp-pembuatan.html" class="menu-item active">
                         <i class="fas fa-file-invoice"></i>
@@ -216,6 +222,17 @@
                             </div>
                         </div>
                         <div class="form-group">
+                            <label for="skpDisplay">SKP Daerah</label>
+                            <div class="picker-field">
+                                <input type="text" id="skpDisplay" class="form-control" readonly placeholder="Belum dipilih — pilih SKP Daerah milik penyetor">
+                                <button type="button" class="btn btn-outline btn-sm picker-btn" id="btnPilihSkp">
+                                    <i class="fas fa-receipt"></i> Pilih SKP Daerah
+                                </button>
+                            </div>
+                            <input type="hidden" id="skpDaerahId" value="">
+                            <p class="form-hint"><i class="fas fa-info-circle"></i> Data STBP (Nama Penyetor &amp; keterangan) mengikuti SKP Daerah yang dipilih.</p>
+                        </div>
+                        <div class="form-group">
                             <label for="keterangan">Keterangan</label>
                             <textarea id="keterangan" class="form-control" rows="3"
                                 placeholder="Masukkan keterangan penerimaan disini ..."></textarea>
@@ -247,8 +264,9 @@
                             </div>
                             <div class="form-group">
                                 <label for="namaPenyetor">Nama Penyetor</label>
-                                <input type="text" id="namaPenyetor" class="form-control"
-                                    placeholder="Drs. Nama Anda S.Kom., M.Kom.">
+                                <input type="text" id="namaPenyetor" class="form-control" readonly
+                                    placeholder="Dipilih otomatis dari SKP Daerah">
+                                <p class="form-hint"><i class="fas fa-info-circle"></i> Diisi otomatis dari SKP Daerah yang dipilih — tidak perlu diinput manual.</p>
                             </div>
                         </div>
                         <div class="form-row">
@@ -420,6 +438,28 @@
         </div>
     </div>
 
+    <!-- ================= MODAL PILIH SKP DAERAH ================= -->
+    <div class="modal-overlay" id="modalPilihSkp">
+        <div class="modal modal-wide">
+            <div class="modal-header">
+                <h3><i class="fas fa-receipt"></i> Pilih SKP Daerah</h3>
+                <button type="button" class="modal-close" id="closePilihSkp" aria-label="Tutup">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="search-box picker-search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="cariSkp" placeholder="Cari nomor SKP / nama penyetor ...">
+                </div>
+                <div class="picker-list" id="skpList">
+                    <p class="picker-empty">Memuat data...</p>
+                </div>
+                <div class="modal-footer" style="margin-top:12px;border:none;padding:0;">
+                    <button type="button" class="btn btn-outline" id="batalPilihSkp">Batal</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="../js/dashboard.js"></script>
     <script>
         // ==========================================
@@ -512,6 +552,105 @@
             document.getElementById('namaBank').addEventListener('change', applyRekening);
 
             loadBanks();
+
+            // ---------- Pilih SKP Daerah (data STBP harus sama dengan SKP) ----------
+            const modalPilihSkp = document.getElementById('modalPilihSkp');
+            const skpListEl = document.getElementById('skpList');
+            const cariSkp = document.getElementById('cariSkp');
+            let skpCache = [];
+            let selectedSkp = null;
+
+            function loadSkpList() {
+                skpListEl.innerHTML = '<p class="picker-empty">Memuat data...</p>';
+                fetch('../api/skp.php?status=aktif&q=' + encodeURIComponent(cariSkp.value.trim()))
+                    .then(function (res) { return res.json(); })
+                    .then(function (data) {
+                        skpCache = (data && data.success) ? (data.data || []) : [];
+                        renderSkpList();
+                    })
+                    .catch(function () {
+                        skpCache = [];
+                        renderSkpList();
+                    });
+            }
+
+            function renderSkpList() {
+                const q = cariSkp.value.trim().toLowerCase();
+                const filtered = skpCache.filter(function (s) {
+                    return (s.nomor_skp + ' ' + s.nama_penyetor + ' ' + s.jenis_pajak)
+                        .toLowerCase().indexOf(q) !== -1;
+                });
+                if (!filtered.length) {
+                    skpListEl.innerHTML = '<p class="picker-empty">Tidak ada SKP Daerah aktif.<br>' +
+                        'Buat SKP Daerah terlebih dahulu di menu <b>SKP - Daerah</b>.</p>';
+                    return;
+                }
+                skpListEl.innerHTML = filtered.map(function (s) {
+                    return '<div class="picker-item" data-id="' + s.id + '" data-nomor="' + escapeHtml(s.nomor_skp) + '"' +
+                        ' data-nama="' + escapeHtml(s.nama_penyetor) + '" data-jenis="' + escapeHtml(s.jenis_pajak) + '"' +
+                        ' data-nilai="' + (s.nilai_keputusan || 0) + '" data-keterangan="' + escapeHtml(s.objek_pajak || '') + '">' +
+                        '<div class="p-title"><i class="fas fa-receipt"></i>' + escapeHtml(s.nomor_skp) +
+                            ' — ' + escapeHtml(s.nama_penyetor) + '</div>' +
+                        '<div class="p-sub"><span class="kode-akun">' + escapeHtml(s.jenis_pajak || '-') + '</span>' +
+                            '<span class="p-nilai">Rp' + Number(s.nilai_keputusan || 0).toLocaleString('id-ID') + '</span></div>' +
+                    '</div>';
+                }).join('');
+            }
+
+            document.getElementById('btnPilihSkp').addEventListener('click', function () {
+                modalPilihSkp.classList.add('show');
+                cariSkp.value = '';
+                loadSkpList();
+            });
+            document.getElementById('closePilihSkp').addEventListener('click', function () {
+                modalPilihSkp.classList.remove('show');
+            });
+            document.getElementById('batalPilihSkp').addEventListener('click', function () {
+                modalPilihSkp.classList.remove('show');
+            });
+            modalPilihSkp.addEventListener('click', function (e) {
+                if (e.target === modalPilihSkp) modalPilihSkp.classList.remove('show');
+            });
+            cariSkp.addEventListener('input', function () {
+                renderSkpList();
+            });
+            skpListEl.addEventListener('click', function (e) {
+                const item = e.target.closest('.picker-item');
+                if (!item) return;
+                selectedSkp = {
+                    id: item.getAttribute('data-id'),
+                    nomor: item.getAttribute('data-nomor'),
+                    nama: item.getAttribute('data-nama'),
+                    jenis: item.getAttribute('data-jenis'),
+                    nilai: parseFloat(item.getAttribute('data-nilai')) || 0,
+                    keterangan: item.getAttribute('data-keterangan')
+                };
+                modalPilihSkp.classList.remove('show');
+                applySkp();
+            });
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') modalPilihSkp.classList.remove('show');
+            });
+
+            function applySkp() {
+                if (!selectedSkp) return;
+                document.getElementById('skpDaerahId').value = selectedSkp.id;
+                document.getElementById('skpDisplay').value =
+                    selectedSkp.nomor + ' — ' + selectedSkp.nama + (selectedSkp.jenis ? ' (' + selectedSkp.jenis + ')' : '');
+                // Nama penyetor tidak perlu diinput ulang (berasal dari SKP Daerah)
+                const inPenyetor = document.getElementById('namaPenyetor');
+                if (inPenyetor) {
+                    inPenyetor.value = selectedSkp.nama;
+                    inPenyetor.setAttribute('readonly', 'readonly');
+                }
+                // Keterangan disamakan dengan objek pajak SKP
+                const ket = document.getElementById('keterangan');
+                if (ket) {
+                    ket.value = (selectedSkp.keterangan || '') +
+                        (selectedSkp.keterangan ? ' | ' : '') + 'SKP Daerah ' + selectedSkp.nomor;
+                }
+                showToast('SKP Daerah dipilih: ' + selectedSkp.nomor + '. Data STBP mengikuti SKP.', 'success');
+            }
 
             // ---------- Format nominal rupiah ----------
             function formatRupiahInput(val) {
@@ -846,6 +985,8 @@
 
                 if (!tanggal) { showToast('Tanggal wajib diisi.', 'warning'); return; }
                 if (jumlah <= 0) { showToast('Tambahkan minimal satu data pendapatan (nominal) melalui popup terlebih dahulu.', 'warning'); return; }
+                const skpIdVal = document.getElementById('skpDaerahId').value;
+                if (!skpIdVal || skpIdVal === '0') { showToast('Pilih SKP Daerah terlebih dahulu — data STBP wajib berdasarkan SKP Daerah.', 'warning'); return; }
 
                 const btnSubmit = this.querySelector('.btn-primary');
                 btnSubmit.disabled = true;
@@ -856,6 +997,7 @@
                     body: JSON.stringify({
                         action: 'create',
                         skpd: document.getElementById('skpd').value,
+                        skp_daerah_id: document.getElementById('skpDaerahId').value || 0,
                         tanggal: tanggal,
                         uraian: keterangan,
                         jumlah: jumlah,

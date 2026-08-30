@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cetak STS - SIM-TKD</title>
+    <title>Cetak SKP Daerah - SIM-TKD</title>
     <link rel="stylesheet" href="../css/dashboard.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -15,8 +15,8 @@
             margin-bottom: 20px;
         }
 
-        /* ===== Dokumen STS ===== */
-        .sts-sheet {
+        /* ===== Dokumen SKP Daerah ===== */
+        .skp-sheet {
             max-width: none;
             width: 100%;
             box-sizing: border-box;
@@ -30,125 +30,93 @@
             line-height: 1.7;
             position: relative;
         }
-        .sts-head {
+        .skp-head {
             text-align: center;
             margin-bottom: 26px;
         }
-        .sts-head .logo {
+        .skp-head .logo {
             width: 68px;
             height: 68px;
             object-fit: contain;
             margin: 0 auto 10px;
             display: block;
         }
-        .sts-head .instansi {
+        .skp-head .instansi {
             font-size: 15px;
             font-weight: 700;
             color: #0f172a;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        .sts-head .title {
+        .skp-head .title {
             font-size: 22px;
             font-weight: 800;
             color: #0f172a;
             margin-top: 4px;
             letter-spacing: 1px;
         }
-        .sts-head .nomor {
+        .skp-head .nomor {
             font-size: 13px;
             color: #5a6c7d;
             margin-top: 6px;
         }
-        .sts-head .divider {
+        .skp-head .divider {
             height: 3px;
             background: #1a3a6b;
             width: 180px;
             margin: 12px auto 0;
             border-radius: 3px;
         }
-        .sts-field {
+        .skp-field {
             display: flex;
             margin-bottom: 10px;
             font-size: 14px;
             line-height: 1.7;
         }
-        .sts-field .flabel {
+        .skp-field .flabel {
             width: 200px;
             flex-shrink: 0;
             font-weight: 600;
             color: #0f172a;
         }
-        .sts-field .fval {
+        .skp-field .fval {
             flex: 1;
             color: #0f172a;
         }
-        .sts-field .fval.amount {
+        .skp-field .fval.amount {
             font-weight: 700;
         }
-        .sts-rincian-title {
-            margin-top: 24px;
-            font-weight: 700;
-            font-size: 14px;
-            color: #0f172a;
-        }
-        .sts-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-        .sts-table th,
-        .sts-table td {
-            border: 1px solid #1e293b;
-            padding: 10px 12px;
-            font-size: 13px;
-            text-align: left;
-            color: #0f172a;
-        }
-        .sts-table th {
-            background: #f1f5f9;
-            font-weight: 700;
-        }
-        .sts-table td.num {
-            text-align: right;
-            font-variant-numeric: tabular-nums;
-        }
-        .sts-footer {
-            margin-top: 44px;
+        .skp-footer {
+            margin-top: 64px;
             display: flex;
-            justify-content: space-between;
-            gap: 40px;
+            justify-content: flex-end;
         }
-        .sts-sign {
+        .skp-sign {
             text-align: center;
-            min-width: 240px;
+            min-width: 260px;
         }
-        .sts-sign .role {
+        .skp-sign .role {
             margin-bottom: 70px;
             font-size: 13px;
             color: #5a6c7d;
         }
-        .sts-sign .name {
+        .skp-sign .name {
             font-weight: 700;
             text-decoration: underline;
             font-size: 14px;
         }
-        .sts-notfound {
+        .skp-notfound {
             max-width: 820px;
             margin: 0 auto;
         }
 
-        /* ===== Saat mencetak: hanya dokumen, landscape ===== */
-        @page {
-            size: A4 landscape;
-            margin: 12mm;
-        }
+        /* ===== Saat mencetak: hanya dokumen ===== */
         @media print {
             .sidebar, .topbar, .footer, .overlay, .print-toolbar { display: none !important; }
             .main-wrapper { margin-left: 0 !important; }
             .content { padding: 0 !important; margin: 0 !important; }
             body { background: #ffffff !important; }
-            .sts-sheet {
+            .skp-sheet {
                 box-shadow: none;
                 border: none;
                 border-radius: 0;
@@ -213,8 +181,8 @@
                         </div>
                     </div>
 
-                    <!-- SKP - Daerah (alur sebelum STBP) -->
-                    <a href="skp-daerah.html" class="menu-item">
+                    <!-- SKP - Daerah (aktif) -->
+                    <a href="skp-daerah.html" class="menu-item active">
                         <i class="fas fa-receipt"></i>
                         <span>SKP - Daerah</span>
                     </a>
@@ -234,8 +202,8 @@
                         </div>
                     </div>
 
-                    <!-- STS (aktif) -->
-                    <a href="sts-pembuatan.html" class="menu-item active">
+                    <!-- STS -->
+                    <a href="sts-pembuatan.html" class="menu-item">
                         <i class="fas fa-file-invoice-dollar"></i>
                         <span>STS</span>
                     </a>
@@ -296,6 +264,7 @@
                 </a>
                 <div class="submenu">
                     <a href="../pengaturan/akun-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-coins"></i><span>Akun Penerimaan</span></a>
+                    <a href="../pengaturan/anggaran-neraca.html" class="menu-item submenu-item"><i class="fas fa-chart-line"></i><span>Anggaran &amp; Neraca</span></a>
                 </div>
             </div>
 
@@ -329,7 +298,7 @@
                     <i class="fas fa-chevron-right"></i>
                     <span>Penerimaan</span>
                     <i class="fas fa-chevron-right"></i>
-                    <span>STS</span>
+                    <span>SKP - Daerah</span>
                     <i class="fas fa-chevron-right"></i>
                     <span class="current">Cetak</span>
                 </div>
@@ -361,71 +330,50 @@
             </div>
 
             <!-- Status Dokumen Tidak Ditemukan -->
-            <div class="card sts-notfound" id="stsNotFound" style="display:none;">
+            <div class="card skp-notfound" id="skpNotFound" style="display:none;">
                 <div class="empty-state">
                     <div class="empty-illustration">
-                        <i class="fas fa-file-invoice-dollar"></i>
+                        <i class="fas fa-receipt"></i>
                     </div>
                     <h3>Dokumen Tidak Tersedia</h3>
-                    <p>STS yang Anda cari tidak ditemukan. Silakan buat STS terlebih dahulu atau kembali ke daftar.</p>
+                    <p>SKP Daerah yang Anda cari tidak ditemukan. Silakan buat SKP Daerah terlebih dahulu.</p>
                     <div class="empty-actions">
-                        <a href="sts-pembuatan.html" class="btn btn-outline"><i class="fas fa-arrow-left"></i> Kembali ke Daftar</a>
-                        <a href="sts-tambah.html" class="btn btn-primary"><i class="fas fa-plus"></i> Buat STS</a>
+                        <a href="skp-daerah.html" class="btn btn-outline"><i class="fas fa-arrow-left"></i> Kembali ke Daftar</a>
+                        <a href="skp-daerah-tambah.html" class="btn btn-primary"><i class="fas fa-plus"></i> Buat SKP Daerah</a>
                     </div>
                 </div>
             </div>
 
-            <!-- Dokumen STS -->
-            <div class="sts-sheet" id="stsSheet">
-                <div class="sts-head">
+            <!-- Dokumen SKP Daerah -->
+            <div class="skp-sheet" id="skpSheet">
+                <div class="skp-head">
                     <img src="../img/Logo Polban.png" alt="Logo" class="logo">
                     <div class="instansi" id="docInstansi">PEMERINTAH DAERAH</div>
-                    <div class="title">SURAT TANDA SETORAN</div>
+                    <div class="title">SURAT KETETAPAN PAJAK DAERAH</div>
                     <div class="nomor" id="docNomor">Nomor: -</div>
                     <div class="divider"></div>
                 </div>
 
-                <div class="sts-field"><span class="flabel">a. Nama Penyetor</span><span class="fval" id="fPenyetor">-</span></div>
-                <div class="sts-field"><span class="flabel">b. Tanggal STS</span><span class="fval" id="fTanggal">-</span></div>
-                <div class="sts-field"><span class="flabel">c. Tanggal Acuan</span><span class="fval" id="fAcuan">-</span></div>
-                <div class="sts-field"><span class="flabel">d. Mengetahui</span><span class="fval" id="fMengetahui">-</span></div>
-                <div class="sts-field"><span class="flabel">e. Di Bank</span><span class="fval" id="fBank">-</span></div>
-                <div class="sts-field"><span class="flabel">f. Nomor Rekening</span><span class="fval" id="fNoRek">-</span></div>
-                <div class="sts-field"><span class="flabel">g. Nama Rekening</span><span class="fval" id="fNamaRek">-</span></div>
-                <div class="sts-field"><span class="flabel">h. Keterangan</span><span class="fval" id="fKet">-</span></div>
-                <div class="sts-field"><span class="flabel">i. Total Setoran</span><span class="fval amount" id="fTotal">-</span></div>
-                <div class="sts-field" id="kuasaField"><span class="flabel">j. Nama Kuasa Pengguna Anggaran</span><span class="fval" id="fKuasa">-</span></div>
+                <div class="skp-field"><span class="flabel">Nomor SKP</span><span class="fval" id="fNomor">-</span></div>
+                <div class="skp-field"><span class="flabel">Tanggal Ketetapan</span><span class="fval" id="fTanggal">-</span></div>
+                <div class="skp-field"><span class="flabel">Nama Penyetor</span><span class="fval" id="fNama">-</span></div>
+                <div class="skp-field"><span class="flabel">Jenis Pajak Daerah</span><span class="fval" id="fJenis">-</span></div>
+                <div class="skp-field"><span class="flabel">Objek Pajak</span><span class="fval" id="fObjek">-</span></div>
+                <div class="skp-field"><span class="flabel">Masa Pajak</span><span class="fval" id="fMasa">-</span></div>
+                <div class="skp-field"><span class="flabel">Jatuh Tempo</span><span class="fval" id="fJatuh">-</span></div>
+                <div class="skp-field"><span class="flabel">Nilai Ketetapan</span><span class="fval amount" id="fNilai">-</span></div>
 
-                <div class="sts-rincian-title">Dengan rincian STBP sebagai berikut:</div>
-                <table class="sts-table">
-                    <thead>
-                        <tr>
-                            <th style="width:40px;">No</th>
-                            <th>Nomor STBP</th>
-                            <th>Tanggal</th>
-                            <th style="width:170px;">Jumlah (Rp)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="rincianBody">
-                        <tr><td colspan="4" style="text-align:center;color:#9098a5;">Memuat...</td></tr>
-                    </tbody>
-                    <tfoot>
-                        <tr>
-                            <td colspan="3" style="text-align:right;font-weight:700;">TOTAL</td>
-                            <td class="num" id="totalCell" style="font-weight:700;">-</td>
-                        </tr>
-                    </tfoot>
-                </table>
+                <div style="margin-top:28px;font-size:13px;color:#0f172a;line-height:2;">
+                    Berdasarkan ketentuan peraturan perundang-undangan tentang pajak daerah,
+                    ditetapkan jumlah pajak terutang sebagaimana tersebut di atas.
+                    Pembayaran dilakukan melalui rekening kas daerah pada bank yang ditunjuk,
+                    dan selanjutnya diterbitkan Surat Tanda Bukti Penerimaan (STBP) sebagai dasar penerimaan.
+                </div>
 
-                <div class="sts-footer">
-                    <div class="sts-sign">
-                        <div class="role">Mengetahui,<br>Kuasa Pengguna Anggaran<br><span id="signRoleKuasa">Dinas Kepemudaan dan Olahraga</span></div>
+                <div class="skp-footer">
+                    <div class="skp-sign">
+                        <div class="role">Kuasa Pengguna Anggaran,<br><span id="signRole">Dinas Kepemudaan dan Olahraga</span></div>
                         <div class="ttd-slot" data-urut="1"></div>
-                        <div class="name" id="signNameKuasa">(______________________)</div>
-                    </div>
-                    <div class="sts-sign">
-                        <div class="role">Bendahara Penerimaan,<br><span id="signRole">Dinas Kepemudaan dan Olahraga</span></div>
-                        <div class="ttd-slot" data-urut="2"></div>
                         <div class="name" id="signName">(______________________)</div>
                     </div>
                 </div>
@@ -442,7 +390,7 @@
     <script src="../js/dashboard.js"></script>
     <script>
         // ==========================================
-        // Halaman Cetak STS
+        // Halaman Cetak SKP Daerah
         // ==========================================
         (function () {
             'use strict';
@@ -454,7 +402,7 @@
             }
 
             function formatRupiah(v) {
-                return 'Rp ' + Number(v || 0).toLocaleString('id-ID');
+                return Number(v || 0).toLocaleString('id-ID');
             }
 
             function formatTanggal(s) {
@@ -469,16 +417,15 @@
             const id = params.get('id');
 
             // ==== Kirim ke antrean tanda tangan (doc.simtkd.com) ====
-            var metaTtd = { jenis: 'STS', refId: id, nomor: '', tanggal: '', judul: '', penandatangan: [] };
+            var metaTtd = { jenis: 'SKP Daerah', refId: id, nomor: '', tanggal: '', judul: '', penandatangan: [] };
 
             function kirimTtd() {
                 var btn = document.getElementById('btnKirimTtd');
-                var sheet = document.getElementById('stsSheet');
+                var sheet = document.getElementById('skpSheet');
                 if (!btn || !sheet) return;
                 btn.disabled = true;
                 btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengirim...';
 
-                // Bangun HTML mandiri (CSS tertanam) agar bisa ditandatangani
                 var cssText = '';
                 try {
                     var linkCss = document.querySelector('link[href*="dashboard.css"]');
@@ -488,7 +435,7 @@
                     if (req.status >= 200 && req.status < 300) cssText += req.responseText;
                 } catch (e) { /* abaikan */ }
                 document.querySelectorAll('style').forEach(function (st) { cssText += '\n' + st.textContent; });
-                cssText += '\n.sts-sheet{position:relative;}\n#docArea .ttd-slot img{max-width:200px;max-height:64px;display:block;}\n';
+                cssText += '\n.skp-sheet{position:relative;}\n#docArea .ttd-slot img{max-width:200px;max-height:64px;display:block;}\n';
 
                 var html = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + escapeHtml(metaTtd.judul) + '</title><style>' + cssText + '</style></head>' +
                     '<body style="margin:0;background:#fff;"><div id="docArea">' + sheet.outerHTML + '</div></body></html>';
@@ -529,8 +476,8 @@
             }
 
             function showNotFound() {
-                document.getElementById('stsNotFound').style.display = 'block';
-                document.getElementById('stsSheet').style.display = 'none';
+                document.getElementById('skpNotFound').style.display = 'block';
+                document.getElementById('skpSheet').style.display = 'none';
             }
 
             if (!id) {
@@ -538,61 +485,38 @@
                 return;
             }
 
-            fetch('../api/sts.php?id=' + encodeURIComponent(id))
+            fetch('../api/skp.php?id=' + encodeURIComponent(id))
                 .then(function (res) { return res.json(); })
                 .then(function (data) {
-                    if (!data || !data.success || !data.sts) {
+                    if (!data || !data.success || !data.skp) {
                         showNotFound();
                         return;
                     }
-                    const s = data.sts;
-                    const rows = data.detail || [];
-
+                    var s = data.skp;
                     document.getElementById('docInstansi').textContent = (s.skpd || 'PEMERINTAH DAERAH').toUpperCase();
-                    document.getElementById('docNomor').textContent = 'Nomor: ' + (s.nomor_sts || '-');
-                    metaTtd.nomor = s.nomor_sts || '';
-                    metaTtd.tanggal = s.tanggal_sts || '';
-                    metaTtd.judul = 'STS - ' + (s.nomor_sts || id);
-                    document.getElementById('fPenyetor').textContent = s.nama_penyetor || '-';
-                    document.getElementById('fTanggal').textContent = formatTanggal(s.tanggal_sts);
-                    document.getElementById('fAcuan').textContent =
-                        (formatTanggal(s.tanggal_acuan_dari) + ' s.d. ' + formatTanggal(s.tanggal_acuan_akhir)).replace(/^- s\.d\. -$/, '-');
-                    document.getElementById('fMengetahui').textContent = s.mengetahui || '-';
-                    document.getElementById('fBank').textContent = s.nama_bank || '-';
-                    document.getElementById('fNoRek').textContent = s.nomor_rekening || '-';
-                    document.getElementById('fNamaRek').textContent = s.nama_rekening || '-';
-                    document.getElementById('fKet').textContent = s.keterangan || '-';
-                    document.getElementById('fTotal').textContent = formatRupiah(s.total);
-                    // Kuasa Pengguna Anggaran (penandatangan ke-2)
-                    if (s.kuasa_pengguna_anggaran) {
-                        document.getElementById('kuasaField').style.display = '';
-                        document.getElementById('fKuasa').textContent = s.kuasa_pengguna_anggaran;
-                    } else {
-                        document.getElementById('kuasaField').style.display = 'none';
-                    }
-                    document.getElementById('signRoleKuasa').textContent = s.skpd || 'Dinas';
-                    document.getElementById('signNameKuasa').textContent = s.kuasa_pengguna_anggaran || '(______________________)';
+                    document.getElementById('docNomor').textContent = 'Nomor: ' + (s.nomor_skp || '-');
+                    metaTtd.nomor = s.nomor_skp || '';
+                    metaTtd.tanggal = s.tanggal || '';
+                    metaTtd.judul = 'SKP Daerah - ' + (s.nomor_skp || id);
+                    document.getElementById('fNomor').textContent = s.nomor_skp || '-';
+                    document.getElementById('fTanggal').textContent = formatTanggal(s.tanggal);
+                    document.getElementById('fNama').textContent = s.nama_penyetor || '-';
+                    document.getElementById('fJenis').textContent = s.jenis_pajak || '-';
+                    document.getElementById('fObjek').textContent = s.objek_pajak || '-';
+                    document.getElementById('fMasa').textContent =
+                        formatTanggal(s.masa_pajak_dari) + ' s.d. ' + formatTanggal(s.masa_pajak_akhir);
+                    document.getElementById('fJatuh').textContent = formatTanggal(s.jatuh_tempo);
+                    document.getElementById('fNilai').textContent = 'Rp' + formatRupiah(s.nilai_keputusan);
                     document.getElementById('signRole').textContent = s.skpd || 'Dinas';
                     document.getElementById('signName').textContent = s.dibuat_oleh || '(______________________)';
-                    metaTtd.penandatangan = [
-                        { user: '', urutan: 1, jabatan: 'Kuasa Pengguna Anggaran', nama: s.kuasa_pengguna_anggaran || '' },
-                        { user: 'self', urutan: 2, jabatan: 'Bendahara Penerimaan', nama: s.dibuat_oleh || '' }
-                    ];
 
-                    const tbody = document.getElementById('rincianBody');
-                    if (!rows.length) {
-                        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#9098a5;">Tidak ada rincian.</td></tr>';
-                    } else {
-                        tbody.innerHTML = rows.map(function (r, i) {
-                            return '<tr>' +
-                                '<td>' + (i + 1) + '</td>' +
-                                '<td>' + escapeHtml(r.nomor_stbp || '-') + '</td>' +
-                                '<td>' + formatTanggal(r.tanggal) + '</td>' +
-                                '<td class="num">' + Number(r.jumlah || 0).toLocaleString('id-ID') + '</td>' +
-                            '</tr>';
-                        }).join('');
-                    }
-                    document.getElementById('totalCell').textContent = Number(s.total || 0).toLocaleString('id-ID');
+                    // Penandatangan dokumen SKP Daerah
+                    metaTtd.penandatangan = [{
+                        user: 'self',
+                        urutan: 1,
+                        jabatan: 'Kuasa Pengguna Anggaran',
+                        nama: s.dibuat_oleh || ''
+                    }];
                 })
                 .catch(function () {
                     showNotFound();

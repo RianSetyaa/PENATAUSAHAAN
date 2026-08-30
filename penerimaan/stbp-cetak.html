@@ -147,7 +147,8 @@
         .stbp-footer {
             margin-top: 44px;
             display: flex;
-            justify-content: flex-end;
+            justify-content: space-between;
+            gap: 40px;
         }
         .stbp-sign {
             text-align: center;
@@ -380,6 +381,12 @@
                             <a href="permohonan.html" class="menu-item submenu-item"><i class="fas fa-file-signature"></i><span>Permohonan</span></a>
                         </div>
                     </div>
+
+                    <!-- SKP - Daerah (alur sebelum STBP) -->
+                    <a href="skp-daerah.html" class="menu-item">
+                        <i class="fas fa-receipt"></i>
+                        <span>SKP - Daerah</span>
+                    </a>
 
                     <!-- STBP (aktif) -->
                     <a href="stbp-pembuatan.html" class="menu-item active">
@@ -660,6 +667,7 @@
                 <div class="stbp-field"><span class="flabel">e. Sebesar</span><span class="fval amount" id="fSebesar">-</span></div>
                 <div class="stbp-field"><span class="flabel">f. Terbilang</span><span class="fval stbp-words" id="fTerbilang">-</span></div>
                 <div class="stbp-field"><span class="flabel">g. Sebagai Pembayaran</span><span class="fval" id="fUraian">-</span></div>
+                <div class="stbp-field" id="skpField"><span class="flabel">h. Nomor SKP Daerah</span><span class="fval" id="fSkp">-</span></div>
 
                 <div class="stbp-rincian-title">Dengan rincian penerimaan sebagai berikut:</div>
                 <table class="stbp-table">
@@ -684,8 +692,13 @@
 
                 <div class="stbp-footer">
                     <div class="stbp-sign">
+                        <div class="role">Penyetor,<br><span id="signRolePenyetor">Dinas Kepemudaan dan Olahraga</span></div>
+                        <div class="ttd-slot" data-urut="1"></div>
+                        <div class="name" id="signNamePenyetor">(______________________)</div>
+                    </div>
+                    <div class="stbp-sign">
                         <div class="role">Bendahara Penerimaan,<br><span id="signRole">Dinas Kepemudaan dan Olahraga</span></div>
-                        <div class="ttd-slot"></div>
+                        <div class="ttd-slot" data-urut="2"></div>
                         <div class="name" id="signName">(______________________)</div>
                     </div>
                 </div>
@@ -698,6 +711,7 @@
         </footer>
     </div>
 
+    <script src="../js/popup.js"></script>
     <script src="../js/dashboard.js"></script>
     <script>
         // ==========================================
@@ -748,7 +762,7 @@
             const id = params.get('id');
 
             // ==== Kirim ke antrean tanda tangan (doc.simtkd.com) ====
-            var metaTtd = { jenis: 'STBP', refId: id, nomor: '', tanggal: '', judul: '' };
+            var metaTtd = { jenis: 'STBP', refId: id, nomor: '', tanggal: '', judul: '', penandatangan: [] };
 
             function kirimTtd() {
                 var btn = document.getElementById('btnKirimTtd');
@@ -780,6 +794,9 @@
                 body.append('judul', metaTtd.judul || '');
                 body.append('tanggal', metaTtd.tanggal || '');
                 body.append('konten_html', html);
+                if (metaTtd.penandatangan && metaTtd.penandatangan.length) {
+                    body.append('penandatangan', JSON.stringify(metaTtd.penandatangan));
+                }
 
                 fetch('../api/dokumen.php', { method: 'POST', body: body })
                     .then(function (res) { return res.json(); })
@@ -838,8 +855,23 @@
                     document.getElementById('fTerbilang').textContent = terbilang(s.jumlah);
                     document.getElementById('fUraian').textContent = s.uraian ||
                         ('Penerimaan ' + (s.akun_nama || '') + ' pada ' + (s.skpd || ''));
+                    // Nomor SKP Daerah (data STBP merujuk/konsisten dengan SKP)
+                    if (s.nomor_skp) {
+                        document.getElementById('skpField').style.display = '';
+                        document.getElementById('fSkp').textContent =
+                            s.nomor_skp + (s.jenis_pajak ? ' (' + s.jenis_pajak + ')' : '');
+                    } else {
+                        document.getElementById('skpField').style.display = 'none';
+                    }
+                    // Dua penandatangan: Penyetor (dari SKP) dan Bendahara Penerimaan
+                    document.getElementById('signRolePenyetor').textContent = s.skpd || 'Dinas';
+                    document.getElementById('signNamePenyetor').textContent = p.nama_penyetor || '(______________________)';
                     document.getElementById('signRole').textContent = s.skpd || 'Dinas';
                     document.getElementById('signName').textContent = s.dibuat_oleh || '(______________________)';
+                    metaTtd.penandatangan = [
+                        { user: '', urutan: 1, jabatan: 'Penyetor', nama: p.nama_penyetor || '' },
+                        { user: 'self', urutan: 2, jabatan: 'Bendahara Penerimaan', nama: s.dibuat_oleh || '' }
+                    ];
 
                     const tbody = document.getElementById('rincianBody');
                     if (!rows.length) {

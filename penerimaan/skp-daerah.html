@@ -3,9 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>STS - Pembuatan | SIM-TKD</title>
+    <title>SKP - Daerah | SIM-TKD</title>
     <link rel="stylesheet" href="../css/dashboard.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .skp-progress { display: flex; flex-direction: column; gap: 3px; min-width: 112px; }
+        .filter-tahap { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .filter-tahap label { font-weight: 600; font-size: 13px; color: #344054; margin: 0; }
+    </style>
 </head>
 <body>
 
@@ -62,8 +67,8 @@
                         </div>
                     </div>
 
-                    <!-- SKP - Daerah (alur sebelum STBP) -->
-                    <a href="skp-daerah.html" class="menu-item">
+                    <!-- SKP - Daerah (aktif) -->
+                    <a href="skp-daerah.html" class="menu-item active">
                         <i class="fas fa-receipt"></i>
                         <span>SKP - Daerah</span>
                     </a>
@@ -83,8 +88,8 @@
                         </div>
                     </div>
 
-                    <!-- STS (aktif) -->
-                    <a href="sts-pembuatan.html" class="menu-item active">
+                    <!-- STS -->
+                    <a href="sts-pembuatan.html" class="menu-item">
                         <i class="fas fa-file-invoice-dollar"></i>
                         <span>STS</span>
                     </a>
@@ -179,7 +184,7 @@
                     <i class="fas fa-chevron-right"></i>
                     <span>Penerimaan</span>
                     <i class="fas fa-chevron-right"></i>
-                    <span class="current">STS</span>
+                    <span class="current">SKP - Daerah</span>
                 </div>
             </div>
             <div class="topbar-right">
@@ -204,12 +209,11 @@
         <main class="content">
             <div class="page-header">
                 <div>
-                    <h1 class="page-title">Surat Tanda Setoran (STS)</h1>
-                    <p class="page-subtitle">Menampilkan Surat Tanda Setoran (STS) yang telah dibuat</p>
+                    <h1 class="page-title">SKP - Daerah</h1>
+                    <p class="page-subtitle">Surat Ketetapan Pajak Daerah (alur awal sebelum STBP)</p>
                 </div>
                 <div class="page-actions">
-                    <button class="btn btn-outline" onclick="history.back();"><i class="fas fa-arrow-left"></i> Kembali</button>
-                    <a href="sts-tambah.html" class="btn btn-primary"><i class="fas fa-plus"></i> Tambah STS</a>
+                    <a href="skp-daerah-tambah.html" class="btn btn-primary"><i class="fas fa-plus"></i> Tambah SKP Daerah</a>
                 </div>
             </div>
 
@@ -218,7 +222,7 @@
                 <div class="card-body toolbar">
                     <div class="search-box">
                         <i class="fas fa-search"></i>
-                        <input type="text" id="searchInput" placeholder="Pencarian ...">
+                        <input type="text" id="searchInput" placeholder="Cari nomor SKP / nama penyetor / jenis pajak ...">
                     </div>
                     <div class="toolbar-actions">
                         <button class="btn btn-outline" id="btnBersihkan"><i class="fas fa-eraser"></i> Bersihkan</button>
@@ -229,34 +233,35 @@
             <!-- Tabs Status -->
             <div class="card">
                 <div class="tabs" id="statusTabs">
-                    <button class="tab-btn active" data-status="aktif">Aktif <span class="tab-count" id="countAktif">0</span></button>
+                    <button class="tab-btn active" data-status="semua">Semua <span class="tab-count" id="countSemua">0</span></button>
+                    <button class="tab-btn" data-status="aktif">Aktif <span class="tab-count" id="countAktif">0</span></button>
+                    <button class="tab-btn" data-status="terpakai">Terpakai <span class="tab-count" id="countTerpakai">0</span></button>
                     <button class="tab-btn" data-status="dihapus">Dihapus <span class="tab-count" id="countHapus">0</span></button>
                 </div>
 
-                <!-- Tabel STS -->
-                <div class="card-body table-body" id="stsTableCard" style="display: none;">
+                <!-- Tabel SKP -->
+                <div class="card-body table-body" id="skpTableCard" style="display: none;">
                     <table class="data-table">
                         <thead>
                             <tr>
                                 <th>No.</th>
-                                <th>Nomor STS</th>
-                                <th>Tanggal STS</th>
+                                <th>Nomor SKP</th>
+                                <th>Jenis Pajak</th>
                                 <th>Nama Penyetor</th>
-                                <th>Bank</th>
-                                <th>Nilai (Rp)</th>
+                                <th>Nilai Ketetapan (Rp)</th>
                                 <th>Status</th>
                                 <th>AKSI</th>
                             </tr>
                         </thead>
-                        <tbody id="stsTableBody">
+                        <tbody id="skpTableBody">
                             <tr>
-                                <td colspan="8" style="text-align:center; color:#9098a5;">Memuat data...</td>
+                                <td colspan="7" style="text-align:center; color:#9098a5;">Memuat data...</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
 
-                <div class="table-footer" id="stsPagination" style="display: none;">
+                <div class="table-footer" id="skpPagination" style="display: none;">
                     <div class="pagination">
                         <button class="page-btn" id="btnPrev"><i class="fas fa-chevron-left"></i> Sebelumnya</button>
                         <span class="page-number" id="pageCurrent">1</span>
@@ -275,14 +280,14 @@
                 </div>
 
                 <!-- Empty State -->
-                <div class="card-body empty-state" id="stsEmpty">
+                <div class="card-body empty-state" id="skpEmpty">
                     <div class="empty-illustration">
-                        <i class="fas fa-file-invoice-dollar"></i>
+                        <i class="fas fa-receipt"></i>
                     </div>
                     <h3>Data Tidak Ditemukan</h3>
-                    <p>Maaf, kami tidak dapat menemukan data yang Anda cari. Pastikan data tersebut sudah tercatat atau pertimbangkan untuk menggunakan kata kunci lainnya.</p>
+                    <p>Belum ada SKP Daerah tercatat. Tambahkan SKP Daerah terlebih dahulu sebelum membuat STBP.</p>
                     <div class="empty-actions">
-                        <a href="sts-tambah.html" class="btn btn-primary"><i class="fas fa-plus"></i> Tambah STS</a>
+                        <a href="skp-daerah-tambah.html" class="btn btn-primary"><i class="fas fa-plus"></i> Tambah SKP Daerah</a>
                     </div>
                 </div>
             </div>
@@ -294,20 +299,21 @@
         </footer>
     </div>
 
+    <script src="../js/popup.js"></script>
     <script src="../js/dashboard.js"></script>
     <script>
         // ==========================================
-        // Halaman STS - Pembuatan
+        // Halaman SKP - Daerah (Daftar)
         // ==========================================
         (function () {
             'use strict';
 
             const searchInput = document.getElementById('searchInput');
             const tabsEl = document.getElementById('statusTabs');
-            const tableCard = document.getElementById('stsTableCard');
-            const paginationEl = document.getElementById('stsPagination');
-            const emptyEl = document.getElementById('stsEmpty');
-            const tbody = document.getElementById('stsTableBody');
+            const tableCard = document.getElementById('skpTableCard');
+            const paginationEl = document.getElementById('skpPagination');
+            const emptyEl = document.getElementById('skpEmpty');
+            const tbody = document.getElementById('skpTableBody');
             const btnPrev = document.getElementById('btnPrev');
             const btnNext = document.getElementById('btnNext');
             const pageCurrent = document.getElementById('pageCurrent');
@@ -317,23 +323,13 @@
 
             let allData = [];
             let currentPage = 1;
-            let currentStatus = 'aktif';
+            let currentStatus = 'semua';
 
-            const STATUS_LABEL = { aktif: 'Aktif', dihapus: 'Dihapus' };
-
-            function showToast(message, type) {
-                const toast = document.createElement('div');
-                toast.className = 'toast toast-' + (type || 'success');
-                const icons = { success: 'fa-check-circle', error: 'fa-times-circle', warning: 'fa-exclamation-triangle' };
-                const span = document.createElement('span');
-                span.textContent = message; // aman dari XSS
-                const icon = document.createElement('i');
-                icon.className = 'fas ' + (icons[type] || icons.success);
-                toast.appendChild(icon);
-                toast.appendChild(span);
-                document.body.appendChild(toast);
-                setTimeout(function () { toast.remove(); }, 3200);
-            }
+            const STATUS_LABEL = {
+                aktif: 'Aktif',
+                terpakai: 'Terpakai',
+                dihapus: 'Dihapus'
+            };
 
             function escapeHtml(str) {
                 const div = document.createElement('div');
@@ -355,25 +351,30 @@
 
             function statusBadge(status) {
                 const map = {
-                    aktif: ['type-in', 'Aktif'],
-                    dihapus: ['type-muted', 'Dihapus']
+                    aktif: '<span class="badge badge-pending"><i class="fas fa-circle"></i> Aktif</span>',
+                    terpakai: '<span class="badge badge-approved"><i class="fas fa-check"></i> Terpakai</span>',
+                    dihapus: '<span class="badge badge-rejected"><i class="fas fa-trash"></i> Dihapus</span>'
                 };
-                const m = map[status] || ['type-muted', status];
-                return '<span class="type-badge ' + m[0] + '">' + m[1] + '</span>';
+                return map[status] || escapeHtml(STATUS_LABEL[status] || status || '-');
             }
 
             function updateCounts(counts) {
-                const map = { aktif: 'countAktif', dihapus: 'countHapus' };
+                const map = { semua: 'countSemua', aktif: 'countAktif', terpakai: 'countTerpakai', dihapus: 'countHapus' };
                 Object.keys(map).forEach(function (s) {
                     const el = document.getElementById(map[s]);
                     if (el) el.textContent = (counts && counts[s] != null) ? counts[s] : 0;
                 });
+                if (tabsEl) {
+                    tabsEl.querySelectorAll('.tab-btn').forEach(function (b) {
+                        b.classList.toggle('active', b.getAttribute('data-status') === currentStatus);
+                    });
+                }
             }
 
             function renderTable() {
                 const q = searchInput.value.trim().toLowerCase();
                 const filtered = allData.filter(function (p) {
-                    return (p.nomor_sts + ' ' + p.nama_penyetor + ' ' + p.nama_bank + ' ' + p.keterangan + ' ' + p.skpd)
+                    return (p.nomor_skp + ' ' + p.nama_penyetor + ' ' + p.jenis_pajak + ' ' + p.objek_pajak)
                         .toLowerCase().indexOf(q) !== -1;
                 });
 
@@ -397,34 +398,31 @@
                 tbody.innerHTML = pageData.map(function (p, i) {
                     return '<tr>' +
                         '<td>' + (start + i + 1) + '</td>' +
-                        '<td><strong>' + escapeHtml(p.nomor_sts) + '</strong><div class="skpd-meta">' + escapeHtml(p.dibuat_oleh || '-') + '</div></td>' +
-                        '<td>' + formatTanggal(p.tanggal_sts) + '</td>' +
+                        '<td><div class="akun-name">' + formatTanggal(p.tanggal) + '</div>' +
+                            '<div class="skpd-meta">' + escapeHtml(p.nomor_skp || '-') + '</div></td>' +
+                        '<td>' + escapeHtml(p.jenis_pajak || '-') + '</td>' +
                         '<td>' + escapeHtml(p.nama_penyetor || '-') + '</td>' +
-                        '<td>' + escapeHtml(p.nama_bank || '-') + '</td>' +
-                        '<td class="num">' + formatRupiah(p.total) + '</td>' +
+                        '<td class="num">' + formatRupiah(p.nilai_keputusan) + '</td>' +
                         '<td>' + statusBadge(p.status) + '</td>' +
-                        '<td><div class="action-dropdown" data-id="' + p.id + '">' +
-                            '<button type="button" class="action-dropdown-btn">Aksi <i class="fas fa-chevron-down"></i></button>' +
-                            '<div class="action-dropdown-menu">' +
-                                '<button type="button" data-action="update" data-id="' + p.id + '"><i class="fas fa-pen"></i> Perbarui Data STS</button>' +
-                                '<button type="button" data-action="delete" data-id="' + p.id + '"><i class="fas fa-trash"></i> Hapus</button>' +
-                                '<button type="button" data-action="print" data-id="' + p.id + '"><i class="fas fa-print"></i> Cetak</button>' +
-                            '</div>' +
+                        '<td><div class="row-actions">' +
+                            '<button class="btn btn-sm btn-outline" data-action="print" data-id="' + p.id + '"><i class="fas fa-print"></i> Cetak</button>' +
+                            (p.status === 'aktif'
+                                ? '<button class="btn btn-sm btn-outline" data-action="delete" data-id="' + p.id + '"><i class="fas fa-trash"></i> Hapus</button>'
+                                : '') +
                         '</div></td>' +
                     '</tr>';
                 }).join('');
 
                 const end = start + pageData.length;
-                pageInfo.textContent = 'Menampilkan data ke- ' + start + 1 + ' sampai ' + end + ' dari ' + filtered.length + ' data';
+                pageInfo.textContent = 'Menampilkan data ke- ' + (start + 1) + ' sampai ' + end + ' dari ' + filtered.length + ' data';
                 btnPrev.disabled = currentPage <= 1;
                 btnNext.disabled = currentPage >= totalPages;
                 pageCurrent.textContent = currentPage;
             }
 
-            function loadSts() {
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:#9098a5;">Memuat data...</td></tr>';
-
-                fetch('../api/sts.php?status=' + encodeURIComponent(currentStatus) + '&q=' + encodeURIComponent(searchInput.value.trim()))
+            function loadSkp() {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#9098a5;">Memuat data...</td></tr>';
+                fetch('../api/skp.php?status=' + encodeURIComponent(currentStatus) + '&q=' + encodeURIComponent(searchInput.value.trim()))
                     .then(function (res) { return res.json(); })
                     .then(function (data) {
                         if (data && data.success) {
@@ -449,7 +447,7 @@
                 btn.classList.add('active');
                 currentStatus = btn.getAttribute('data-status');
                 currentPage = 1;
-                loadSts();
+                loadSkp();
             });
 
             btnBersihkan.addEventListener('click', function () {
@@ -464,7 +462,7 @@
                 clearTimeout(searchTimer);
                 searchTimer = setTimeout(function () {
                     currentPage = 1;
-                    loadSts();
+                    loadSkp();
                 }, 300);
             });
 
@@ -475,7 +473,8 @@
                 const perPage = parseInt(perPageSelect.value, 10);
                 const q = searchInput.value.trim().toLowerCase();
                 const totalPages = Math.max(1, Math.ceil(allData.filter(function (p) {
-                    return (p.nomor_sts + ' ' + p.nama_penyetor + ' ' + p.nama_bank + ' ' + p.keterangan + ' ' + p.skpd).toLowerCase().indexOf(q) !== -1;
+                    return (p.nomor_skp + ' ' + p.nama_penyetor + ' ' + p.jenis_pajak + ' ' + p.objek_pajak)
+                        .toLowerCase().indexOf(q) !== -1;
                 }).length / perPage));
                 if (currentPage < totalPages) { currentPage++; renderTable(); }
             });
@@ -484,38 +483,31 @@
                 renderTable();
             });
 
-            // ---------- Aksi baris (dropdown) ----------
             tbody.addEventListener('click', function (e) {
-                const dropBtn = e.target.closest('.action-dropdown-btn');
-                if (dropBtn) {
-                    e.stopPropagation();
-                    const dd = dropBtn.closest('.action-dropdown');
-                    const wasOpen = dd.classList.contains('open');
-                    tbody.querySelectorAll('.action-dropdown.open').forEach(function (d) { d.classList.remove('open'); });
-                    if (!wasOpen) dd.classList.add('open');
-                    return;
-                }
-                const item = e.target.closest('.action-dropdown-menu [data-action]');
-                if (!item) return;
-                const id = item.getAttribute('data-id');
-                const action = item.getAttribute('data-action');
-                tbody.querySelectorAll('.action-dropdown.open').forEach(function (d) { d.classList.remove('open'); });
+                const btn = e.target.closest('[data-action]');
+                if (!btn) return;
+                const id = btn.getAttribute('data-id');
+                const action = btn.getAttribute('data-action');
                 if (action === 'print') {
-                    window.location.href = 'sts-cetak.html?id=' + id;
-                } else if (action === 'update') {
-                    showToast('Perbarui Data STS #' + id + ' akan dibangun.', 'warning');
+                    window.location.href = 'skp-daerah-cetak.html?id=' + id;
                 } else if (action === 'delete') {
-                    if (confirm('Yakin ingin menghapus STS #' + id + '?')) {
-                        showToast('Fitur hapus STS #' + id + ' akan dibangun.', 'warning');
+                    if (confirm('Yakin ingin menghapus SKP Daerah #' + id + '?')) {
+                        fetch('../api/skp.php', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ action: 'delete', id: parseInt(id, 10) })
+                        })
+                        .then(function (res) { return res.json(); })
+                        .then(function (d) {
+                            showToast(d.message || (d.success ? 'SKP Daerah dihapus.' : 'Gagal menghapus.'), d.success ? 'success' : 'error');
+                            if (d.success) loadSkp();
+                        })
+                        .catch(function () { showToast('Gagal menghubungi server.', 'error'); });
                     }
                 }
             });
-            document.addEventListener('click', function () {
-                tbody.querySelectorAll('.action-dropdown.open').forEach(function (d) { d.classList.remove('open'); });
-            });
 
-            // ---------- Init ----------
-            loadSts();
+            loadSkp();
         })();
     </script>
 </body>

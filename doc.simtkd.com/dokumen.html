@@ -202,6 +202,20 @@
                 st.innerHTML = '<span class="badge menunggu"><i class="fas fa-hourglass-half"></i> Menunggu TTD</span>';
                 document.getElementById('panelTtd').style.display = '';
                 document.getElementById('panelSelesai').style.display = 'none';
+                var btnTtd = document.getElementById('btnTtd');
+                // Slot milik user sudah ditandatangani tapi dokumen masih menunggu slot lain
+                if (d.ttd_slot_status === 'ditandatangani') {
+                    if (btnTtd) {
+                        btnTtd.disabled = true;
+                        btnTtd.innerHTML = '<i class="fas fa-check"></i> Slot Anda Ditandatangani';
+                    }
+                    document.getElementById('padNote').textContent = 'Slot tanda tangan Anda pada dokumen ini sudah ditandatangani.';
+                } else {
+                    if (btnTtd) {
+                        btnTtd.disabled = false;
+                        btnTtd.innerHTML = '<i class="fas fa-pen-nib"></i> Tanda Tangan Dokumen';
+                    }
+                }
             }
         }
 

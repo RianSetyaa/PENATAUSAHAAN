@@ -58,6 +58,59 @@ if ($tanggal !== '' && !isValidTanggal($tanggal)) {
     jsonResponse(false, 'Format tanggal tidak valid.', [], 422);
 }
 
+// Penandatangan (opsional, JSON): [{user:'self'|'', urutan, jabatan, nama}, ...]
+// 'self' -> user yang sedang login (pembuat dokumen), '' -> pihak eksternal.
+$penandatangan = [];
+$rawPttd = trim((string) ($_POST['penandatangan'] ?? ''));
+if ($rawPttd !== '') {
+    $decoded = json_decode($rawPttd, true);
+    if (is_array($decoded)) {
+        $penandatangan = $decoded;
+    }
+}
+
+/** Normalisasi daftar penandatangan (maks 20 slot, urutan unik). */
+function normalizePenandatangan(array $list, int $selfUserId): array
+{
+    $out       = [];
+    $usedUrutan = [];
+    foreach ($list as $i => $item) {
+        if (!is_array($item)) {
+            continue;
+        }
+        $urutan = (int) ($item['urutan'] ?? ($i + 1));
+        if ($urutan < 1) { $urutan = $i + 1; }
+        if ($urutan > 20) { $urutan = 20; }
+        if (isset($usedUrutan[$urutan])) { continue; }
+        $usedUrutan[$urutan] = true;
+        $jabatan = mb_substr(trim((string) ($item['jabatan'] ?? '')), 0, 100);
+        $nama    = mb_substr(trim((string) ($item['nama'] ?? '')), 0, 150);
+        $uval    = trim((string) ($item['user'] ?? ''));
+        $uid     = null;
+        if ($uval === 'self' || $uval === (string) $selfUserId) {
+            $uid = $selfUserId; // slot yang ditandatangani oleh pembuat
+        }
+        // Nilai user lain tidak diperkenankan (pembuat hanya bisa menandatangani slotnya sendiri)
+        $out[] = [
+            'user_id' => $uid,
+            'urutan'  => $urutan,
+            'jabatan' => $jabatan,
+            'nama'    => $nama,
+        ];
+    }
+    if (count($out) === 0) {
+        $out[] = [
+            'user_id' => $selfUserId,
+            'urutan'  => 1,
+            'jabatan' => (string) ($_SESSION['peran'] ?? ''),
+            'nama'    => (string) ($_SESSION['nama'] ?? ''),
+        ];
+    }
+    return $out;
+}
+
+$penandatangan = normalizePenandatangan($penandatangan, (int) $userId);
+
 $hash = hash('sha256', $konten);
 $pdo  = db();
 
@@ -87,6 +140,24 @@ try {
                 $nomor, $judul, ($tanggal !== '' ? $tanggal : null),
                 $konten, $hash, $skpd, (int) $lama['id'],
             ]);
+            // Perbarui daftar penandatangan: hapus yang masih menunggu, sisipkan ulang
+            $pdo->beginTransaction();
+            $del = $pdo->prepare("DELETE FROM dokumen_ttd WHERE dokumen_id = ? AND status = 'menunggu'");
+            $del->execute([(int) $lama['id']]);
+            $insT = $pdo->prepare(
+                "INSERT INTO dokumen_ttd (dokumen_id, user_id, urutan, jabatan, nama, status)
+                 VALUES (?, ?, ?, ?, ?, 'menunggu')"
+            );
+            foreach ($penandatangan as $pt) {
+                $insT->execute([
+                    (int) $lama['id'],
+                    $pt['user_id'],
+                    $pt['urutan'],
+                    $pt['jabatan'],
+                    $pt['nama'],
+                ]);
+            }
+            $pdo->commit();
             jsonResponse(true, 'Dokumen diperbarui di antrean tanda tangan.', [
                 'id'     => (int) $lama['id'],
                 'status' => 'menunggu_ttd',
@@ -118,16 +189,20 @@ try {
     ]);
     $dokId = (int) $pdo->lastInsertId();
 
-    // Penandatangan tunggal: pembuat dokumen (skema siap multi-pihak via urutan)
+    // Simpan daftar penandatangan (multi-slot, hasil normalisasi di atas)
     $ins2 = $pdo->prepare(
         "INSERT INTO dokumen_ttd (dokumen_id, user_id, urutan, jabatan, nama, status)
-         VALUES (?, ?, 1, ?, ?, 'menunggu')"
+         VALUES (?, ?, ?, ?, ?, 'menunggu')"
     );
-    $ins2->execute([
-        $dokId, $userId,
-        (string) ($_SESSION['peran'] ?? ''),
-        (string) ($_SESSION['nama'] ?? ''),
-    ]);
+    foreach ($penandatangan as $pt) {
+        $ins2->execute([
+            $dokId,
+            $pt['user_id'],
+            $pt['urutan'],
+            $pt['jabatan'],
+            $pt['nama'],
+        ]);
+    }
 
     $pdo->commit();
     jsonResponse(true, 'Dokumen terkirim ke antrean tanda tangan (doc.simtkd.com).', [

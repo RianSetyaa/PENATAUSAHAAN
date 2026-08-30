@@ -32,9 +32,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     // --- Detail satu STBP (untuk halaman cetak) ---
     $detailId = (int) input('id', '0');
     if ($detailId > 0) {
-        $stmt = $pdo->prepare("SELECT s.*, u.nama_lengkap AS dibuat_oleh
+        $stmt = $pdo->prepare("SELECT s.*, u.nama_lengkap AS dibuat_oleh,
+                                      sk.nomor_skp      AS nomor_skp,
+                                      sk.jenis_pajak    AS jenis_pajak,
+                                      sk.nama_penyetor  AS skp_nama_penyetor,
+                                      sk.nilai_keputusan AS skp_nilai
                                FROM stbp s
                                LEFT JOIN users u ON u.id = s.user_id
+                               LEFT JOIN skp_daerah sk ON sk.id = s.skp_daerah_id
                                WHERE s.id = ?" . ($skpd !== '' ? " AND s.skpd = ?" : ""));
         $stmt->execute($skpd !== '' ? [$detailId, $skpd] : [$detailId]);
         $row = $stmt->fetch();
@@ -63,6 +68,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 'status'      => (string) $row['status'],
                 'dibuat_oleh' => (string) ($row['dibuat_oleh'] ?? ''),
                 'created_at'  => (string) $row['created_at'],
+                'skp_daerah_id' => (int) ($row['skp_daerah_id'] ?? 0),
+                'nomor_skp'     => (string) ($row['nomor_skp'] ?? ''),
+                'jenis_pajak'   => (string) ($row['jenis_pajak'] ?? ''),
+                'skp_nama_penyetor' => (string) ($row['skp_nama_penyetor'] ?? ''),
+                'skp_nilai'     => (float) ($row['skp_nilai'] ?? 0),
             ],
             'pembayaran' => [
                 'metode'         => (string) ($pay['metode_penyetoran'] ?? ''),
@@ -102,16 +112,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     }
 
     $statusCond = $isStsReady
-        ? "s.status IN ('sudah_diotorisasi','sudah_divalidasi')"
+        ? "s.status IN ('sudah_diotorisasi','sudah_divalidasi')
+           AND NOT EXISTS (
+               SELECT 1 FROM sts_detail sd
+               INNER JOIN sts st ON st.id = sd.sts_id
+               WHERE sd.stbp_id = s.id AND st.status = 'aktif'
+           )"
         : "s.status = ?";
     $sql = "SELECT s.*, u.nama_lengkap AS dibuat_oleh,
                    sp.metode_penyetoran AS metode_penyetoran,
                    sp.nama_penyetor     AS nama_penyetor,
                    sp.nama_bank         AS nama_bank,
-                   sp.nomor_rekening    AS nomor_rekening
+                   sp.nomor_rekening    AS nomor_rekening,
+                   sk.nomor_skp         AS nomor_skp,
+                   sk.jenis_pajak       AS jenis_pajak
             FROM stbp s
             LEFT JOIN users u ON u.id = s.user_id
             LEFT JOIN stbp_pembayaran sp ON sp.stbp_id = s.id
+            LEFT JOIN skp_daerah sk ON sk.id = s.skp_daerah_id
             WHERE $statusCond" . ($skpd !== '' ? " AND s.skpd = ?" : "");
     $params = [];
     if (!$isStsReady) $params[] = $status;
@@ -148,6 +166,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 'nama_penyetor'     => (string) ($r['nama_penyetor'] ?? ''),
                 'bank'              => (string) ($r['nama_bank'] ?? ''),
                 'nomor_rekening'    => (string) ($r['nomor_rekening'] ?? ''),
+                'nomor_skp'         => (string) ($r['nomor_skp'] ?? ''),
+                'jenis_pajak'       => (string) ($r['jenis_pajak'] ?? ''),
+                'skp_daerah_id'     => (int) ($r['skp_daerah_id'] ?? 0),
                 'dibuat_oleh'=> (string) ($r['dibuat_oleh'] ?? ''),
                 'created_at' => (string) $r['created_at'],
             ];
@@ -213,8 +234,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $uraian = trim((string) ($body['uraian'] ?? ''));
     // skpd selalu dari sesi (jangan percaya input klien)
     $skpd   = requireInstansi();
+    $skpId  = (int) ($body['skp_daerah_id'] ?? 0);
     $payments  = is_array($body['data_pembayaran'] ?? null) ? $body['data_pembayaran'] : [];
     $pendapatan = is_array($body['data_pendapatan'] ?? null) ? $body['data_pendapatan'] : [];
+
+    // SKP Daerah WAJIB dipilih, valid, milik instansi yang sama, dan masih aktif.
+    // Data STBP harus sama dengan SKP Daerah -> nama_penyetor diambil dari SKP.
+    if ($skpId <= 0) {
+        jsonResponse(false, 'SKP Daerah wajib dipilih sebagai dasar pembuatan STBP.', ['field' => 'skp_daerah_id'], 422);
+    }
+    $stmtSkp = $pdo->prepare("SELECT id, nama_penyetor FROM skp_daerah WHERE id = ? AND status = 'aktif'" . ($skpd !== '' ? " AND skpd = ?" : ""));
+    $stmtSkp->execute($skpd !== '' ? [$skpId, $skpd] : [$skpId]);
+    $skpRow = $stmtSkp->fetch();
+    if (!$skpRow) {
+        jsonResponse(false, 'SKP Daerah tidak valid / sudah terpakai. Pilih SKP Daerah yang masih aktif.', [], 422);
+    }
+    $skpNamaPenyetor = (string) $skpRow['nama_penyetor'];
 
     // Auto-generate nomor STBP jika tidak diisi
     if ($nomor === '') {
@@ -231,11 +266,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $pdo->beginTransaction();
     try {
         $stmt = $pdo->prepare("
-            INSERT INTO stbp (user_id, skpd, nomor_stbp, tanggal, akun_kode, akun_nama, jumlah, uraian, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'belum_diverifikasi')
+            INSERT INTO stbp (user_id, skp_daerah_id, skpd, nomor_stbp, tanggal, akun_kode, akun_nama, jumlah, uraian, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'belum_diverifikasi')
         ");
         $stmt->execute([
             $_SESSION['user_id'] ?? null,
+            $skpId > 0 ? $skpId : null,
             $skpd,
             $nomor,
             $tanggal,
@@ -246,7 +282,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ]);
         $stbpId = (int) $pdo->lastInsertId();
 
-        // Simpan data pembayaran (jika ada)
+        // Simpan data pembayaran (jika ada) — nama_penyetor mengikuti SKP Daerah (jika dipilih)
         if (count($payments) > 0) {
             $stmtPay = $pdo->prepare("
                 INSERT INTO stbp_pembayaran (stbp_id, metode_penyetoran, nama_penyetor, nama_bank, nomor_rekening)
@@ -256,11 +292,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmtPay->execute([
                     $stbpId,
                     trim((string) ($p['metode'] ?? 'non_tunai')),
-                    trim((string) ($p['nama_penyetor'] ?? '')),
+                    $skpNamaPenyetor !== '' ? $skpNamaPenyetor : trim((string) ($p['nama_penyetor'] ?? '')),
                     trim((string) ($p['bank'] ?? '')),
                     trim((string) ($p['nomor_rekening'] ?? '')),
                 ]);
             }
+        }
+
+        // SKP Daerah yang dipakai tidak boleh dipakai lagi (menghindari data beda)
+        if ($skpId > 0) {
+            $pdo->prepare("UPDATE skp_daerah SET status = 'terpakai' WHERE id = ?")->execute([$skpId]);
         }
 
         // Simpan data pendapatan (baris dari modal "Tambahkan Data")

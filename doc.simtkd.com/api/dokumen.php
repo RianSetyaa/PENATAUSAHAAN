@@ -97,12 +97,13 @@ function ttdVerifyBlock(string $nama, string $jabatan, string $waktu, string $ko
 
 /**
  * Sisipkan gambar TTD ke HTML dokumen.
- * - $posX null  -> otomatis pada slot pertama (.ttd-slot) di template.
+ * - $posX null  -> otomatis pada slot (.ttd-slot) milik $urutan (data-urut),
+ *                  fallback ke slot kosong pertama di template.
  * - $posX float -> penempatan MANUAL: absolute di dalam #docArea
  *   (posisi dipilih user: x = % lebar dokArea, y = px dari atas dokArea,
  *   w = lebar gambar dalam px).
  */
-function ttdSisipkan(string $html, string $gambar, $posX, int $posY, int $posW): string
+function ttdSisipkan(string $html, string $gambar, $posX, int $posY, int $posW, int $urutan = 1): string
 {
     $imgSlot   = '<img class="ttd-img" alt="Tanda tangan elektronik" src="' . $gambar . '">';
     $imgManual = '<img class="ttd-img" style="width:100%;display:block;" alt="Tanda tangan elektronik" src="' . $gambar . '">';
@@ -117,6 +118,12 @@ function ttdSisipkan(string $html, string $gambar, $posX, int $posY, int $posW):
         }
         return $html . $manual;
     }
+    // 1) Slot dengan data-urut tertentu (masih kosong) -> tanda tangan masuk ke kolom yang tepat
+    $slotPattern = '/<div class="ttd-slot" data-urut="' . (int) $urutan . '"><\/div>/';
+    if (preg_match($slotPattern, $html)) {
+        return preg_replace($slotPattern, '<div class="ttd-slot" data-urut="' . (int) $urutan . '">' . $imgSlot . '</div>', $html, 1);
+    }
+    // 2) Fallback: slot kosong pertama (template lama tanpa data-urut)
     if (strpos($html, '<div class="ttd-slot"></div>') !== false) {
         return preg_replace('/<div class="ttd-slot"><\/div>/', '<div class="ttd-slot">' . $imgSlot . '</div>', $html, 1);
     }
@@ -270,6 +277,15 @@ if ($action === 'detail') {
     }
     $d['signed_at_fmt'] = docWaktu((string) ($d['signed_at'] ?? ''));
     $d['waktu_ttd']     = docWaktu((string) ($d['ttd_signed_at'] ?? ''));
+    // Info slot penandatangan milik user saat ini
+    $pt = $pdo->prepare("SELECT urutan, status, nama, jabatan FROM dokumen_ttd WHERE dokumen_id = ? AND user_id = ? LIMIT 1");
+    $pt->execute([$id, $userId]);
+    $my = $pt->fetch();
+    $d['ttd_slot_urutan'] = (int) ($my['urutan'] ?? 0);
+    $d['ttd_slot_status'] = (string) ($my['status'] ?? '');
+    $sisa = $pdo->prepare("SELECT COUNT(*) FROM dokumen_ttd WHERE dokumen_id = ? AND status = 'menunggu' AND user_id IS NOT NULL");
+    $sisa->execute([$id]);
+    $d['ttd_sisa'] = (int) $sisa->fetchColumn();
     jsonOut(true, 'OK', ['dokumen' => $d]);
 }
 
@@ -369,9 +385,38 @@ if ($action === 'ttd') {
             jsonOut(false, 'Gambar tanda tangan belum dibuat. Gambar tanda tangan terlebih dahulu.', [], 422);
         }
 
+        // 0) Slot penandatangan milik user saat ini (multi-slot / data-urut)
+        $ptRow = null;
+        $ptSt = $pdo->prepare("SELECT id, urutan, status FROM dokumen_ttd WHERE dokumen_id = ? AND user_id = ? LIMIT 1");
+        $ptSt->execute([$id, $userId]);
+        $ptRow = $ptSt->fetch();
+        $urutan = 1;
+        if ($ptRow) {
+            if ($ptRow['status'] === 'ditandatangani') {
+                $pdo->rollBack();
+                jsonOut(false, 'Slot tanda tangan Anda pada dokumen ini sudah ditandatangani.', [], 409);
+            }
+            $urutan = max(1, (int) $ptRow['urutan']);
+        } else {
+            // Dokumen lama yang belum punya baris penandatangan -> pakai urutan 1
+            $ptIdRow = $pdo->prepare("SELECT id FROM dokumen_ttd WHERE dokumen_id = ? AND urutan = 1 LIMIT 1");
+            $ptIdRow->execute([$id]);
+            if (!$ptIdRow->fetch()) {
+                // Keadaan luar biasa: sisipkan baris milik user yang menandatangani
+                $inPt = $pdo->prepare(
+                    "INSERT INTO dokumen_ttd (dokumen_id, user_id, urutan, jabatan, nama, status)
+                     VALUES (?, ?, 1, ?, ?, 'menunggu')"
+                );
+                $inPt->execute([$id, $userId, (string) $user['peran'], (string) $user['nama_lengkap']]);
+            }
+        }
+
         // 1) Sisipkan gambar TTD: posisi MANUAL (pilihan user di viewer)
-        //    atau otomatis pada slot pertama template (.ttd-slot)
-        $html = (string) $d['konten_html'];
+        //    atau otomatis pada slot (.ttd-slot) milik urutan user
+        $base = !empty($d['konten_html_signed'])
+            ? (string) $d['konten_html_signed']      // tanda tangan sebelumnya sudah terpasang
+            : (string) $d['konten_html'];
+        $html = $base;
         $posX = null;
         $posY = 0;
         $posW = 180;
@@ -385,7 +430,7 @@ if ($action === 'ttd') {
                 $posW = $pw;
             }
         }
-        $html = ttdSisipkan($html, $gambar, $posX, $posY, $posW);
+        $html = ttdSisipkan($html, $gambar, $posX, $posY, $posW, $urutan);
 
         // 2) Blok verifikasi elektronik sebagai elemen terakhir halaman dokumen
         $kode  = (string) $d['kode_verifikasi'];
@@ -407,33 +452,56 @@ if ($action === 'ttd') {
         $hashSigned = hash('sha256', $html);
         $waktuSql   = date('Y-m-d H:i:s');
 
+        // Tandai slot penandatangan milik user ini
+        if ($ptRow) {
+            $up2 = $pdo->prepare(
+                "UPDATE dokumen_ttd
+                 SET status = 'ditandatangani', nama = ?, jabatan = ?, signed_at = ?, ip = ?, user_agent = ?
+                 WHERE id = ?"
+            );
+            $up2->execute([$user['nama_lengkap'], (string) $user['peran'], $waktuSql, $ip, $ua, (int) $ptRow['id']]);
+        } else {
+            $up2 = $pdo->prepare(
+                "UPDATE dokumen_ttd
+                 SET status = 'ditandatangani', nama = ?, jabatan = ?, signed_at = ?, ip = ?, user_agent = ?
+                 WHERE dokumen_id = ? AND urutan = 1"
+            );
+            $up2->execute([$user['nama_lengkap'], (string) $user['peran'], $waktuSql, $ip, $ua, $id]);
+            if ($up2->rowCount() === 0) {
+                // Baris penandatangan belum ada (keadaan luar biasa) -> buat
+                $in2 = $pdo->prepare(
+                    "INSERT INTO dokumen_ttd (dokumen_id, user_id, urutan, jabatan, nama, status, signed_at, ip, user_agent)
+                     VALUES (?, ?, 1, ?, ?, 'ditandatangani', ?, ?, ?)"
+                );
+                $in2->execute([$id, $userId, (string) $user['peran'], (string) $user['nama_lengkap'], $waktuSql, $ip, $ua]);
+            }
+        }
+
+        // Dokumen SELESAI bila semua slot milik akun (user_id) sudah ditandatangani;
+        // slot pihak eksternal (user_id NULL) tidak menahan penyelesaian dokumen.
+        $sisa = $pdo->prepare("SELECT COUNT(*) FROM dokumen_ttd WHERE dokumen_id = ? AND status = 'menunggu' AND user_id IS NOT NULL");
+        $sisa->execute([$id]);
+        $statusDok = ((int) $sisa->fetchColumn() === 0) ? 'ditandatangani' : 'menunggu_ttd';
+
         $up = $pdo->prepare(
             "UPDATE dokumen
-             SET konten_html_signed = ?, hash_signed = ?, status = 'ditandatangani', signed_at = ?
+             SET konten_html_signed = ?, hash_signed = ?, status = ?, signed_at = ?
              WHERE id = ?"
         );
-        $up->execute([$html, $hashSigned, $waktuSql, $id]);
-
-        $up2 = $pdo->prepare(
-            "UPDATE dokumen_ttd
-             SET status = 'ditandatangani', nama = ?, jabatan = ?, signed_at = ?, ip = ?, user_agent = ?
-             WHERE dokumen_id = ? AND urutan = 1"
-        );
-        $up2->execute([$user['nama_lengkap'], (string) $user['peran'], $waktuSql, $ip, $ua, $id]);
-        if ($up2->rowCount() === 0) {
-            // Baris penandatangan belum ada (keadaan luar biasa) -> buat
-            $in2 = $pdo->prepare(
-                "INSERT INTO dokumen_ttd (dokumen_id, user_id, urutan, jabatan, nama, status, signed_at, ip, user_agent)
-                 VALUES (?, ?, 1, ?, ?, 'ditandatangani', ?, ?, ?)"
-            );
-            $in2->execute([$id, $userId, (string) $user['peran'], (string) $user['nama_lengkap'], $waktuSql, $ip, $ua]);
-        }
+        $up->execute([
+            $html,
+            $hashSigned,
+            $statusDok,
+            $statusDok === 'ditandatangani' ? $waktuSql : null,
+            $id,
+        ]);
 
         $pdo->commit();
         jsonOut(true, 'Dokumen berhasil ditandatangani secara elektronik.', [
             'kode_verifikasi' => $kode,
             'hash_signed'     => $hashSigned,
             'waktu'           => docWaktu($waktuSql),
+            'status'          => $statusDok,
         ]);
     } catch (Throwable $e) {
         if ($pdo->inTransaction()) {

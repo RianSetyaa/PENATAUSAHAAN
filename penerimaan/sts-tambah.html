@@ -62,6 +62,12 @@
                         </div>
                     </div>
 
+                    <!-- SKP - Daerah (alur sebelum STBP) -->
+                    <a href="skp-daerah.html" class="menu-item">
+                        <i class="fas fa-receipt"></i>
+                        <span>SKP - Daerah</span>
+                    </a>
+
                     <!-- STBP -->
                     <div class="menu-group" data-menu="stbp">
                         <a href="#" class="menu-item has-submenu">
@@ -246,6 +252,11 @@
                                 </select>
                             </div>
                             <div class="form-group">
+                                <label for="kuasaKpa">Nama Kuasa Pengguna Anggaran</label>
+                                <input type="text" id="kuasaKpa" class="form-control" placeholder="Nama Kuasa Pengguna Anggaran ...">
+                                <p class="form-hint"><i class="fas fa-info-circle"></i> Nama ini tampil sebagai penandatangan ke-2 pada dokumen STS.</p>
+                            </div>
+                            <div class="form-group">
                                 <label for="namaBank">Pilih Bank</label>
                                 <select id="namaBank" class="form-control">
                                     <option value="">Pilih Bank</option>
@@ -325,7 +336,7 @@
                         </div>
 
                         <!-- Tabel STBP terpilih -->
-                        <div class="sts-pilih-title">Pilih STBP</div>
+                        <div class="sts-pilih-title">Pilih STBP <span class="tab-count" style="font-weight:400;font-size:11px;">menampilkan STBP yang belum pernah dibuatkan STS</span></div>
                         <div class="card table-card" id="stbpTableCard" style="display:none;">
                             <div class="card-body table-body">
                                 <table class="data-table">
@@ -536,7 +547,7 @@
                 });
 
                 if (!filtered.length) {
-                    stbpPickBody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#9098a5;">Data tidak ditemukan.</td></tr>';
+                    stbpPickBody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#9098a5;">Tidak ada STBP tersedia (sudah pernah dibuatkan STS).</td></tr>';
                     pickPageInfo.textContent = 'Menampilkan 0 data';
                     pickPrev.disabled = true;
                     pickNext.disabled = true;
@@ -653,6 +664,7 @@
                         tanggal_acuan_dari: document.getElementById('tanggalDari').value,
                         tanggal_acuan_akhir: document.getElementById('tanggalAkhir').value,
                         mengetahui: document.getElementById('mengetahui').value,
+                        kuasa_pengguna_anggaran: document.getElementById('kuasaKpa').value.trim(),
                         nama_bank: document.getElementById('namaBank').value.split('|')[0],
                         nomor_rekening: document.getElementById('nomorRekening').value.trim(),
                         nama_rekening: document.getElementById('namaRekening').value.trim(),

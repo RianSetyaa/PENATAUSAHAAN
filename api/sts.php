@@ -57,6 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 'tanggal_acuan_dari' => (string) $row['tanggal_acuan_dari'],
                 'tanggal_acuan_akhir'=> (string) $row['tanggal_acuan_akhir'],
                 'mengetahui'         => (string) $row['mengetahui'],
+                'kuasa_pengguna_anggaran' => (string) ($row['kuasa_pengguna_anggaran'] ?? ''),
                 'nama_bank'          => (string) $row['nama_bank'],
                 'nomor_rekening'     => (string) $row['nomor_rekening'],
                 'nama_rekening'      => (string) $row['nama_rekening'],
@@ -159,6 +160,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $tanggal_dari = trim((string) ($body['tanggal_acuan_dari'] ?? ''));
     $tanggal_akhir= trim((string) ($body['tanggal_acuan_akhir'] ?? ''));
     $mengetahui   = trim((string) ($body['mengetahui'] ?? ''));
+    $kuasaKpa    = trim((string) ($body['kuasa_pengguna_anggaran'] ?? ''));
     $nama_bank    = trim((string) ($body['nama_bank'] ?? ''));
     $nomor_rek    = trim((string) ($body['nomor_rekening'] ?? ''));
     $nama_rek     = trim((string) ($body['nama_rekening'] ?? ''));
@@ -189,13 +191,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         jsonResponse(false, 'Ada STBP yang belum divalidasi (tahap 3) sehingga tidak dapat dimasukkan ke STS.', [], 422);
     }
 
+    // Validasi: STBP yang sudah pernah dibuatkan STS tidak boleh dipilih lagi
+    $in2 = implode(',', array_fill(0, count($stbp_ids), '?'));
+    $chk2 = $pdo->prepare("SELECT COUNT(*) FROM sts_detail sd
+                           INNER JOIN sts st ON st.id = sd.sts_id
+                           WHERE sd.stbp_id IN ($in2) AND st.status = 'aktif'");
+    $chk2->execute($stbp_ids);
+    if ((int) $chk2->fetchColumn() > 0) {
+        jsonResponse(false, 'Ada STBP yang sudah pernah dibuatkan STS. STBP tersebut tidak dapat dipilih lagi.', [], 422);
+    }
+
     $pdo->beginTransaction();
     try {
         $stmt = $pdo->prepare("
             INSERT INTO sts (user_id, skpd, nomor_sts, nama_penyetor, tanggal_sts,
-                             tanggal_acuan_dari, tanggal_acuan_akhir, mengetahui,
+                             tanggal_acuan_dari, tanggal_acuan_akhir, mengetahui, kuasa_pengguna_anggaran,
                              nama_bank, nomor_rekening, nama_rekening, keterangan, total, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 'aktif')
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 'aktif')
         ");
         $stmt->execute([
             $_SESSION['user_id'] ?? null,
@@ -206,6 +218,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $tanggal_dari !== '' ? $tanggal_dari : null,
             $tanggal_akhir !== '' ? $tanggal_akhir : null,
             $mengetahui,
+            $kuasaKpa,
             $nama_bank,
             $nomor_rek,
             $nama_rek,

@@ -75,6 +75,12 @@
                         </div>
                     </div>
 
+                    <!-- SKP - Daerah (alur sebelum STBP) -->
+                    <a href="skp-daerah.html" class="menu-item">
+                        <i class="fas fa-receipt"></i>
+                        <span>SKP - Daerah</span>
+                    </a>
+
                     <!-- STBP (dropdown tahap) -->
                     <div class="menu-group open" data-menu="stbp">
                         <a href="#" class="menu-item has-submenu active">
@@ -250,6 +256,7 @@
                                 <th>No.</th>
                                 <th>Tanggal STBP</th>
                                 <th>Metode Penyetoran</th>
+                                <th>No. SKP</th>
                                 <th>Nilai (Rp)</th>
                                 <th>Keterangan</th>
                                 <th>Status</th>
@@ -259,7 +266,7 @@
                         </thead>
                         <tbody id="stbpTableBody">
                             <tr>
-                                <td colspan="8" style="text-align:center; color:#9098a5;">Memuat data...</td>
+                                <td colspan="9" style="text-align:center; color:#9098a5;">Memuat data...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -469,6 +476,7 @@
                         '<td><div class="akun-name">' + formatTanggal(p.tanggal) + '</div>' +
                             '<div class="skpd-meta">' + escapeHtml(p.nomor_stbp || '') + '</div></td>' +
                         '<td>' + (METODE_LABEL[p.metode_penyetoran] || p.metode_penyetoran || '-') + '</td>' +
+                        '<td>' + escapeHtml(p.nomor_skp || '-') + '</td>' +
                         '<td class="num">' + formatRupiah(p.jumlah) + '</td>' +
                         '<td>' + escapeHtml(p.uraian || '-') + '</td>' +
                         '<td>' + statusBadge(p.status) + '</td>' +
