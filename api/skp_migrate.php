@@ -115,6 +115,18 @@ if (skpHasColumn($pdo, 'skp_daerah', 'akun_kode')) {
     skpRun("ALTER TABLE skp_daerah ADD COLUMN akun_kode VARCHAR(50) NOT NULL DEFAULT '' AFTER jenis_pajak", 'kolom akun_kode di skp_daerah', $report);
 }
 
+// 1c. skp_daerah.alamat & npwpd — identitas wajib pajak untuk dokumen resmi SKP
+if (skpHasColumn($pdo, 'skp_daerah', 'alamat')) {
+    $report[] = 'ADA: skp_daerah.alamat';
+} else {
+    skpRun("ALTER TABLE skp_daerah ADD COLUMN alamat VARCHAR(255) NOT NULL DEFAULT '' AFTER nama_penyetor", 'kolom alamat di skp_daerah', $report);
+}
+if (skpHasColumn($pdo, 'skp_daerah', 'npwpd')) {
+    $report[] = 'ADA: skp_daerah.npwpd';
+} else {
+    skpRun("ALTER TABLE skp_daerah ADD COLUMN npwpd VARCHAR(50) NOT NULL DEFAULT '' AFTER alamat", 'kolom npwpd di skp_daerah', $report);
+}
+
 // 2. stbp.skp_daerah_id
 if (!skpHasTable($pdo, 'stbp')) {
     $report[] = 'SKIP: tabel stbp belum ada';

@@ -130,6 +130,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $jenisPajak  = trim((string) ($body['jenis_pajak'] ?? ''));
     $akunKode    = trim((string) ($body['akun_kode'] ?? ''));
     $namaPenyetor= trim((string) ($body['nama_penyetor'] ?? ''));
+    $alamat      = trim((string) ($body['alamat'] ?? ''));
+    $npwpd       = trim((string) ($body['npwpd'] ?? ''));
     $objek       = trim((string) ($body['objek_pajak'] ?? ''));
     $nilai       = (float) ($body['nilai_keputusan'] ?? 0);
     $masaDari    = trim((string) ($body['masa_pajak_dari'] ?? ''));
@@ -180,12 +182,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         if ($action === 'create') {
             $stmt = $pdo->prepare(
-                "INSERT INTO skp_daerah (user_id, skpd, nomor_skp, tanggal, akun_kode, jenis_pajak, nama_penyetor, objek_pajak, nilai_keputusan, masa_pajak_dari, masa_pajak_akhir, jatuh_tempo, keterangan, status)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'aktif')"
+                "INSERT INTO skp_daerah (user_id, skpd, nomor_skp, tanggal, akun_kode, jenis_pajak, nama_penyetor, alamat, npwpd, objek_pajak, nilai_keputusan, masa_pajak_dari, masa_pajak_akhir, jatuh_tempo, keterangan, status)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'aktif')"
             );
             $stmt->execute([
                 (int) ($_SESSION['user_id'] ?? 0),
-                $skpd, $nomor, $tanggal, $akunKode, $jenisPajak, $namaPenyetor, $objek,
+                $skpd, $nomor, $tanggal, $akunKode, $jenisPajak, $namaPenyetor, $alamat, $npwpd, $objek,
                 $nilai,
                 $masaDari !== '' ? $masaDari : null,
                 $masaAkhir !== '' ? $masaAkhir : null,
@@ -200,12 +202,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $pdo->prepare(
                 "UPDATE skp_daerah
                  SET nomor_skp = ?, tanggal = ?, akun_kode = ?, jenis_pajak = ?, nama_penyetor = ?,
-                     objek_pajak = ?, nilai_keputusan = ?, masa_pajak_dari = ?,
+                     alamat = ?, npwpd = ?, objek_pajak = ?, nilai_keputusan = ?, masa_pajak_dari = ?,
                      masa_pajak_akhir = ?, jatuh_tempo = ?, keterangan = ?
                  WHERE id = ?" . ($skpd !== '' ? " AND skpd = ?" : "")
             );
             $params = [
-                $nomor, $tanggal, $akunKode, $jenisPajak, $namaPenyetor, $objek, $nilai,
+                $nomor, $tanggal, $akunKode, $jenisPajak, $namaPenyetor, $alamat, $npwpd, $objek, $nilai,
                 $masaDari !== '' ? $masaDari : null,
                 $masaAkhir !== '' ? $masaAkhir : null,
                 $jatuhTempo !== '' ? $jatuhTempo : null,
@@ -246,6 +248,8 @@ function skpMap(array $r): array
         'akun_kode'       => (string) ($r['akun_kode'] ?? ''),
         'jenis_pajak'     => (string) $r['jenis_pajak'],
         'nama_penyetor'   => (string) $r['nama_penyetor'],
+        'alamat'          => (string) ($r['alamat'] ?? ''),
+        'npwpd'           => (string) ($r['npwpd'] ?? ''),
         'objek_pajak'     => (string) $r['objek_pajak'],
         'nilai_keputusan' => (float) $r['nilai_keputusan'],
         'masa_pajak_dari' => (string) ($r['masa_pajak_dari'] ?? ''),

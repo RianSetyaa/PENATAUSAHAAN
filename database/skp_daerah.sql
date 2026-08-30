@@ -57,6 +57,21 @@ SET @sql := IF(@kolom_ada = 0,
     'SELECT ''-- lewati: skp_daerah.akun_kode sudah ada'' AS status');
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
+-- 1c) skp_daerah.alamat & npwpd — identitas wajib pajak untuk dokumen resmi SKP
+SET @kolom_ada := (SELECT COUNT(*) FROM information_schema.COLUMNS
+                   WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'skp_daerah' AND COLUMN_NAME = 'alamat');
+SET @sql := IF(@kolom_ada = 0,
+    'ALTER TABLE `skp_daerah` ADD COLUMN `alamat` VARCHAR(255) NOT NULL DEFAULT '''' AFTER `nama_penyetor`',
+    'SELECT ''-- lewati: skp_daerah.alamat sudah ada'' AS status');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @kolom_ada := (SELECT COUNT(*) FROM information_schema.COLUMNS
+                   WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'skp_daerah' AND COLUMN_NAME = 'npwpd');
+SET @sql := IF(@kolom_ada = 0,
+    'ALTER TABLE `skp_daerah` ADD COLUMN `npwpd` VARCHAR(50) NOT NULL DEFAULT '''' AFTER `alamat`',
+    'SELECT ''-- lewati: skp_daerah.npwpd sudah ada'' AS status');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
 -- ------------------------------------------------------------
 -- 2) stbp.skp_daerah_id + index (STBP merujuk SKP Daerah)
 -- ------------------------------------------------------------
@@ -143,6 +158,10 @@ CREATE TABLE IF NOT EXISTS user_ttd (
 SELECT 'skp_daerah'                    AS struktur, COUNT(*) AS ada FROM information_schema.TABLES  WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'skp_daerah'
 UNION ALL
 SELECT 'skp_daerah.akun_kode',                COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'skp_daerah' AND COLUMN_NAME = 'akun_kode'
+UNION ALL
+SELECT 'skp_daerah.alamat',                  COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'skp_daerah' AND COLUMN_NAME = 'alamat'
+UNION ALL
+SELECT 'skp_daerah.npwpd',                   COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'skp_daerah' AND COLUMN_NAME = 'npwpd'
 UNION ALL
 SELECT 'stbp.skp_daerah_id',                  COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'stbp' AND COLUMN_NAME = 'skp_daerah_id'
 UNION ALL

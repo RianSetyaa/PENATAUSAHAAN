@@ -261,6 +261,18 @@
                         </div>
                         <div class="form-row">
                             <div class="form-group">
+                                <label for="alamat">Alamat Wajib Pajak</label>
+                                <input type="text" id="alamat" class="form-control"
+                                    placeholder="Contoh: Jl. Manado No. 31">
+                            </div>
+                            <div class="form-group">
+                                <label for="npwpd">NPWPD</label>
+                                <input type="text" id="npwpd" class="form-control"
+                                    placeholder="Nomor Pokok Wajib Pajak Daerah">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
                                 <label for="masaDari">Masa Pajak Dari</label>
                                 <input type="date" id="masaDari" class="form-control">
                             </div>
@@ -392,6 +404,8 @@
                         akun_kode: akunKode,
                         jenis_pajak: jenisNama,
                         nama_penyetor: nama,
+                        alamat: document.getElementById('alamat').value.trim(),
+                        npwpd: document.getElementById('npwpd').value.trim(),
                         objek_pajak: document.getElementById('objekPajak').value.trim(),
                         nilai_keputusan: nilai,
                         masa_pajak_dari: document.getElementById('masaDari').value,
