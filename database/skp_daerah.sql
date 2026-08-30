@@ -49,6 +49,14 @@ CREATE TABLE IF NOT EXISTS skp_daerah (
     INDEX idx_nomor (nomor_skp)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- 1b) skp_daerah.akun_kode — jenis pajak SKP terikat ke Akun Penerimaan (Pengaturan)
+SET @kolom_ada := (SELECT COUNT(*) FROM information_schema.COLUMNS
+                   WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'skp_daerah' AND COLUMN_NAME = 'akun_kode');
+SET @sql := IF(@kolom_ada = 0,
+    'ALTER TABLE `skp_daerah` ADD COLUMN `akun_kode` VARCHAR(50) NOT NULL DEFAULT '''' AFTER `jenis_pajak`',
+    'SELECT ''-- lewati: skp_daerah.akun_kode sudah ada'' AS status');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
 -- ------------------------------------------------------------
 -- 2) stbp.skp_daerah_id + index (STBP merujuk SKP Daerah)
 -- ------------------------------------------------------------
@@ -133,6 +141,8 @@ CREATE TABLE IF NOT EXISTS user_ttd (
 -- Verifikasi ringkas (hasil terlihat di output impor)
 -- ------------------------------------------------------------
 SELECT 'skp_daerah'                    AS struktur, COUNT(*) AS ada FROM information_schema.TABLES  WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'skp_daerah'
+UNION ALL
+SELECT 'skp_daerah.akun_kode',                COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'skp_daerah' AND COLUMN_NAME = 'akun_kode'
 UNION ALL
 SELECT 'stbp.skp_daerah_id',                  COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'stbp' AND COLUMN_NAME = 'skp_daerah_id'
 UNION ALL

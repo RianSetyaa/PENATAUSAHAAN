@@ -75,9 +75,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $params[] = $skpd;
     }
     if ($q !== '') {
-        $where .= ($where !== '' ? ' AND ' : '') . "(s.nomor_skp LIKE ? OR s.nama_penyetor LIKE ? OR s.jenis_pajak LIKE ? OR s.objek_pajak LIKE ?)";
+        $where .= ($where !== '' ? ' AND ' : '') . "(s.nomor_skp LIKE ? OR s.nama_penyetor LIKE ? OR s.jenis_pajak LIKE ? OR s.objek_pajak LIKE ? OR s.akun_kode LIKE ?)";
         $like = '%' . $q . '%';
-        $params = array_merge($params, [$like, $like, $like, $like]);
+        $params = array_merge($params, [$like, $like, $like, $like, $like]);
     }
 
     $sql = "SELECT s.*, u.nama_lengkap AS dibuat_oleh
@@ -128,6 +128,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nomor       = trim((string) ($body['nomor_skp'] ?? ''));
     $tanggal     = trim((string) ($body['tanggal'] ?? ''));
     $jenisPajak  = trim((string) ($body['jenis_pajak'] ?? ''));
+    $akunKode    = trim((string) ($body['akun_kode'] ?? ''));
     $namaPenyetor= trim((string) ($body['nama_penyetor'] ?? ''));
     $objek       = trim((string) ($body['objek_pajak'] ?? ''));
     $nilai       = (float) ($body['nilai_keputusan'] ?? 0);
@@ -156,15 +157,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    // Jenis pajak WAJIB terikat ke Akun Penerimaan yang aktif di Pengaturan (milik instansi yang sama).
+    // Server yang menentukan kode & nama akun (input klien hanya sebagai pencari).
+    $akunTerm = $akunKode !== '' ? $akunKode : $jenisPajak;
+    if ($akunTerm === '') {
+        jsonResponse(false, 'Jenis pajak wajib dipilih dari daftar Akun Penerimaan.', ['field' => 'jenis_pajak'], 422);
+    }
+    $akunStmt = $pdo->prepare(
+        "SELECT kode_akun, nama_akun FROM akun_penerimaan
+         WHERE status_aktif = 1 AND (kode_akun = ? OR nama_akun = ?)" . ($skpd !== '' ? " AND skpd = ?" : "") . " LIMIT 1"
+    );
+    $akunParams = [$akunTerm, $akunTerm];
+    if ($skpd !== '') $akunParams[] = $skpd;
+    $akunStmt->execute($akunParams);
+    $akunRow = $akunStmt->fetch();
+    if (!$akunRow) {
+        jsonResponse(false, 'Jenis pajak wajib dipilih dari daftar Akun Penerimaan yang aktif di menu Pengaturan.', ['field' => 'jenis_pajak'], 422);
+    }
+    $akunKode   = (string) $akunRow['kode_akun'];
+    $jenisPajak = (string) $akunRow['nama_akun'];
+
     try {
         if ($action === 'create') {
             $stmt = $pdo->prepare(
-                "INSERT INTO skp_daerah (user_id, skpd, nomor_skp, tanggal, jenis_pajak, nama_penyetor, objek_pajak, nilai_keputusan, masa_pajak_dari, masa_pajak_akhir, jatuh_tempo, keterangan, status)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'aktif')"
+                "INSERT INTO skp_daerah (user_id, skpd, nomor_skp, tanggal, akun_kode, jenis_pajak, nama_penyetor, objek_pajak, nilai_keputusan, masa_pajak_dari, masa_pajak_akhir, jatuh_tempo, keterangan, status)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'aktif')"
             );
             $stmt->execute([
                 (int) ($_SESSION['user_id'] ?? 0),
-                $skpd, $nomor, $tanggal, $jenisPajak, $namaPenyetor, $objek,
+                $skpd, $nomor, $tanggal, $akunKode, $jenisPajak, $namaPenyetor, $objek,
                 $nilai,
                 $masaDari !== '' ? $masaDari : null,
                 $masaAkhir !== '' ? $masaAkhir : null,
@@ -178,13 +199,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             $stmt = $pdo->prepare(
                 "UPDATE skp_daerah
-                 SET nomor_skp = ?, tanggal = ?, jenis_pajak = ?, nama_penyetor = ?,
+                 SET nomor_skp = ?, tanggal = ?, akun_kode = ?, jenis_pajak = ?, nama_penyetor = ?,
                      objek_pajak = ?, nilai_keputusan = ?, masa_pajak_dari = ?,
                      masa_pajak_akhir = ?, jatuh_tempo = ?, keterangan = ?
                  WHERE id = ?" . ($skpd !== '' ? " AND skpd = ?" : "")
             );
             $params = [
-                $nomor, $tanggal, $jenisPajak, $namaPenyetor, $objek, $nilai,
+                $nomor, $tanggal, $akunKode, $jenisPajak, $namaPenyetor, $objek, $nilai,
                 $masaDari !== '' ? $masaDari : null,
                 $masaAkhir !== '' ? $masaAkhir : null,
                 $jatuhTempo !== '' ? $jatuhTempo : null,
@@ -222,6 +243,7 @@ function skpMap(array $r): array
         'skpd'            => (string) $r['skpd'],
         'nomor_skp'       => (string) $r['nomor_skp'],
         'tanggal'         => (string) $r['tanggal'],
+        'akun_kode'       => (string) ($r['akun_kode'] ?? ''),
         'jenis_pajak'     => (string) $r['jenis_pajak'],
         'nama_penyetor'   => (string) $r['nama_penyetor'],
         'objek_pajak'     => (string) $r['objek_pajak'],

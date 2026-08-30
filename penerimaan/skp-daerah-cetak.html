@@ -501,7 +501,7 @@
                     document.getElementById('fNomor').textContent = s.nomor_skp || '-';
                     document.getElementById('fTanggal').textContent = formatTanggal(s.tanggal);
                     document.getElementById('fNama').textContent = s.nama_penyetor || '-';
-                    document.getElementById('fJenis').textContent = s.jenis_pajak || '-';
+                    document.getElementById('fJenis').textContent = (s.jenis_pajak || '-') + (s.akun_kode ? ' (' + s.akun_kode + ')' : '');
                     document.getElementById('fObjek').textContent = s.objek_pajak || '-';
                     document.getElementById('fMasa').textContent =
                         formatTanggal(s.masa_pajak_dari) + ' s.d. ' + formatTanggal(s.masa_pajak_akhir);

@@ -859,7 +859,8 @@
                     if (s.nomor_skp) {
                         document.getElementById('skpField').style.display = '';
                         document.getElementById('fSkp').textContent =
-                            s.nomor_skp + (s.jenis_pajak ? ' (' + s.jenis_pajak + ')' : '');
+                            s.nomor_skp +
+                            (s.jenis_pajak ? ' (' + s.jenis_pajak + (s.skp_akun_kode ? ' — ' + s.skp_akun_kode + ')' : ')') : '');
                     } else {
                         document.getElementById('skpField').style.display = 'none';
                     }

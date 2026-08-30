@@ -34,6 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     if ($detailId > 0) {
         $stmt = $pdo->prepare("SELECT s.*, u.nama_lengkap AS dibuat_oleh,
                                       sk.nomor_skp      AS nomor_skp,
+                                      sk.akun_kode      AS skp_akun_kode,
                                       sk.jenis_pajak    AS jenis_pajak,
                                       sk.nama_penyetor  AS skp_nama_penyetor,
                                       sk.nilai_keputusan AS skp_nilai
@@ -71,6 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 'skp_daerah_id' => (int) ($row['skp_daerah_id'] ?? 0),
                 'nomor_skp'     => (string) ($row['nomor_skp'] ?? ''),
                 'jenis_pajak'   => (string) ($row['jenis_pajak'] ?? ''),
+                'skp_akun_kode' => (string) ($row['skp_akun_kode'] ?? ''),
                 'skp_nama_penyetor' => (string) ($row['skp_nama_penyetor'] ?? ''),
                 'skp_nilai'     => (float) ($row['skp_nilai'] ?? 0),
             ],
@@ -239,17 +241,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $pendapatan = is_array($body['data_pendapatan'] ?? null) ? $body['data_pendapatan'] : [];
 
     // SKP Daerah WAJIB dipilih, valid, milik instansi yang sama, dan masih aktif.
-    // Data STBP harus sama dengan SKP Daerah -> nama_penyetor diambil dari SKP.
+    // Data STBP harus sama dengan SKP Daerah -> akun, nominal, dan nama penyetor diambil dari SKP.
     if ($skpId <= 0) {
         jsonResponse(false, 'SKP Daerah wajib dipilih sebagai dasar pembuatan STBP.', ['field' => 'skp_daerah_id'], 422);
     }
-    $stmtSkp = $pdo->prepare("SELECT id, nama_penyetor FROM skp_daerah WHERE id = ? AND status = 'aktif'" . ($skpd !== '' ? " AND skpd = ?" : ""));
+    $stmtSkp = $pdo->prepare("SELECT id, nomor_skp, akun_kode, jenis_pajak, nama_penyetor, objek_pajak, nilai_keputusan FROM skp_daerah WHERE id = ? AND status = 'aktif'" . ($skpd !== '' ? " AND skpd = ?" : ""));
     $stmtSkp->execute($skpd !== '' ? [$skpId, $skpd] : [$skpId]);
     $skpRow = $stmtSkp->fetch();
     if (!$skpRow) {
         jsonResponse(false, 'SKP Daerah tidak valid / sudah terpakai. Pilih SKP Daerah yang masih aktif.', [], 422);
     }
+    $skpNomorSkp     = (string) $skpRow['nomor_skp'];
     $skpNamaPenyetor = (string) $skpRow['nama_penyetor'];
+
+    // --- Data STBP disamakan PENUH dengan SKP Daerah (server authority, abaikan input klien) ---
+    $kode   = (string) $skpRow['akun_kode'];          // akun penerimaan terpilih di SKP
+    $nama   = (string) $skpRow['jenis_pajak'];        // jenis pajak = nama akun penerimaan
+    $jumlah = (float) $skpRow['nilai_keputusan'];     // nominal = nilai ketetapan SKP
+    $uraian = trim((string) $skpRow['objek_pajak']);
+    $uraian = ($uraian !== '' ? $uraian . ' | ' : '') . 'SKP Daerah ' . $skpNomorSkp;
+    if ($jumlah <= 0) {
+        jsonResponse(false, 'Nilai ketetapan SKP Daerah harus lebih dari 0.', ['field' => 'jumlah'], 422);
+    }
 
     // Auto-generate nomor STBP jika tidak diisi
     if ($nomor === '') {
@@ -304,24 +317,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $pdo->prepare("UPDATE skp_daerah SET status = 'terpakai' WHERE id = ?")->execute([$skpId]);
         }
 
-        // Simpan data pendapatan (baris dari modal "Tambahkan Data")
-        if (count($pendapatan) > 0) {
-            $stmtPend = $pdo->prepare("
-                INSERT INTO stbp_pendapatan (stbp_id, akun_kode, akun_nama, rekening_bank, rekening_nama, rekening_nomor, nominal)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            ");
-            foreach ($pendapatan as $p) {
-                $stmtPend->execute([
-                    $stbpId,
-                    trim((string) ($p['akun_kode'] ?? '')),
-                    trim((string) ($p['akun_nama'] ?? '')),
-                    trim((string) ($p['rekening_bank'] ?? '')),
-                    trim((string) ($p['rekening_nama'] ?? '')),
-                    trim((string) ($p['rekening_nomor'] ?? '')),
-                    (float) ($p['nominal'] ?? 0),
-                ]);
-            }
-        }
+        // Simpan data pendapatan — OTOMATIS dari SKP Daerah (bukan input manual).
+        // Satu baris: akun penerimaan terpilih di SKP, nominal = nilai ketetapan SKP.
+        $stmtPend = $pdo->prepare("
+            INSERT INTO stbp_pendapatan (stbp_id, akun_kode, akun_nama, rekening_bank, rekening_nama, rekening_nomor, nominal)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ");
+        $stmtPend->execute([
+            $stbpId,
+            $kode,
+            $nama,
+            '',
+            '',
+            '',
+            $jumlah,
+        ]);
 
         $pdo->commit();
     } catch (PDOException $e) {

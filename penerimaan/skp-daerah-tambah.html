@@ -237,8 +237,11 @@
                                 <input type="date" id="tanggal" class="form-control" required>
                             </div>
                             <div class="form-group">
-                                <label for="jenisPajak">Jenis Pajak Daerah</label>
-                                <input type="text" id="jenisPajak" class="form-control" placeholder="Contoh: Pajak Hotel, Pajak Restoran, Pajak Hiburan ...">
+                                <label for="jenisPajak">Jenis Pajak Daerah <span style="color:#e2542c;">*</span></label>
+                                <select id="jenisPajak" class="form-control" required>
+                                    <option value="">Memuat daftar akun penerimaan ...</option>
+                                </select>
+                                <p class="form-hint"><i class="fas fa-info-circle"></i> Daftar diambil dari <b>Pengaturan &rsaquo; Akun Penerimaan</b> (akun yang dicentang aktif).</p>
                             </div>
                         </div>
                         <div class="form-row">
@@ -314,6 +317,38 @@
                 })
                 .catch(function () { /* biarkan */ });
 
+            // ---------- Jenis pajak: diambil dari Akun Penerimaan (Pengaturan) ----------
+            function loadAkunPenerimaan() {
+                const sel = document.getElementById('jenisPajak');
+                fetch('../api/akun_penerimaan.php?aktif=1')
+                    .then(function (res) { return res.json(); })
+                    .then(function (data) {
+                        const rows = (data && data.success) ? (data.data || []) : [];
+                        sel.innerHTML = '';
+                        const first = document.createElement('option');
+                        first.value = '';
+                        first.textContent = rows.length
+                            ? '— Pilih Jenis Pajak (Akun Penerimaan) —'
+                            : 'Tidak ada akun aktif — centang akun di Pengaturan › Akun Penerimaan';
+                        sel.appendChild(first);
+                        rows.forEach(function (a) {
+                            const opt = document.createElement('option');
+                            opt.value = a.kode_akun;
+                            opt.dataset.nama = a.nama_akun;
+                            opt.textContent = a.nama_akun + ' (' + a.kode_akun + ')';
+                            sel.appendChild(opt);
+                        });
+                    })
+                    .catch(function () {
+                        sel.innerHTML = '';
+                        const err = document.createElement('option');
+                        err.value = '';
+                        err.textContent = 'Gagal memuat akun penerimaan';
+                        sel.appendChild(err);
+                    });
+            }
+            loadAkunPenerimaan();
+
             // ---------- Format nominal rupiah ----------
             function formatRupiahInput(val) {
                 var digits = String(val || '').replace(/\D/g, '').replace(/^0+/, '');
@@ -333,7 +368,14 @@
                 const nama = document.getElementById('namaPenyetor').value.trim();
                 const nilai = Number(String(nilaiInput.value || '').replace(/\D/g, ''));
 
+                // Jenis pajak = akun penerimaan terpilih (dari Pengaturan)
+                const selJenis = document.getElementById('jenisPajak');
+                const optJenis = selJenis.options[selJenis.selectedIndex];
+                const akunKode = selJenis.value;
+                const jenisNama = optJenis ? (optJenis.dataset.nama || '') : '';
+
                 if (!tanggal) { showToast('Tanggal ketetapan wajib diisi.', 'warning'); return; }
+                if (!akunKode) { showToast('Pilih Jenis Pajak dari daftar Akun Penerimaan terlebih dahulu.', 'warning'); return; }
                 if (!nama) { showToast('Nama Penyetor (Wajib Pajak) wajib diisi.', 'warning'); return; }
                 if (nilai <= 0) { showToast('Nilai ketetapan harus lebih dari 0.', 'warning'); return; }
 
@@ -347,7 +389,8 @@
                         action: 'create',
                         nomor_skp: document.getElementById('nomorSkp').value.trim(),
                         tanggal: tanggal,
-                        jenis_pajak: document.getElementById('jenisPajak').value.trim(),
+                        akun_kode: akunKode,
+                        jenis_pajak: jenisNama,
                         nama_penyetor: nama,
                         objek_pajak: document.getElementById('objekPajak').value.trim(),
                         nilai_keputusan: nilai,

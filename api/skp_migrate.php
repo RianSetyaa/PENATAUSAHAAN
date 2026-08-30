@@ -108,6 +108,13 @@ if (!skpHasTable($pdo, 'skp_daerah')) {
     $report[] = 'ADA: tabel skp_daerah';
 }
 
+// 1b. skp_daerah.akun_kode — jenis pajak SKP terikat ke Akun Penerimaan (Pengaturan)
+if (skpHasColumn($pdo, 'skp_daerah', 'akun_kode')) {
+    $report[] = 'ADA: skp_daerah.akun_kode';
+} else {
+    skpRun("ALTER TABLE skp_daerah ADD COLUMN akun_kode VARCHAR(50) NOT NULL DEFAULT '' AFTER jenis_pajak", 'kolom akun_kode di skp_daerah', $report);
+}
+
 // 2. stbp.skp_daerah_id
 if (!skpHasTable($pdo, 'stbp')) {
     $report[] = 'SKIP: tabel stbp belum ada';
