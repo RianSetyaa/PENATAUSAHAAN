@@ -84,6 +84,7 @@
         .lpj-sign .col { width: 48%; }
         .lpj-sign p { margin: 0; line-height: 1.6; }
         .lpj-sign .name { min-height: 52px; display: block; text-decoration: underline; }
+        .lpj-sign.hide-ttd, .lpj-sign .hide-ttd { display: none !important; }
 
         /* ===== Saat mencetak: hanya dokumen ===== */
         @media print {
@@ -312,6 +313,9 @@
                     <button type="button" class="btn btn-outline" id="btnTampilkan"><i class="fas fa-sync-alt"></i> Tampilkan</button>
                 </div>
                 <div class="filter-group">
+                    <label style="font-size:13px;display:flex;align-items:center;gap:4px;cursor:pointer;color:#0f172a;">
+                        <input type="checkbox" id="chkTtd" checked> Tampilkan Tanda Tangan
+                    </label>
                     <button type="button" class="btn btn-dark" id="btnCetak"><i class="fas fa-print"></i> Cetak LPJ</button>
                 </div>
             </div>
@@ -503,6 +507,11 @@
 
             document.getElementById('btnTampilkan').addEventListener('click', loadLpj);
             document.getElementById('btnCetak').addEventListener('click', function () { window.print(); });
+
+            // Toggle Tanda Tangan
+            document.getElementById('chkTtd').addEventListener('change', function () {
+                document.querySelector('.lpj-sign').classList.toggle('hide-ttd', !this.checked);
+            });
 
             // Ketik langsung memperbarui dokumen
             document.getElementById('namaPa').addEventListener('input', function () {

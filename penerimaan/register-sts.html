@@ -74,6 +74,7 @@
         .register-sign .col { width: 48%; }
         .register-sign p { margin: 0; line-height: 1.6; }
         .register-sign .name { min-height: 48px; display: block; text-decoration: underline; }
+        .register-sign.hide-ttd { display: none !important; }
         .register-notfound { max-width: 820px; margin: 0 auto; }
 
         /* ===== Saat mencetak: hanya dokumen ===== */
@@ -299,6 +300,9 @@
                     <button type="button" class="btn btn-outline" id="btnTampilkan"><i class="fas fa-sync-alt"></i> Tampilkan</button>
                 </div>
                 <div class="filter-group">
+                    <label style="font-size:13px;display:flex;align-items:center;gap:4px;cursor:pointer;color:#0f172a;">
+                        <input type="checkbox" id="chkTtd" checked> Tampilkan Tanda Tangan
+                    </label>
                     <button type="button" class="btn btn-dark" id="btnCetak"><i class="fas fa-print"></i> Cetak Register</button>
                 </div>
             </div>
@@ -466,6 +470,11 @@
 
             document.getElementById('btnTampilkan').addEventListener('click', loadRegister);
             document.getElementById('btnCetak').addEventListener('click', function () { window.print(); });
+
+            // Toggle Tanda Tangan
+            document.getElementById('chkTtd').addEventListener('change', function () {
+                document.querySelector('.register-sign').classList.toggle('hide-ttd', !this.checked);
+            });
 
             // Ketik nama Pengguna Anggaran -> langsung tampil di blok tanda tangan kiri
             document.getElementById('namaPa').addEventListener('input', function () {
