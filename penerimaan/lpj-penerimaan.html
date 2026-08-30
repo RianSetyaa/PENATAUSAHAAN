@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register STS - SIM-TKD</title>
+    <title>LPJ Bendahara Penerimaan - SIM-TKD</title>
     <link rel="stylesheet" href="../css/dashboard.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -31,8 +31,8 @@
             font-size: 13px;
         }
 
-        /* ===== Dokumen Register STS (format resmi) ===== */
-        .register-sheet {
+        /* ===== Dokumen LPJ Bendahara Penerimaan (format resmi) ===== */
+        .lpj-sheet {
             max-width: none;
             width: 100%;
             box-sizing: border-box;
@@ -40,41 +40,50 @@
             background: #ffffff;
             border: 1px solid #d7dde5;
             border-radius: 12px;
-            padding: 28px;
+            padding: 32px 36px;
             box-shadow: 0 8px 30px rgba(15, 23, 42, 0.06);
             color: #000;
             font-family: "Times New Roman", Times, serif;
+            font-size: 14px;
         }
-        .register-head { text-align: center; font-size: 13px; }
-        .register-head p { margin: 0; font-weight: 700; }
-        .register-sub { font-size: 13px; margin: 12px 0 8px; }
-        .register-sub p { margin: 0; }
-        .reg-table {
+        .lpj-title {
+            text-align: center;
+            font-weight: 700;
+            font-size: 15px;
+            line-height: 1.5;
+            margin: 0 0 16px;
+        }
+        .lpj-info {
+            border-collapse: collapse;
+            margin: 0 0 18px;
+        }
+        .lpj-info td { padding: 1px 8px 1px 0; }
+        .lpj-info td.lbl { width: 90px; }
+        .lpj-info td.sep { width: 10px; }
+        .lpj-table {
             width: 100%;
             border-collapse: collapse;
-            font-family: "Times New Roman", Times, serif;
-            font-size: 13px;
-            color: #000;
         }
-        .reg-table th, .reg-table td {
-            border: 1pt solid #000;
-            padding: 3px 6px;
-            vertical-align: top;
+        .lpj-table td { padding: 2px 4px; vertical-align: bottom; }
+        .lpj-table td.no { width: 5%; }
+        .lpj-table td.gap { width: 12%; }
+        .lpj-table td.rp { width: 8%; white-space: nowrap; }
+        .lpj-table td.num {
+            width: 22%;
+            text-align: right;
+            white-space: nowrap;
+            text-decoration: underline;
         }
-        .reg-table th { text-align: center; font-weight: 700; }
-        .reg-table td.c { text-align: center; }
-        .reg-table td.r { text-align: right; white-space: nowrap; }
-        .reg-table tr.data td { border-bottom-style: dotted; }
-        .register-sign {
-            margin-top: 20px;
+        .lpj-table td.lbl.sub { padding-left: 30px; }
+        .lpj-table tr.sec td { padding-top: 10px; }
+        .lpj-sign {
+            margin-top: 26px;
             display: flex;
             justify-content: space-between;
-            font-size: 13px;
         }
-        .register-sign .col { width: 48%; }
-        .register-sign p { margin: 0; line-height: 1.6; }
-        .register-sign .name { min-height: 48px; display: block; text-decoration: underline; }
-        .register-notfound { max-width: 820px; margin: 0 auto; }
+        .lpj-sign .col { width: 48%; }
+        .lpj-sign p { margin: 0; line-height: 1.6; }
+        .lpj-sign .name { min-height: 52px; display: block; text-decoration: underline; }
 
         /* ===== Saat mencetak: hanya dokumen ===== */
         @media print {
@@ -82,7 +91,7 @@
             .main-wrapper { margin-left: 0 !important; }
             .content { padding: 0 !important; margin: 0 !important; }
             body { background: #ffffff !important; }
-            .register-sheet {
+            .lpj-sheet {
                 box-shadow: none;
                 border: none;
                 border-radius: 0;
@@ -183,8 +192,8 @@
                         </a>
                         <div class="submenu">
                             <a href="bku-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-book"></i><span>BKU Penerimaan</span></a>
-                            <a href="register-sts.html" class="menu-item submenu-item active"><i class="fas fa-clipboard-list"></i><span>Register STS</span></a>
-                            <a href="lpj-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-file-invoice-dollar"></i><span>LPJ</span></a>
+                            <a href="register-sts.html" class="menu-item submenu-item"><i class="fas fa-clipboard-list"></i><span>Register STS</span></a>
+                            <a href="lpj-penerimaan.html" class="menu-item submenu-item active"><i class="fas fa-file-invoice-dollar"></i><span>LPJ</span></a>
                         </div>
                     </div>
                 </div>
@@ -265,7 +274,7 @@
                     <i class="fas fa-chevron-right"></i>
                     <span>STS</span>
                     <i class="fas fa-chevron-right"></i>
-                    <span class="current">Register STS</span>
+                    <span class="current">LPJ</span>
                 </div>
             </div>
             <div class="topbar-right">
@@ -295,61 +304,92 @@
                     <label for="akhir">s.d.</label>
                     <input type="date" id="akhir">
                     <label for="namaPa">Pengguna Anggaran</label>
-                    <input type="text" id="namaPa" placeholder="Nama pengguna anggaran" style="min-width:220px;">
+                    <input type="text" id="namaPa" placeholder="Nama pengguna anggaran" style="min-width:190px;">
+                    <label for="nipPa">NIP</label>
+                    <input type="text" id="nipPa" placeholder="NIP pengguna anggaran" style="min-width:140px;">
+                    <label for="nipBend">NIP Bendahara</label>
+                    <input type="text" id="nipBend" placeholder="NIP bendahara penerimaan" style="min-width:140px;">
                     <button type="button" class="btn btn-outline" id="btnTampilkan"><i class="fas fa-sync-alt"></i> Tampilkan</button>
                 </div>
                 <div class="filter-group">
-                    <button type="button" class="btn btn-dark" id="btnCetak"><i class="fas fa-print"></i> Cetak Register</button>
+                    <button type="button" class="btn btn-dark" id="btnCetak"><i class="fas fa-print"></i> Cetak LPJ</button>
                 </div>
             </div>
 
-            <div class="register-sheet" id="registerSheet">
-                <div class="register-head">
-                    <p id="headInstansi">PEMERINTAH</p>
-                    <p>REGISTER STS</p>
-                    <p>SKPKD</p>
-                    <p>TAHUN ANGGARAN <span id="headTahun">-</span></p>
-                </div>
-                <div class="register-sub">
-                    <p>Bendahara Penerimaan &nbsp;: <span id="headBendahara">-</span></p>
-                </div>
-                <table class="reg-table">
-                    <colgroup>
-                        <col style="width:6%"><col style="width:9%"><col style="width:9%"><col style="width:14%">
-                        <col style="width:27%"><col style="width:16%"><col style="width:12%"><col style="width:7%">
-                    </colgroup>
-                    <thead>
-                        <tr>
-                            <th>No.</th><th>No. STS</th><th>Tanggal</th><th>Kode<br>Rekening</th>
-                            <th>Uraian</th><th>Jumlah</th><th>Penyetor</th><th>Ket</th>
-                        </tr>
-                        <tr>
-                            <th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th>
-                        </tr>
-                    </thead>
-                    <tbody id="registerBody"></tbody>
-                    <tfoot>
-                        <tr>
-                            <td class="c">&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
-                            <td><strong>Jumlah</strong></td>
-                            <td class="r"><strong id="totalCell">-</strong></td>
-                            <td>&nbsp;</td><td>&nbsp;</td>
-                        </tr>
-                    </tfoot>
+            <div class="lpj-sheet" id="lpjSheet">
+                <p class="lpj-title">LAPORAN PERTANGGUNGJAWABAN ADMINISTRATIF<br>BENDAHARA PENERIMAAN</p>
+                <table class="lpj-info">
+                    <tbody>
+                        <tr><td class="lbl">SKPD</td><td class="sep">:</td><td id="lpjSkpd">-</td></tr>
+                        <tr><td class="lbl">PERIODE</td><td class="sep">:</td><td id="lpjPeriode">-</td></tr>
+                    </tbody>
                 </table>
 
-                <div class="register-sign">
+                <table class="lpj-table">
+                    <tbody>
+                        <tr class="sec">
+                            <td class="no">A.</td><td class="lbl">Penerimaan</td><td class="gap"></td>
+                            <td class="rp">Rp</td><td class="num" id="aTotal">-</td>
+                        </tr>
+                        <tr>
+                            <td class="no"></td><td class="lbl sub">1. Tunai melalui bendahara penerimaan.</td><td class="gap"></td>
+                            <td class="rp">Rp.</td><td class="num" id="a1">0,-</td>
+                        </tr>
+                        <tr>
+                            <td class="no"></td><td class="lbl sub">2. Tunai melalui bend. penerimaan pembantu</td><td class="gap"></td>
+                            <td class="rp">Rp.</td><td class="num" id="a2">0,-</td>
+                        </tr>
+                        <tr>
+                            <td class="no"></td><td class="lbl sub">3. Melalui ke rekening bendahara penerimaan</td><td class="gap"></td>
+                            <td class="rp">Rp.</td><td class="num" id="a3">0,-</td>
+                        </tr>
+                        <tr>
+                            <td class="no"></td><td class="lbl sub">4. Melalui ke rekening kas umum daerah</td><td class="gap"></td>
+                            <td class="rp">Rp.</td><td class="num" id="a4">0,-</td>
+                        </tr>
+                        <tr class="sec">
+                            <td class="no">B.</td><td class="lbl">Jumlah penerimaan yang harus disetorkan (A1+A2+A3+A4)</td><td class="gap"></td>
+                            <td class="rp">Rp.</td><td class="num" id="bTotal">-</td>
+                        </tr>
+                        <tr class="sec">
+                            <td class="no">C.</td><td class="lbl">Jumlah penyetoran</td><td class="gap"></td>
+                            <td class="rp">Rp.</td><td class="num" id="cTotal">-</td>
+                        </tr>
+                        <tr class="sec">
+                            <td class="no">D.</td><td class="lbl">Saldo Kas di Bendahara</td><td class="gap"></td>
+                            <td class="rp">Rp</td><td class="num" id="dTotal">-</td>
+                        </tr>
+                        <tr>
+                            <td class="no"></td><td class="lbl sub">1. Bendahara Penerimaan</td><td class="gap"></td>
+                            <td class="rp">Rp.</td><td class="num" id="d1">0,-</td>
+                        </tr>
+                        <tr>
+                            <td class="no"></td><td class="lbl sub">2. Bendahara Penerimaan Pembantu &hellip;&hellip;</td><td class="gap"></td>
+                            <td class="rp">Rp.</td><td class="num" id="d2">0,-</td>
+                        </tr>
+                        <tr>
+                            <td class="no"></td><td class="lbl sub">3. Bendahara Penerimaan Pembantu &hellip;&hellip;</td><td class="gap"></td>
+                            <td class="rp">Rp.</td><td class="num" id="d3">0,-</td>
+                        </tr>
+                        <tr>
+                            <td class="no"></td><td class="lbl sub">4. dst &hellip;&hellip;</td><td class="gap"></td>
+                            <td class="rp">Rp.</td><td class="num" id="d4">0,-</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="lpj-sign">
                     <div class="col">
-                        <p>Mengetahui/Menyetujui:</p>
+                        <p>Menyetujui:</p>
                         <p>Pengguna Anggaran</p>
-                        <p class="name" id="signNamaKuasa">&hellip;&hellip;&hellip;&hellip;&hellip;&hellip;&hellip;&hellip;&hellip;&hellip;</p>
-                        <p>NIP. <span id="nipKuasa">&hellip;&hellip;&hellip;&hellip;&hellip;&hellip;&hellip;&hellip;&hellip;&hellip;</span></p>
+                        <p class="name" id="signNamaPa">&hellip;&hellip;&hellip;&hellip;&hellip;&hellip;&hellip;&hellip;&hellip;&hellip;</p>
+                        <p>NIP. <span id="nipPaText">&hellip;&hellip;&hellip;&hellip;&hellip;&hellip;&hellip;&hellip;&hellip;&hellip;</span></p>
                     </div>
                     <div class="col">
                         <p><span id="signKota">Kabupaten</span>, <span id="signTanggal">-</span></p>
                         <p>Bendahara Penerimaan</p>
                         <p class="name" id="signNamaBendahara">&hellip;&hellip;&hellip;&hellip;&hellip;&hellip;&hellip;&hellip;&hellip;&hellip;</p>
-                        <p>NIP. <span id="nipBendahara">&hellip;&hellip;&hellip;&hellip;&hellip;&hellip;&hellip;&hellip;&hellip;&hellip;</span></p>
+                        <p>NIP. <span id="nipBendText">&hellip;&hellip;&hellip;&hellip;&hellip;&hellip;&hellip;&hellip;&hellip;&hellip;</span></p>
                     </div>
                 </div>
             </div>
@@ -381,95 +421,98 @@
                 return parseInt(p[2], 10) + ' ' + b[parseInt(p[1], 10) - 1] + ' ' + p[0];
             }
 
-            function formatTanggalPendek(s) {
+            function bulanTahun(s) {
                 if (!s) return '-';
                 const p = String(s).split('-');
-                const b = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
-                           'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
-                return ('0' + parseInt(p[2], 10)).slice(-2) + ' ' + b[parseInt(p[1], 10) - 1];
+                const b = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+                           'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+                return b[parseInt(p[1], 10) - 1] + ' ' + p[0];
             }
 
             function formatRp(n) {
                 return Number(n || 0).toLocaleString('id-ID') + ',-';
             }
 
-            var lastRegisterData = null;
+            function periodeText(dari, akhir) {
+                if (dari && akhir) {
+                    var pd = String(dari).split('-');
+                    var pa = String(akhir).split('-');
+                    if (pd[0] === pa[0] && pd[1] === pa[1]) return bulanTahun(akhir);
+                    return formatTanggal(dari) + ' s.d. ' + formatTanggal(akhir);
+                }
+                if (akhir) return bulanTahun(akhir);
+                if (dari) return bulanTahun(dari);
+                return '-';
+            }
 
-            function loadRegister() {
+            function loadLpj() {
                 var dari = document.getElementById('dari').value;
                 var akhir = document.getElementById('akhir').value;
-                var qs = '?register=1' + (dari ? '&dari=' + encodeURIComponent(dari) : '') +
+                var qs = '?lpj=1' + (dari ? '&dari=' + encodeURIComponent(dari) : '') +
                          (akhir ? '&akhir=' + encodeURIComponent(akhir) : '');
                 fetch('../api/sts.php' + qs)
                     .then(function (res) { return res.json(); })
                     .then(function (data) {
-                        if (data && data.success) renderRegister(data);
+                        if (data && data.success) renderLpj(data);
                     })
                     .catch(function () { /* biarkan */ });
             }
 
-            function renderRegister(data) {
-                var rows = data.rows || [];
-                var body = document.getElementById('registerBody');
-                var html = '';
-                rows.forEach(function (r, i) {
-                    html += '<tr class="data">' +
-                        '<td class="c">' + (i + 1) + '</td>' +
-                        '<td class="c">' + escapeHtml(r.nomor_sts || '-') + '</td>' +
-                        '<td class="c">' + formatTanggalPendek(r.tanggal) + '</td>' +
-                        '<td class="c">' + escapeHtml(r.akun_kode || '-') + '</td>' +
-                        '<td>' + escapeHtml(r.akun_nama || '-') + '</td>' +
-                        '<td class="r">' + formatRp(r.jumlah) + '</td>' +
-                        '<td>' + escapeHtml(r.nama_penyetor || '-') + '</td>' +
-                        '<td class="c">-</td>' +
-                        '</tr>';
-                });
-                // Baris pengisi agar register tampak penuh (min. 8 baris data)
-                var filler = Math.max(0, 8 - rows.length);
-                for (var i = 0; i < filler; i++) {
-                    html += '<tr class="data">' +
-                        '<td class="c">&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>' +
-                        '<td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td class="c">&nbsp;</td>' +
-                        '</tr>';
-                }
-                body.innerHTML = html;
-                document.getElementById('totalCell').textContent = formatRp(data.total || 0);
-                document.getElementById('headInstansi').textContent = ('PEMERINTAH ' + (data.skpd || '')).toUpperCase();
-                document.getElementById('signKota').textContent = data.skpd || 'Kabupaten';
-
-                // Tahun anggaran & tanggal tanda tangan (dari tanggal akhir periode)
+            function renderLpj(data) {
+                var p = data.penerimaan || { total: 0, tunai: 0, non_tunai: 0 };
                 var akhir = document.getElementById('akhir').value;
                 var hariIni = new Date().toISOString().slice(0, 10);
-                document.getElementById('headTahun').textContent = (akhir || hariIni).split('-')[0];
+
+                // Kop / identitas
+                document.getElementById('lpjSkpd').textContent = data.skpd || '-';
+                document.getElementById('lpjPeriode').textContent = periodeText(
+                    document.getElementById('dari').value, akhir || hariIni);
+                document.getElementById('signKota').textContent = data.skpd || 'Kabupaten';
                 document.getElementById('signTanggal').textContent = formatTanggal(akhir || hariIni);
 
-                // Tanda tangan
+                // A. Penerimaan (rincian per metode penyetoran)
+                document.getElementById('a1').textContent = formatRp(p.tunai);
+                document.getElementById('a2').textContent = '0,-';
+                document.getElementById('a3').textContent = formatRp(p.non_tunai);
+                document.getElementById('a4').textContent = '0,-';
+                document.getElementById('aTotal').textContent = formatRp(p.total);
+
+                // B. Jumlah penerimaan yang harus disetorkan
+                document.getElementById('bTotal').textContent = formatRp(p.total);
+
+                // C. Jumlah penyetoran (via STS)
+                document.getElementById('cTotal').textContent = formatRp(data.penyetoran);
+
+                // D. Saldo Kas di Bendahara (B - C)
+                document.getElementById('dTotal').textContent = formatRp(data.saldo);
+                document.getElementById('d1').textContent = formatRp(data.saldo);
+                document.getElementById('d2').textContent = '0,-';
+                document.getElementById('d3').textContent = '0,-';
+                document.getElementById('d4').textContent = '0,-';
+
+                // Tanda tangan (prefill bila input masih kosong)
+                var inPa = document.getElementById('namaPa');
+                if (!inPa.value.trim() && data.kuasa_pengguna_anggaran) {
+                    inPa.value = data.kuasa_pengguna_anggaran;
+                }
+                document.getElementById('signNamaPa').textContent = inPa.value.trim() || '\u2026\u2026\u2026\u2026\u2026';
                 if (data.bendahara) {
-                    document.getElementById('headBendahara').textContent = data.bendahara;
                     document.getElementById('signNamaBendahara').textContent = data.bendahara;
                 }
-                applySignatures(data);
             }
 
-            // Nama Pengguna Anggaran: input manual di toolbar yang dipakai;
-            // jika kosong, terisi otomatis dari nama KPA pada STS dalam periode.
-            function applySignatures(data) {
-                if (data) lastRegisterData = data;
-                var inPa = document.getElementById('namaPa');
-                var pa = inPa.value.trim();
-                if (!pa && lastRegisterData && lastRegisterData.kuasa_pengguna_anggaran) {
-                    inPa.value = lastRegisterData.kuasa_pengguna_anggaran;
-                    pa = lastRegisterData.kuasa_pengguna_anggaran;
-                }
-                document.getElementById('signNamaKuasa').textContent = pa || '…………………';
-            }
-
-            document.getElementById('btnTampilkan').addEventListener('click', loadRegister);
+            document.getElementById('btnTampilkan').addEventListener('click', loadLpj);
             document.getElementById('btnCetak').addEventListener('click', function () { window.print(); });
 
-            // Ketik nama Pengguna Anggaran -> langsung tampil di blok tanda tangan kiri
+            // Ketik langsung memperbarui dokumen
             document.getElementById('namaPa').addEventListener('input', function () {
-                document.getElementById('signNamaKuasa').textContent = this.value.trim() || '…………………';
+                document.getElementById('signNamaPa').textContent = this.value.trim() || '\u2026\u2026\u2026\u2026\u2026';
+            });
+            document.getElementById('nipPa').addEventListener('input', function () {
+                document.getElementById('nipPaText').textContent = this.value.trim() || '\u2026\u2026\u2026\u2026\u2026';
+            });
+            document.getElementById('nipBend').addEventListener('input', function () {
+                document.getElementById('nipBendText').textContent = this.value.trim() || '\u2026\u2026\u2026\u2026\u2026';
             });
 
             // ---------- Prefill: sesi + periode default (1 Jan tahun ini s.d. hari ini) ----------
@@ -483,7 +526,7 @@
                     var now = new Date();
                     document.getElementById('dari').value = now.getFullYear() + '-01-01';
                     document.getElementById('akhir').value = now.toISOString().slice(0, 10);
-                    loadRegister();
+                    loadLpj();
                 })
                 .catch(function () { /* biarkan */ });
         })();

@@ -30,6 +30,67 @@ $STATUS_LIST = ['aktif', 'dihapus'];
 // GET - Daftar / Detail STS
 // ============================================
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    // --- LPJ Bendahara Penerimaan (laporan pertanggungjawaban) ---
+    if (input('lpj', '') === '1') {
+        $dari  = input('dari', '');
+        $akhir = input('akhir', '');
+        if ($dari !== '' && !isValidTanggal($dari))   $dari = '';
+        if ($akhir !== '' && !isValidTanggal($akhir)) $akhir = '';
+
+        // A. Penerimaan: STBP tervalidasi dalam periode, dirinci per metode penyetoran
+        $sql1 = "SELECT COALESCE(SUM(s.jumlah),0) AS total,
+                        COALESCE(SUM(CASE WHEN sp.metode_penyetoran = 'tunai' THEN s.jumlah ELSE 0 END),0) AS tunai,
+                        COALESCE(SUM(CASE WHEN sp.metode_penyetoran <> 'tunai' THEN s.jumlah ELSE 0 END),0) AS non_tunai
+                 FROM stbp s
+                 LEFT JOIN stbp_pembayaran sp ON sp.stbp_id = s.id
+                 WHERE s.status = 'sudah_divalidasi'"
+              . ($skpd !== '' ? " AND s.skpd = ?" : "")
+              . ($dari !== '' ? " AND s.tanggal >= ?" : "")
+              . ($akhir !== '' ? " AND s.tanggal <= ?" : "");
+        $params = [];
+        if ($skpd !== '') $params[] = $skpd;
+        if ($dari !== '') $params[] = $dari;
+        if ($akhir !== '') $params[] = $akhir;
+        $stmt1 = $pdo->prepare($sql1);
+        $stmt1->execute($params);
+        $r1 = $stmt1->fetch();
+        $penerimaan = [
+            'total'     => (float) $r1['total'],
+            'tunai'     => (float) $r1['tunai'],
+            'non_tunai' => (float) $r1['non_tunai'],
+        ];
+
+        // C. Jumlah penyetoran: total STS aktif dalam periode
+        $sql2 = "SELECT COALESCE(SUM(st.total),0) FROM sts st WHERE st.status = 'aktif'"
+              . ($skpd !== '' ? " AND st.skpd = ?" : "")
+              . ($dari !== '' ? " AND st.tanggal_sts >= ?" : "")
+              . ($akhir !== '' ? " AND st.tanggal_sts <= ?" : "");
+        $stmt2 = $pdo->prepare($sql2);
+        $stmt2->execute($params);
+        $penyetoran = (float) $stmt2->fetchColumn();
+
+        // Kuasa Pengguna Anggaran: dari STS terbaru dalam periode (blok tanda tangan kiri)
+        $sqlK = "SELECT st.kuasa_pengguna_anggaran FROM sts st
+                 WHERE st.status = 'aktif' AND st.kuasa_pengguna_anggaran <> ''"
+              . ($skpd !== '' ? " AND st.skpd = ?" : "")
+              . ($dari !== '' ? " AND st.tanggal_sts >= ?" : "")
+              . ($akhir !== '' ? " AND st.tanggal_sts <= ?" : "")
+              . " ORDER BY st.tanggal_sts DESC, st.id DESC LIMIT 1";
+        $stmtK = $pdo->prepare($sqlK);
+        $stmtK->execute($params);
+        $kuasa = (string) ($stmtK->fetchColumn() ?: '');
+
+        jsonResponse(true, 'OK', [
+            'periode' => ['dari' => $dari, 'akhir' => $akhir],
+            'skpd'    => $skpd,
+            'penerimaan' => $penerimaan,
+            'penyetoran' => $penyetoran,
+            'saldo'   => $penerimaan['total'] - $penyetoran,
+            'bendahara' => (string) ($_SESSION['nama'] ?? ''),
+            'kuasa_pengguna_anggaran' => $kuasa,
+        ]);
+    }
+
     // --- Register STS (laporan rekap) ---
     if (input('register', '') === '1') {
         $dari  = input('dari', '');
