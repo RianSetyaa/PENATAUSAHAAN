@@ -692,14 +692,14 @@
 
                 <div class="stbp-footer">
                     <div class="stbp-sign">
-                        <div class="role">Penyetor,<br><span id="signRolePenyetor">Dinas Kepemudaan dan Olahraga</span></div>
-                        <div class="ttd-slot" data-urut="1"></div>
-                        <div class="name" id="signNamePenyetor">(______________________)</div>
-                    </div>
-                    <div class="stbp-sign">
                         <div class="role">Bendahara Penerimaan,<br><span id="signRole">Dinas Kepemudaan dan Olahraga</span></div>
                         <div class="ttd-slot" data-urut="2"></div>
                         <div class="name" id="signName">(______________________)</div>
+                    </div>
+                    <div class="stbp-sign">
+                        <div class="role">Penyetor/Pembayar,</div>
+                        <div class="ttd-slot" data-urut="1"></div>
+                        <div class="name" id="signNamePenyetor">(______________________)</div>
                     </div>
                 </div>
             </div>
@@ -864,11 +864,10 @@
                     } else {
                         document.getElementById('skpField').style.display = 'none';
                     }
-                    // Dua penandatangan: Penyetor (dari SKP) dan Bendahara Penerimaan
-                    document.getElementById('signRolePenyetor').textContent = s.skpd || 'Dinas';
-                    document.getElementById('signNamePenyetor').textContent = p.nama_penyetor || '(______________________)';
+                    // Dua penandatangan: Bendahara Penerimaan (kiri) dan Penyetor/Pembayar (kanan, tanpa nama dinas)
                     document.getElementById('signRole').textContent = s.skpd || 'Dinas';
                     document.getElementById('signName').textContent = s.dibuat_oleh || '(______________________)';
+                    document.getElementById('signNamePenyetor').textContent = p.nama_penyetor || '(______________________)';
                     metaTtd.penandatangan = [
                         { user: '', urutan: 1, jabatan: 'Penyetor', nama: p.nama_penyetor || '' },
                         { user: 'self', urutan: 2, jabatan: 'Bendahara Penerimaan', nama: s.dibuat_oleh || '' }
