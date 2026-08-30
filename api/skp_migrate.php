@@ -11,8 +11,9 @@
  * AMAN: setiap ALTER/CREATE hanya dijalankan bila belum ada (dicek via
  * information_schema / SELECT 1), sehingga boleh dijalankan berulang.
  *
- * Cara pakai: login sebagai admin, buka:
- *   https://HOST/api/skp_migrate.php?run=1
+ * Cara pakai:
+ *   - Web (harus login sebagai Admin Dinas):  https://HOST/api/skp_migrate.php?run=1
+ *   - CLI (tanpa login):                      php api/skp_migrate.php
  */
 
 declare(strict_types=1);
@@ -23,19 +24,23 @@ require_once __DIR__ . '/../includes/auth.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
-if (!isLoggedIn()) {
-    echo json_encode(['success' => false, 'message' => 'Silakan login terlebih dahulu.'], JSON_UNESCAPED_UNICODE);
-    exit;
-}
-$peran    = (string) ($_SESSION['peran'] ?? '');
-$username = (string) ($_SESSION['username'] ?? '');
-if ($peran !== 'Admin Dinas' && $username !== 'admin') {
-    echo json_encode(['success' => false, 'message' => 'Akses hanya untuk admin.'], JSON_UNESCAPED_UNICODE);
-    exit;
-}
-if (($_GET['run'] ?? '') !== '1') {
-    echo json_encode(['success' => false, 'message' => 'Tambahkan ?run=1 untuk menjalankan migrasi (contoh: api/skp_migrate.php?run=1).'], JSON_UNESCAPED_UNICODE);
-    exit;
+$isCli = PHP_SAPI === 'cli';
+
+if (!$isCli) {
+    if (!isLoggedIn()) {
+        echo json_encode(['success' => false, 'message' => 'Silakan login terlebih dahulu.'], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+    $peran    = (string) ($_SESSION['peran'] ?? '');
+    $username = (string) ($_SESSION['username'] ?? '');
+    if ($peran !== 'Admin Dinas' && $username !== 'admin') {
+        echo json_encode(['success' => false, 'message' => 'Akses hanya untuk admin.'], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+    if (($_GET['run'] ?? '') !== '1') {
+        echo json_encode(['success' => false, 'message' => 'Tambahkan ?run=1 untuk menjalankan migrasi (contoh: api/skp_migrate.php?run=1).'], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
 }
 
 $pdo    = db();
