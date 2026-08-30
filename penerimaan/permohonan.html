@@ -307,6 +307,20 @@
                             required
                         >
                     </div>
+
+                    <!-- Nomor Rekening -->
+                    <div class="form-group">
+                        <label for="nomorRekening">Nomor Rekening <span style="color:#e2542c;">*</span></label>
+                        <input
+                            type="text"
+                            id="nomorRekening"
+                            class="form-control"
+                            placeholder="Contoh: 000000000 000000"
+                            inputmode="numeric"
+                            required
+                        >
+                        <p class="form-hint"><i class="fas fa-info-circle"></i> Nomor rekening bank penerimaan daerah.</p>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline" id="btnBatal">Batalkan</button>
@@ -488,9 +502,11 @@
 
                 const bank = document.getElementById('bank').value;
                 const nama = document.getElementById('namaPemilik').value.trim();
+                const nomor = document.getElementById('nomorRekening').value.trim();
 
                 if (!bank) { showToast('Silakan pilih bank terlebih dahulu.', 'warning'); return; }
                 if (!nama) { showToast('Nama pemilik rekening wajib diisi.', 'warning'); return; }
+                if (!nomor) { showToast('Nomor rekening wajib diisi.', 'warning'); return; }
 
                 const btnSubmit = formPermohonan.querySelector('.btn-primary');
                 btnSubmit.disabled = true;
@@ -498,7 +514,7 @@
                 fetch('../api/permohonan.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: new URLSearchParams({ bank: bank, nama_rekening: nama })
+                    body: new URLSearchParams({ bank: bank, nama_rekening: nama, nomor_rekening: nomor })
                 })
                 .then(function (res) { return res.json(); })
                 .then(function (data) {

@@ -130,6 +130,9 @@ if ($method === 'POST') {
     if ($nama === '') {
         jsonResponse(false, 'Nama pemilik rekening wajib diisi.', ['field' => 'nama_rekening'], 422);
     }
+    if ($nomor === '') {
+        jsonResponse(false, 'Nomor rekening wajib diisi.', ['field' => 'nomor_rekening'], 422);
+    }
 
     $stmt = $pdo->prepare("
         INSERT INTO permohonan (user_id, skpd, bank, nama_rekening, nomor_rekening, status_terbit, status_disetujui, status_aktif)
