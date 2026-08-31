@@ -387,17 +387,12 @@
             btnRegister.disabled = false;
 
             if (data.success) {
-                showToast(data.message || 'Pendaftaran berhasil!', 'success');
+                showToast(data.message || 'Pendaftaran berhasil! Akun langsung aktif.', 'success');
 
-                // Tampilkan peringatan bahwa akun menunggu verifikasi
-                setTimeout(function () {
-                    showToast('Akun Anda menunggu verifikasi administrator.', 'warning');
-                }, 1500);
-
-                // Redirect ke halaman login (frontend vanilla HTML)
+                // Akun langsung aktif -> redirect ke halaman login (frontend vanilla HTML)
                 setTimeout(function () {
                     window.location.href = 'login.html';
-                }, 3000);
+                }, 1800);
             } else {
                 showToast(data.message || 'Pendaftaran gagal. Silakan coba lagi.', 'error');
 

@@ -3,6 +3,7 @@
  * SIM-TKD - API Login
  * ============================================
  * Endpoint autentikasi login (metode POST, respons JSON).
+ * Kolom "username" menerima username ATAU email yang terdaftar.
  *
  * Contoh pemanggilan (fetch):
  *   fetch('api/login.php', {
@@ -27,7 +28,7 @@ $username = isset($_POST['username']) ? trim((string) $_POST['username']) : '';
 $password = isset($_POST['password']) ? (string) $_POST['password'] : '';
 
 if ($username === '' || $password === '') {
-    jsonResponse(false, 'Username dan password wajib diisi.', [], 422);
+    jsonResponse(false, 'Username/Email dan password wajib diisi.', [], 422);
 }
 
 // ---- Rate limit: maks 8 percobaan / 5 menit per username+IP ----
@@ -51,12 +52,20 @@ $user = $stmt->fetch();
 
 // Verifikasi password
 if (!$user || !password_verify($password, $user['password'])) {
-    jsonResponse(false, 'Username atau password tidak valid.', [], 401);
+    jsonResponse(false, 'Username/Email atau password tidak valid.', [], 401);
 }
 
-// Cek status akun
+// Cek status akun.
+// Registrasi kini langsung mengaktifkan akun; akun lama yang masih 'pending'
+// otomatis diaktifkan saat login pertama (tanpa verifikasi admin).
 if ($user['status'] === 'pending') {
-    jsonResponse(false, 'Akun Anda belum diverifikasi oleh administrator. Silakan tunggu.', [], 403);
+    try {
+        $pdo->prepare("UPDATE users SET status = 'aktif' WHERE id = ? AND status = 'pending'")
+            ->execute([(int) $user['id']]);
+    } catch (PDOException $e) {
+        // abaikan kegagalan auto-aktivasi; login tetap dilanjutkan
+    }
+    $user['status'] = 'aktif';
 }
 
 if ($user['status'] === 'nonaktif') {

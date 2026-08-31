@@ -215,7 +215,7 @@
         if (!username) {
             if (!hasError) {
                 usernameInput.style.borderColor = '#e74c3c';
-                showToast('Nama Pengguna (Username) wajib diisi.', 'warning');
+                showToast('Username atau Email wajib diisi.', 'warning');
                 hasError = true;
             }
         }

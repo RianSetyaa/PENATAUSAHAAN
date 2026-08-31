@@ -143,7 +143,7 @@ if ($submitted) {
                     api_token     VARCHAR(64)   DEFAULT NULL,
                     peran         ENUM('Admin Dinas','Operator','Bendahara','Verifikator','Kepala Dinas','Pengguna Umum')
                                   DEFAULT 'Pengguna Umum',
-                    status        ENUM('pending','aktif','nonaktif') DEFAULT 'pending',
+                    status        ENUM('pending','aktif','nonaktif') DEFAULT 'aktif',
                     created_at    TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
                     updated_at    TIMESTAMP     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                     INDEX idx_status (status),

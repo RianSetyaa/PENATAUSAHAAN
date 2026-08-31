@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS users (
     api_token     VARCHAR(64)   DEFAULT NULL,            -- token API per-user (multi-tenant)
     peran         ENUM('Admin Dinas','Operator','Bendahara','Verifikator','Kepala Dinas','Pengguna Umum')
                   DEFAULT 'Pengguna Umum',
-    status        ENUM('pending','aktif','nonaktif') DEFAULT 'pending',  -- menunggu verifikasi admin
+    status        ENUM('pending','aktif','nonaktif') DEFAULT 'aktif',    -- pendaftaran langsung aktif
     created_at    TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
     updated_at    TIMESTAMP     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_status (status),

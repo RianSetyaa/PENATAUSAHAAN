@@ -7,7 +7,7 @@ Frontend menggunakan **HTML, CSS, dan JavaScript murni (vanilla)**. Backend meng
 
 ## ✨ Fitur
 
-- **Login** dengan validasi captcha & indikator status akun (pending / aktif / nonaktif)
+- **Login** menggunakan username atau email + validasi captcha
 - **Pendaftaran (Daftar)** dengan validasi lengkap + indikator kekuatan kata sandi
 - **Dashboard** ringkasan APBD yang datanya diambil langsung dari database
 - Perlindungan sesi (halaman dashboard hanya bisa diakses setelah login)
@@ -204,8 +204,10 @@ Skema database: `database/dokumen_ttd.sql` (tabel `dokumen`, `dokumen_ttd`,
 
 - Aplikasi harus diakses melalui **server** (`http://localhost/...`), bukan langsung
   dari file (`file://`) — karena backend PHP & sesi membutuhkan server.
-- Akun baru yang mendaftar berstatus **`pending`** dan harus diaktifkan admin
-  (ubah `status` menjadi `aktif` di database/phpMyAdmin sebelum bisa login).
+- Akun baru yang mendaftar **langsung aktif** (tanpa verifikasi admin) dan bisa
+  login menggunakan **username atau email**. Untuk database yang sudah berjalan,
+  jalankan `database/users_status_aktif.sql` agar akun lama yang masih `pending`
+  ikut teraktifkan.
 
 ---
 
