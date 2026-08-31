@@ -74,25 +74,21 @@ function docWaktu(?string $dt): string
 
 // === LANJUTAN-VERIFY ===
 
-/** Blok verifikasi elektronik (gaya e-signature) disisipkan di akhir dokumen. */
-function ttdVerifyBlock(string $nama, string $jabatan, string $waktu, string $kode, string $hash, string $qr): string
+/** Barcode (QR) verifikasi elektronik — satu per dokumen, disisipkan di akhir dokumen. */
+function ttdVerifyBlock(string $kode, string $qr): string
 {
     $e = function (string $s): string {
         return htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
     };
-    $qrHtml = ($qr !== '')
-        ? '<img alt="QR verifikasi" style="display:block;margin:10px auto 0;width:74px;height:74px;" src="' . $qr . '">'
-        : '';
-    return '<div style="margin-top:28px;padding:12px 14px;border:1px dashed #64748b;font-size:11px;line-height:1.7;color:#1e293b;font-family:Arial,Helvetica,sans-serif;">'
-        . '<div style="font-weight:700;letter-spacing:.5px;color:#0f766e;">&#10003; DITANDATANGANI ELEKTRONIK</div>'
-        . '<div style="margin-top:6px;">Nama &nbsp;&nbsp;: ' . $e($nama) . '</div>'
-        . '<div>Jabatan : ' . $e($jabatan) . '</div>'
-        . '<div>Waktu &nbsp;&nbsp;: ' . $e($waktu) . '</div>'
-        . '<div>Kode &nbsp;&nbsp;&nbsp;: ' . $e($kode) . '</div>'
-        . '<div style="word-break:break-all;">Hash &nbsp;&nbsp;&nbsp;: sha256:' . $e($hash) . '</div>'
-        . '<div style="font-style:italic;color:#475569;">Dokumen ini ditandatangani secara elektronik melalui doc.simtkd.com</div>'
-        . $qrHtml
-        . '</div>';
+    if ($qr !== '') {
+        return '<div data-ttd-qr="1" style="margin-top:24px;text-align:center;">'
+            . '<img alt="Barcode verifikasi ' . $e($kode) . '" '
+            . 'style="display:inline-block;width:90px;height:90px;" src="' . $qr . '">'
+            . '</div>';
+    }
+    // Cadangan bila QR gagal dibuat: cukup kode verifikasi agar tetap dapat dicek
+    return '<div data-ttd-qr="1" style="margin-top:24px;font-size:10px;color:#475569;font-family:Arial,Helvetica,sans-serif;">'
+        . 'Kode verifikasi: ' . $e($kode) . ' — cek keaslian di doc.simtkd.com/verify.html</div>';
 }
 
 /**
@@ -432,21 +428,16 @@ if ($action === 'ttd') {
         }
         $html = ttdSisipkan($html, $gambar, $posX, $posY, $posW, $urutan);
 
-        // 2) Blok verifikasi elektronik sebagai elemen terakhir halaman dokumen
-        $kode  = (string) $d['kode_verifikasi'];
-        $blok  = ttdVerifyBlock(
-            (string) $user['nama_lengkap'],
-            (string) $user['peran'],
-            docWaktu(date('Y-m-d H:i:s')),
-            $kode,
-            (string) $d['hash_original'],
-            $qr
-        );
-        $pos = strrpos($html, '</div>');
-        if ($pos !== false) {
-            $html = substr($html, 0, $pos) . $blok . substr($html, $pos);
-        } else {
-            $html .= $blok;
+        // 2) Barcode verifikasi elektronik di akhir halaman dokumen
+        //    (cukup satu per dokumen meski ditandatangani beberapa penandatangan)
+        if (strpos($html, 'data-ttd-qr="1"') === false) {
+            $blok = ttdVerifyBlock((string) $d['kode_verifikasi'], $qr);
+            $pos  = strrpos($html, '</div>');
+            if ($pos !== false) {
+                $html = substr($html, 0, $pos) . $blok . substr($html, $pos);
+            } else {
+                $html .= $blok;
+            }
         }
 
         $hashSigned = hash('sha256', $html);

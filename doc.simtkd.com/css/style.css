@@ -203,14 +203,29 @@ tbody tr:hover { background: #f8fafc; }
 @media (max-width: 980px) { .doc-grid { grid-template-columns: 1fr; } }
 .viewer-card { background: #5c6470; border-radius: 10px; padding: 14px; border: 1px solid var(--border); }
 .viewer-card.placing { outline: 2px dashed var(--blue-light); outline-offset: 3px; }
-.viewer-card iframe {
-    width: 100%;
-    height: 640px;
-    border: none;
-    border-radius: 8px;
-    background: #fff;
-    display: block;
+
+/* Bar orientasi pratinjau: Otomatis / Potret / Lanskap + Cetak */
+.viewer-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.vb-label { color: #fff; font-size: 12px; font-weight: 700; letter-spacing: .2px; }
+.vb-seg { display: inline-flex; background: rgba(255,255,255,.15); border-radius: 8px; padding: 3px; gap: 2px; }
+.vb-seg button {
+    border: 0; background: transparent; color: #e5e9f0; cursor: pointer;
+    font-family: inherit; font-size: 12px; font-weight: 600;
+    padding: 5px 12px; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px;
 }
+.vb-seg button:hover { background: rgba(255,255,255,.14); }
+.vb-seg button.active { background: #fff; color: var(--navy); }
+.vb-hint { flex: 1; min-width: 140px; color: rgba(255,255,255,.75); font-size: 11.5px; }
+.vb-print {
+    border: 0; background: #fff; color: var(--navy); cursor: pointer;
+    font-family: inherit; font-size: 12px; font-weight: 700;
+    padding: 6px 14px; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;
+}
+.vb-print:hover { background: #eef2f7; }
+
+/* Kertas pratinjau: dirender selebar A4 asli lalu diskalakan (JS) agar pas */
+.viewer-frame-wrap { position: relative; overflow: hidden; border-radius: 8px; background: #fff; min-height: 320px; }
+.viewer-frame-wrap iframe { border: none; border-radius: 0; background: #fff; display: block; }
 .side-card { background: #fff; border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 1px 3px rgba(16,24,40,.06); padding: 16px; margin-bottom: 14px; }
 .side-card h3 { margin: 0 0 10px; font-size: 13.5px; color: var(--navy); display: flex; align-items: center; gap: 8px; }
 .info-row { display: flex; justify-content: space-between; gap: 10px; font-size: 12.5px; padding: 4px 0; }

@@ -164,16 +164,23 @@ tangan lalu ditandatangani elektronik dengan **tanda tangan tangan** (ala Privy)
 
 1. Saat mencetak dokumen, klik **"✎ Kirim ke Tanda Tangan"** pada panel
    pengaturan cetak (modul Belanja: SPD, SPP, SPM, SP2D, LPJ, NPD, Pengajuan TU
-   lewat `CetakBelanja`; modul Penerimaan: STBP & STS lewat tombol di halaman
-   `penerimaan/stbp-cetak.html` & `penerimaan/sts-cetak.html`)
-   → dokumen tersimpan di tabel `dokumen` (database sama).
+   lewat `CetakBelanja`; modul Penerimaan: STBP, STS, BKU, LPJ, Register STS,
+   SKP Daerah lewat tombol di laman cetaknya masing-masing)
+   → dokumen tersimpan di tabel `dokumen` (database sama) beserta orientasi
+   kertasnya (aturan `@page` mengikuti pilihan di panel cetak).
 2. Buka **menu "Tanda Tangan Dokumen"** → SSO otomatis ke doc.simtkd.com
    (membawa token API user, pola sama dengan modul Akuntansi/AKLAP).
-3. Di doc.simtkd.com: pilih dokumen → gambar tanda tangan di kanvas
-   (mouse/sentuh) → **Tanda Tangan Dokumen**. Sistem menyematkan gambar TTD,
-   waktu, kode verifikasi unik, hash SHA-256, dan QR verifikasi ke dokumen
-   (HTML final bersifat mandiri & tidak dapat diubah).
-4. Dokumen final dapat dicetak/simpan PDF; keaslian dapat dicek publik di
+3. Di doc.simtkd.com: pilih dokumen → pratinjau dirender selebar kertas A4
+   asli (sama seperti tampilan di SIM-TKD); orientasi kertas dapat dipilih
+   di atas pratinjau: **Otomatis** (mengikuti aturan `@page` dokumen),
+   **Potret**, atau **Lanskap** — pilihan ini juga dipakai saat mencetak.
+4. Gambar tanda tangan di kanvas (mouse/sentuh) → **Tanda Tangan Dokumen**.
+   Sistem menyematkan gambar TTD pada slot tanda tangan serta satu
+   **barcode (QR) verifikasi** di akhir dokumen (HTML final bersifat mandiri &
+   tidak dapat diubah; nama, jabatan, waktu, kode verifikasi, dan hash
+   SHA-256 tercatat pada database dan dapat dilihat melalui laman verifikasi
+   publik).
+5. Dokumen final dapat dicetak/simpan PDF; keaslian dapat dicek publik di
    `doc.simtkd.com/verify.html?kode=TTD-XXXXXXXX`.
 
 Endpoint doc.simtkd.com (`api/dokumen.php`): `list`, `me`, `detail`, `konten`,

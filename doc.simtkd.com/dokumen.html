@@ -64,7 +64,19 @@
                     <!-- Kiri: pratinjau dokumen -->
                     <div>
                         <div class="viewer-card">
-                            <iframe id="frameDoc" title="Pratinjau dokumen"></iframe>
+                            <div class="viewer-bar">
+                                <span class="vb-label"><i class="fas fa-file-lines"></i> Pratinjau</span>
+                                <div class="vb-seg" id="segOrient" title="Orientasi kertas pratinjau &amp; cetak">
+                                    <button type="button" data-o="auto" class="active"><i class="fas fa-wand-magic-sparkles"></i> Otomatis</button>
+                                    <button type="button" data-o="portrait"><i class="fas fa-file"></i> Potret</button>
+                                    <button type="button" data-o="landscape"><i class="fas fa-arrows-left-right"></i> Lanskap</button>
+                                </div>
+                                <span class="vb-hint" id="orientHint"></span>
+                                <button type="button" class="vb-print" id="btnCetakBar"><i class="fas fa-print"></i> Cetak</button>
+                            </div>
+                            <div class="viewer-frame-wrap" id="frameWrap">
+                                <iframe id="frameDoc" title="Pratinjau dokumen"></iframe>
+                            </div>
                         </div>
                     </div>
 
@@ -226,6 +238,143 @@
                 T.url(T.endpoint + '?action=konten&id=' + id) + '&ts=' + Date.now();
         }
 
+        // ===== Orientasi kertas: Otomatis / Potret / Lanskap =====
+        // Pratinjau dirender selebar kertas A4 sebenarnya (sama seperti tampilan
+        // di SIM-TKD) lalu diskalakan agar pas dengan kartu. Saat mencetak,
+        // pilihan ini disuntikkan sebagai aturan @page ke dokumen.
+        var orientMode = 'auto';        // pilihan user: auto | portrait | landscape
+        var orientAktif = 'portrait';   // orientasi efektif dokumen saat ini
+        try {
+            var om = localStorage.getItem('simtkd_doc_orient');
+            if (om === 'portrait' || om === 'landscape' || om === 'auto') orientMode = om;
+        } catch (e) { /* abaikan */ }
+
+        function ukuranKertas(o) {
+            // A4 pada 96dpi: potret 794x1123, lanskap 1123x794
+            return (o === 'landscape') ? { w: 1123, h: 794 } : { w: 794, h: 1123 };
+        }
+
+        function adaAturanPage(d) {
+            try {
+                for (var i = 0; i < d.styleSheets.length; i++) {
+                    var owner = d.styleSheets[i].ownerNode;
+                    if (owner && owner.id === 'simtkdPage') continue; // lewati suntikan sendiri
+                    var rules = null;
+                    try { rules = d.styleSheets[i].cssRules; } catch (e) { continue; }
+                    if (!rules) continue;
+                    for (var j = 0; j < rules.length; j++) {
+                        var t = (rules[j] && rules[j].cssText) || '';
+                        if (t.indexOf('@page') === 0) return true;
+                    }
+                }
+            } catch (e) { /* abaikan */ }
+            return false;
+        }
+
+        function deteksiOrientasi() {
+            var d = iframeDoc();
+            if (!d || !d.body) return 'portrait';
+            // 1) Aturan @page eksplisit pada CSS dokumen (dikirim laman cetak)
+            try {
+                for (var i = 0; i < d.styleSheets.length; i++) {
+                    var owner = d.styleSheets[i].ownerNode;
+                    if (owner && owner.id === 'simtkdPage') continue; // lewati suntikan sendiri
+                    var rules = null;
+                    try { rules = d.styleSheets[i].cssRules; } catch (e) { continue; }
+                    if (!rules) continue;
+                    for (var j = 0; j < rules.length; j++) {
+                        var t = (rules[j] && rules[j].cssText) || '';
+                        if (t.indexOf('@page') === 0) {
+                            if (t.indexOf('landscape') !== -1) return 'landscape';
+                            if (t.indexOf('portrait') !== -1) return 'portrait';
+                        }
+                    }
+                }
+            } catch (e) { /* lanjut ke pengukuran */ }
+            // 2) Fallback: konten selebar >= 1000px dianggap lanskap
+            var area = d.getElementById('docArea');
+            var el = area || d.body;
+            var w = Math.max(el.scrollWidth || 0, el.offsetWidth || 0);
+            return (w >= 1000) ? 'landscape' : 'portrait';
+        }
+
+        function terapkanOrientasi() {
+            var d = iframeDoc();
+            var f = document.getElementById('frameDoc');
+            if (!d || !d.body || !f) return;
+            orientAktif = (orientMode === 'auto') ? deteksiOrientasi() : orientMode;
+            var k = ukuranKertas(orientAktif);
+
+            // 1) Aturan @page untuk cetak (size mengikuti pilihan; margin asli dokumen tetap)
+            try {
+                var st = d.getElementById('simtkdPage');
+                if (!st) {
+                    st = d.createElement('style');
+                    st.id = 'simtkdPage';
+                    (d.head || d.documentElement).appendChild(st);
+                }
+                st.textContent = '@page { size: A4 ' + orientAktif + ';' +
+                    (adaAturanPage(d) ? '' : ' margin: 12mm;') + ' }';
+            } catch (e) { /* abaikan */ }
+
+            // 2) Pratinjau selebar kertas asli, lalu diskalakan agar pas kartu
+            var wrap = document.getElementById('frameWrap');
+            var docW = k.w;
+            f.style.width = docW + 'px';
+            f.style.height = '0px';
+            // bila konten lebih lebar dari kertas (sheet berukuran tetap), ikuti lebar konten
+            var sw = Math.max(
+                d.body.scrollWidth || 0,
+                d.documentElement ? (d.documentElement.scrollWidth || 0) : 0
+            );
+            if (sw > docW + 2) { docW = sw; f.style.width = docW + 'px'; }
+            var h = Math.max(
+                d.body.scrollHeight || 0,
+                d.documentElement ? (d.documentElement.scrollHeight || 0) : 0,
+                420
+            );
+            h = Math.min(h, 6000);
+            f.style.height = h + 'px';
+            f.style.overflow = 'hidden';
+            var cw = Math.max(240, (wrap ? wrap.clientWidth : k.w) - 2);
+            var s = Math.min(1, cw / docW);
+            f.style.transformOrigin = 'top left';
+            f.style.transform = 'scale(' + s + ')';
+            f.style.marginLeft = Math.max(0, (cw - docW * s) / 2) + 'px';
+            if (wrap) wrap.style.height = Math.ceil(h * s) + 'px';
+
+            var hint = document.getElementById('orientHint');
+            if (hint) {
+                hint.textContent = 'Kertas A4 ' + (orientAktif === 'landscape' ? 'Lanskap' : 'Potret') +
+                    (orientMode === 'auto' ? ' (terdeteksi otomatis)' : '');
+            }
+        }
+
+        // Pilihan orientasi (tersimpan di localStorage per browser)
+        document.querySelectorAll('#segOrient button').forEach(function (b) {
+            b.addEventListener('click', function () {
+                document.querySelectorAll('#segOrient button').forEach(function (x) { x.classList.remove('active'); });
+                b.classList.add('active');
+                orientMode = b.getAttribute('data-o') || 'auto';
+                try { localStorage.setItem('simtkd_doc_orient', orientMode); } catch (e) { /* abaikan */ }
+                terapkanOrientasi();
+            });
+        });
+        (function pulihkanOrientasi() {
+            var b = document.querySelector('#segOrient button[data-o="' + orientMode + '"]');
+            if (b && !b.classList.contains('active')) {
+                document.querySelectorAll('#segOrient button').forEach(function (x) { x.classList.remove('active'); });
+                b.classList.add('active');
+            }
+        })();
+
+        // Ukur ulang saat jendela berubah ukuran
+        var rzTimer = null;
+        window.addEventListener('resize', function () {
+            clearTimeout(rzTimer);
+            rzTimer = setTimeout(terapkanOrientasi, 150);
+        });
+
         // ===== Kanvas tanda tangan (mouse + layar sentuh) =====
         var pad = document.getElementById('pad');
         var ctx = pad.getContext('2d');
@@ -378,6 +527,10 @@
         var frameEl = document.getElementById('frameDoc');
         frameEl.addEventListener('load', function () {
             placementCleanup();
+            terapkanOrientasi();
+            // ukur ulang setelah gambar/font dokumen selesai dimuat
+            setTimeout(terapkanOrientasi, 250);
+            setTimeout(terapkanOrientasi, 900);
             var d = iframeDoc();
             if (d) d.addEventListener('click', frameClick, true);
         });
@@ -471,14 +624,17 @@
                 });
         });
 
-        // ===== Cetak dokumen final =====
-        document.getElementById('btnCetak').addEventListener('click', function () {
+        // ===== Cetak dokumen final (mengikuti orientasi terpilih) =====
+        function cetakDokumen() {
+            terapkanOrientasi(); // pastikan @page sesuai pilihan sebelum mencetak
             var f = document.getElementById('frameDoc');
             if (f && f.contentWindow) {
                 f.contentWindow.focus();
                 f.contentWindow.print();
             }
-        });
+        }
+        document.getElementById('btnCetak').addEventListener('click', cetakDokumen);
+        document.getElementById('btnCetakBar').addEventListener('click', cetakDokumen);
 
         // ===== Profil user di topbar =====
         (function muatProfil() {

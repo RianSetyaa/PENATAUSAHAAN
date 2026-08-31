@@ -85,6 +85,12 @@
         .lpj-sign p { margin: 0; line-height: 1.6; }
         .lpj-sign .name { min-height: 52px; display: block; text-decoration: underline; }
 
+        /* ===== Saat mencetak: hanya dokumen, potret ===== */
+        @page {
+            size: A4 portrait;
+            margin: 14mm;
+        }
+
         /* ===== Saat mencetak: hanya dokumen ===== */
         @media print {
             .sidebar, .topbar, .footer, .overlay, .print-toolbar { display: none !important; }
