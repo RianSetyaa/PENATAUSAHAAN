@@ -69,6 +69,10 @@
                         <div class="ic green"><i class="fas fa-file-signature"></i></div>
                         <div class="info"><b id="stSelesai">-</b><span>Ditandatangani</span></div>
                     </div>
+                    <div class="stat-card">
+                        <div class="ic navy"><i class="fas fa-folder-open"></i></div>
+                        <div class="info"><b id="stTotal">-</b><span>Total Dokumen</span></div>
+                    </div>
                 </div>
 
                 <div class="card">
@@ -157,6 +161,7 @@
                     dataCache = d.data || [];
                     document.getElementById('stMenunggu').textContent = dataCache.filter(function (r) { return r.status === 'menunggu_ttd'; }).length;
                     document.getElementById('stSelesai').textContent = dataCache.filter(function (r) { return r.status === 'ditandatangani'; }).length;
+                    document.getElementById('stTotal').textContent = dataCache.length;
                     render();
                 })
                 .catch(function () {

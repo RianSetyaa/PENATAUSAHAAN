@@ -93,16 +93,16 @@
                 </div>
 
                 <div class="side-card" id="panelTtd">
-                    <h3><i class="fas fa-pen-nib"></i> Tanda Tangan Tangan</h3>
+                    <h3><i class="fas fa-pen-nib"></i> Gambar Tanda Tangan</h3>
                     <canvas id="pad" width="560" height="180"></canvas>
                     <div class="pad-note" id="padNote">
                         Gambar tanda tangan Anda di kotak di atas (mouse atau sentuh/layar sentuh).
                     </div>
-                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <div class="btn-row">
                         <button type="button" class="btn btn-outline btn-sm" id="btnBersih"><i class="fas fa-eraser"></i> Bersihkan</button>
                         <button type="button" class="btn btn-blue btn-sm" id="btnTempatkan"><i class="fas fa-hand-pointer"></i> Tempatkan Manual</button>
                     </div>
-                    <div id="placeBox" style="display:none;">
+                    <div id="placeBox" class="place-box" style="display:none;">
                         <div class="place-row">
                             <span class="lbl">Ukuran:</span>
                             <button type="button" class="btn btn-outline btn-sm wbtn" data-w="120">Kecil</button>
@@ -115,18 +115,18 @@
                             menempatkan tanda tangan, lalu <strong>geser (drag)</strong> untuk mengatur posisi persis.
                         </div>
                     </div>
-                    <div style="margin-top:10px;">
-                        <button type="button" class="btn btn-green" id="btnTtd" style="width:100%;justify-content:center;"><i class="fas fa-pen-nib"></i> Tanda Tangan Dokumen</button>
+                    <div class="btn-row mt">
+                        <button type="button" class="btn btn-green btn-block" id="btnTtd"><i class="fas fa-pen-nib"></i> Tanda Tangan Dokumen</button>
                     </div>
                     <div id="qrBox" style="position:absolute;left:-9999px;" aria-hidden="true"></div>
                 </div>
 
                 <div class="side-card" id="panelSelesai" style="display:none;">
-                    <h3><i class="fas fa-circle-check" style="color:#065f46;"></i> Dokumen Ditandatangani</h3>
+                    <h3><i class="fas fa-circle-check ok"></i> Dokumen Ditandatangani</h3>
                     <div class="info-row"><span class="k">Penandatangan</span><span class="v" id="sNama">—</span></div>
                     <div class="info-row"><span class="k">Jabatan</span><span class="v" id="sJabatan">—</span></div>
                     <div class="info-row"><span class="k">Waktu</span><span class="v" id="sWaktu">—</span></div>
-                    <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+                    <div class="btn-row mt">
                         <button type="button" class="btn btn-sm" id="btnCetak"><i class="fas fa-print"></i> Cetak / Simpan PDF</button>
                         <a class="btn btn-outline btn-sm" id="btnVerifPublik" href="verify.html" target="_blank"><i class="fas fa-shield-halved"></i> Halaman Verifikasi</a>
                     </div>
@@ -152,6 +152,7 @@
         var placeMode = false;     // mode penempatan manual aktif?
         var ghost = null;          // elemen <img> pratinjau di dalam iframe
         var ghostW = 180;          // lebar gambar TTD saat penempatan (px)
+        var PAPER_PAD = 14;        // padding "meja" pratinjau (sinkron: css .viewer-frame-wrap)
 
         function esc(s) { var d = document.createElement('div'); d.textContent = String(s == null ? '' : s); return d.innerHTML; }
         function toast(msg) {
@@ -234,6 +235,8 @@
         // ===== Viewer iframe =====
         function muatFrame() {
             if (!id) return;
+            var fw = document.getElementById('frameWrap');
+            if (fw) fw.classList.add('loading');
             document.getElementById('frameDoc').src =
                 T.url(T.endpoint + '?action=konten&id=' + id) + '&ts=' + Date.now();
         }
@@ -336,17 +339,19 @@
             h = Math.min(h, 6000);
             f.style.height = h + 'px';
             f.style.overflow = 'hidden';
-            var cw = Math.max(240, (wrap ? wrap.clientWidth : k.w) - 2);
-            var s = Math.min(1, cw / docW);
+            // area kertas di dalam "meja" (padding PAPER_PAD kiri-kanan)
+            var inner = Math.max(240, (wrap ? wrap.clientWidth : k.w) - PAPER_PAD * 2 - 2);
+            var s = Math.min(1, inner / docW);
             f.style.transformOrigin = 'top left';
             f.style.transform = 'scale(' + s + ')';
-            f.style.marginLeft = Math.max(0, (cw - docW * s) / 2) + 'px';
-            if (wrap) wrap.style.height = Math.ceil(h * s) + 'px';
+            f.style.marginLeft = Math.max(0, (inner - docW * s) / 2) + 'px';
+            if (wrap) wrap.style.height = Math.ceil(h * s) + PAPER_PAD * 2 + 'px';
 
             var hint = document.getElementById('orientHint');
             if (hint) {
                 hint.textContent = 'Kertas A4 ' + (orientAktif === 'landscape' ? 'Lanskap' : 'Potret') +
-                    (orientMode === 'auto' ? ' (terdeteksi otomatis)' : '');
+                    (orientMode === 'auto' ? ' (terdeteksi otomatis)' : '') +
+                    (s < 0.999 ? ' · ' + Math.round(s * 100) + '%' : '');
             }
         }
 
@@ -526,6 +531,8 @@
 
         var frameEl = document.getElementById('frameDoc');
         frameEl.addEventListener('load', function () {
+            var fw = document.getElementById('frameWrap');
+            if (fw) fw.classList.remove('loading');
             placementCleanup();
             terapkanOrientasi();
             // ukur ulang setelah gambar/font dokumen selesai dimuat

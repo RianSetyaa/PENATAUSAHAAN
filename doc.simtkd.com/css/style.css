@@ -178,6 +178,9 @@ tbody tr:hover { background: #f8fafc; }
 .badge-approved { background: #dcfce7; color: #15803d; }
 .badge-pending { background: #fef3c7; color: #b45309; }
 .badge-rejected { background: #fee2e2; color: #b91c1c; }
+/* varian nama lain yang dipakai dokumen.html */
+.badge.selesai { background: #dcfce7; color: #15803d; }
+.badge.menunggu { background: #fef3c7; color: #b45309; }
 
 /* ---------- Tombol ---------- */
 .btn {
@@ -223,14 +226,50 @@ tbody tr:hover { background: #f8fafc; }
 }
 .vb-print:hover { background: #eef2f7; }
 
-/* Kertas pratinjau: dirender selebar A4 asli lalu diskalakan (JS) agar pas */
-.viewer-frame-wrap { position: relative; overflow: hidden; border-radius: 8px; background: #fff; min-height: 320px; }
-.viewer-frame-wrap iframe { border: none; border-radius: 0; background: #fff; display: block; }
+/* Kertas pratinjau: dirender selebar A4 asli lalu diskalakan (JS) agar pas.
+   Lembaran ditampilkan di atas "meja" gelap + bayangan agar batas kertas jelas. */
+.viewer-frame-wrap {
+    position: relative; overflow: hidden; border-radius: 8px;
+    background: linear-gradient(180deg, #4a5160, #3f4551);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.07);
+    padding: 14px; /* harus sama dengan PAPER_PAD di dokumen.html */
+    min-height: 320px;
+}
+.viewer-frame-wrap iframe {
+    border: none; border-radius: 2px; background: #fff; display: block;
+    box-shadow: 0 1px 3px rgba(0,0,0,.30), 0 6px 18px rgba(0,0,0,.28), 0 0 0 1px rgba(0,0,0,.16);
+}
+/* Overlay saat dokumen dimuat */
+.viewer-frame-wrap.loading::after {
+    content: "Memuat pratinjau…";
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(52,58,69,.55);
+    color: #e6eaf2; font-size: 13px; font-weight: 600; letter-spacing: .3px;
+}
 .side-card { background: #fff; border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 1px 3px rgba(16,24,40,.06); padding: 16px; margin-bottom: 14px; }
 .side-card h3 { margin: 0 0 10px; font-size: 13.5px; color: var(--navy); display: flex; align-items: center; gap: 8px; }
-.info-row { display: flex; justify-content: space-between; gap: 10px; font-size: 12.5px; padding: 4px 0; }
-.info-row .k { color: var(--muted); }
+.side-card h3 .ok { color: #065f46; }
+.info-row { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 12.5px; padding: 7px 0; }
+.info-row + .info-row { border-top: 1px dashed #e8ecf3; }
+.info-row .k { color: var(--muted); flex-shrink: 0; }
 .info-row .v { font-weight: 600; text-align: right; word-break: break-word; }
+
+/* Baris tombol seragam (pengganti inline style) & panel mode penempatan */
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn-row.mt { margin-top: 12px; }
+.btn-block { width: 100%; justify-content: center; }
+.place-box {
+    background: #eef4ff; border: 1px solid #c7d7f5; border-radius: 8px;
+    padding: 10px 12px; margin-top: 10px;
+}
+/* Panel samping tetap terlihat saat dokumen panjang digulir */
+@media (min-width: 981px) {
+    .doc-grid > div:last-child {
+        position: sticky; top: 14px;
+        max-height: calc(100vh - 28px); overflow-y: auto;
+    }
+}
 
 /* ---------- Kanvas tanda tangan ---------- */
 #pad {
