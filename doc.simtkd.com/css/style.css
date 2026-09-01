@@ -89,7 +89,27 @@ a { color: var(--blue); }
     flex-shrink: 0;
     overflow-y: auto;
     padding: 10px 0 20px;
+    transition: margin-left .25s ease;
 }
+.sidebar.collapsed { margin-left: -236px; }
+
+/* Tombol minimize sidebar (disuntikkan oleh js/sidebar.js) */
+.sidebar-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px; height: 34px;
+    border: 1px solid rgba(255,255,255,.25);
+    background: rgba(255,255,255,.08);
+    color: #fff;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    flex-shrink: 0;
+    transition: background .2s ease;
+}
+.sidebar-toggle:hover { background: rgba(255,255,255,.2); }
+
 .side-title {
     font-size: 10.5px; letter-spacing: 1.4px; text-transform: uppercase;
     color: #7d8db1; padding: 14px 18px 6px;

@@ -259,7 +259,21 @@
         #toast.show { opacity: 1; transform: translateY(0); }
 
         /* ---------- Responsive ---------- */
-        .sidebar-toggle { display: none; }
+        .sidebar-toggle {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px; height: 34px;
+            border: 1px solid rgba(255,255,255,.25);
+            background: rgba(255,255,255,.08);
+            color: #fff;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            flex-shrink: 0;
+            transition: background .2s ease;
+        }
+        .sidebar-toggle:hover { background: rgba(255,255,255,.2); }
         @media (max-width: 1024px) {
             .filter-grid { grid-template-columns: repeat(3, 1fr); }
         }
@@ -441,6 +455,7 @@
     <div id="toast"></div>
 
     <script src="js/config.js"></script>
+    <script src="js/sidebar.js"></script>
     <script>
         // Profil akun dari database (pendaftaran) - tanpa dropdown
         (function () {

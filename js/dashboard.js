@@ -21,6 +21,22 @@
     let SESSION_API_TOKEN = '';
 
     // ==========================================
+    // Sidebar collapsed state (persisten antar halaman)
+    // ==========================================
+    const SIDEBAR_KEY = 'simtkd_sidebar_collapsed';
+    function sidebarSimpan() {
+        try {
+            localStorage.setItem(SIDEBAR_KEY, sidebar.classList.contains('collapsed') ? '1' : '0');
+        } catch (e) { /* localStorage tidak tersedia */ }
+    }
+    function sidebarMuat() {
+        try {
+            if (localStorage.getItem(SIDEBAR_KEY) === '1') sidebar.classList.add('collapsed');
+        } catch (e) { /* localStorage tidak tersedia */ }
+    }
+    sidebarMuat(); // terapkan segera agar sidebar tidak "melebar lagi" saat pindah halaman
+
+    // ==========================================
     // Format Date (Indonesian)
     // ==========================================
     function formatDate(date) {
@@ -43,6 +59,7 @@
     // ==========================================
     sidebarToggle.addEventListener('click', function () {
         sidebar.classList.toggle('collapsed');
+        sidebarSimpan();
         // Remove open state if any
         sidebar.classList.remove('open');
         overlay.classList.remove('show');
@@ -62,6 +79,7 @@
             openMobileSidebar();
         } else {
             sidebar.classList.toggle('collapsed');
+            sidebarSimpan();
         }
     });
 
