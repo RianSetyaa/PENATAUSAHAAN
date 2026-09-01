@@ -9,9 +9,11 @@
     <style>
         .toast { position:fixed; top:auto; bottom:20px; right:20px; left:auto; height:auto; width:auto; min-width:0; max-width:420px; background:#2c3e50; color:#fff; padding:12px 18px; border-radius:8px; font-size:13px; opacity:0; transform:none; animation:none; transition:opacity .3s; z-index:9999; pointer-events:none; }
         .toast.show { opacity:1; pointer-events:auto; }
-        .form-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; }
-        .form-grid label { font-size:12px; color:#5a6c7d; display:block; margin-bottom:4px; }
-        .form-grid input { width:100%; height:36px; border:1px solid #d0d5dd; border-radius:8px; padding:0 10px; font-size:13px; }
+        .form-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px 16px; }
+        .form-grid label { font-size:13px; font-weight:600; color:#5a6c7d; display:block; margin-bottom:6px; }
+        .form-grid input, .form-grid select { width:100%; height:40px; border:1px solid #d0d5dd; border-radius:8px; padding:0 12px; font-size:13px; font-family:inherit; color:#1f2937; background:#fff; transition:border-color .2s ease, box-shadow .2s ease; }
+        .form-grid input:focus, .form-grid select:focus { outline:none; border-color:#2c5aa0; box-shadow:0 0 0 3px rgba(44,90,160,.12); }
+        .form-grid select { appearance:none; -webkit-appearance:none; background-image:url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7a90' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 12px center; padding-right:34px; cursor:pointer; }
         .tabs { display:flex; gap:6px; margin-bottom:16px; flex-wrap:wrap; width:fit-content; max-width:100%; background:#eef2f7; padding:5px; border-radius:12px; }
         .tab-btn { padding:9px 20px; border:none; border-radius:9px; background:transparent; color:#5a6c7d; cursor:pointer; font-size:13px; font-weight:600; transition:all .2s ease; font-family:inherit; white-space:nowrap; }
         .tab-btn:hover { color:#1a3a6b; background:rgba(26,58,107,.07); }
@@ -53,6 +55,14 @@
                 </div>
             </div>
             <a href="../api/aklap_go.php" class="menu-item"><i class="fas fa-book"></i><span>Akuntansi</span></a>
+            <a href="../api/dokumen_go.php" class="menu-item"><i class="fas fa-pen-nib"></i><span>Tanda Tangan Dokumen</span></a>
+            <div class="menu-group" data-menu="pengaturan">
+                <a href="#" class="menu-item has-submenu"><i class="fas fa-cog"></i><span>Pengaturan</span><i class="fas fa-chevron-down submenu-arrow"></i></a>
+                <div class="submenu">
+                    <a href="../pengaturan/akun-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-coins"></i><span>Akun Penerimaan</span></a>
+                    <a href="../pengaturan/anggaran-neraca.html" class="menu-item submenu-item"><i class="fas fa-chart-line"></i><span>Anggaran &amp; Neraca</span></a>
+                </div>
+            </div>
             <span class="menu-label">AKUN</span>
             <a href="../api/logout.php" class="menu-item menu-logout"><i class="fas fa-sign-out-alt"></i><span>Keluar</span></a>
         </nav>
@@ -97,12 +107,15 @@
         <footer class="footer"><span>&copy; 2026 SIM-TKD - Modul Edukasi | Politeknik Negeri Bandung</span></footer>
     </div>
     <div id="toast" class="toast"></div>
+    <script src="../js/popup.js"></script>
     <script src="../js/dashboard.js"></script>
+    <script src="../js/cetak-belanja.js"></script>
     <script>
         (function () {
             'use strict';
             var tbody = document.getElementById('tbodyTu');
             var curTab = 'pengajuan';
+            var dataRowCache = {};
             function toast(msg) { var t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(t._t); t._t = setTimeout(function () { t.classList.remove('show'); }, 2400); }
             function esc(s) { var d = document.createElement('div'); d.textContent = String(s || ''); return d.innerHTML; }
             function rupiah(v) { return Number(v || 0).toLocaleString('id-ID'); }
@@ -116,10 +129,12 @@
                     .then(function (d) {
                         var data = (d && d.success) ? (d.data || []) : [];
                         if (!data.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#9098a5;">Belum ada data pengajuan TU.</td></tr>'; return; }
+                        dataRowCache = {};
+                        data.forEach(function (r) { dataRowCache[r.id] = r; });
                         tbody.innerHTML = data.map(function (r, i) {
-                            var btn = '';
-                            if (r.status === 'belum_otorisasi') btn = '<button class="btn btn-sm" data-act="otorisasi" data-id="' + r.id + '">Otorisasi</button>';
-                            else if (r.status === 'sudah_otorisasi') btn = '<button class="btn btn-sm" data-act="validasi" data-id="' + r.id + '">Validasi</button>';
+                            var btn = '<button class="btn btn-sm" data-cetak="' + r.id + '"><i class="fas fa-print"></i> Cetak</button>';
+                            if (r.status === 'belum_otorisasi') btn += '<button class="btn btn-sm" data-act="otorisasi" data-id="' + r.id + '">Otorisasi</button>';
+                            else if (r.status === 'sudah_otorisasi') btn += '<button class="btn btn-sm" data-act="validasi" data-id="' + r.id + '">Validasi</button>';
                             return '<tr><td>' + (i + 1) + '</td><td>' + esc(r.nomor_pengajuan) + '</td><td>' + fmtTgl(r.tanggal) + '</td><td>' + esc(r.keterangan || '-') + '</td><td class="num">' + rupiah(r.jumlah) + '</td><td>' + badge(r.status) + '</td><td>' + btn + '</td></tr>';
                         }).join('');
                     })
@@ -135,12 +150,38 @@
                 });
             });
             tbody.addEventListener('click', function (e) {
+                var c = e.target.closest('[data-cetak]');
+                if (c) { cetakTu(parseInt(c.getAttribute('data-cetak'), 10)); return; }
                 var b = e.target.closest('[data-act]'); if (!b) return;
                 var id = parseInt(b.getAttribute('data-id'), 10);
                 var act = b.getAttribute('data-act');
                 if (act === 'otorisasi') { if (!confirm('Otorisasi pengajuan TU ini (BUD)?')) return; post({ action: 'pengajuan_tu_otorisasi', id: id }, function (d) { toast(d.message || (d.success ? 'Terotorisasi.' : 'Gagal.')); if (d.success) load(); }); }
                 else if (act === 'validasi') { if (!confirm('Validasi pengajuan TU ini (PA/KPA)?')) return; post({ action: 'pengajuan_tu_validasi', id: id }, function (d) { toast(d.message || (d.success ? 'Tervalidasi.' : 'Gagal.')); if (d.success) load(); }); }
             });
+
+            function cetakTu(id) {
+                var r = dataRowCache[id];
+                if (!r) return;
+                var C = CetakBelanja;
+                C.bukaCetak({
+                    title: 'Laporan Pertanggungjawaban Tambah Uang (TU)',
+                    judul: 'LAPORAN PERTANGGUNGJAWABAN TAMBAH UANG PERSEDIAAN (TU)',
+                    nomor: r.nomor_pengajuan ? 'Nomor : ' + r.nomor_pengajuan : '',
+                    fields: [
+                        ['Tanggal Pengajuan', C.tgl(r.tanggal)],
+                        ['Keterangan', r.keterangan || '-'],
+                        ['Jumlah (Rp)', C.rupiah(r.jumlah)],
+                        ['Status', r.status || '-']
+                    ],
+                    catatan: 'SPP TU dibuat setelah pengajuan TU divalidasi oleh PA/KPA.',
+                    ttd: {
+                        left: { jabatan: 'Mengetahui,', nama: 'Kepala SKPD' },
+                        right: { jabatan: 'Bendahara Pengeluaran', nama: '(................................)' }
+                    },
+                    // Kirim ke antrean tanda tangan (doc.simtkd.com)
+                    dokumen: { jenis: 'Pengajuan TU', refId: r.id, nomor: r.nomor_pengajuan || '', tanggal: r.tanggal || '', url: new URL('../api/dokumen.php', location.href).toString() }
+                });
+            }
             document.querySelectorAll('.tab-btn').forEach(function (b) {
                 b.addEventListener('click', function () {
                     document.querySelectorAll('.tab-btn').forEach(function (x) { x.classList.remove('active'); });

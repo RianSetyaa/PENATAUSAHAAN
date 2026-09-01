@@ -10,7 +10,7 @@
         .toast { position:fixed; top:auto; bottom:20px; right:20px; left:auto; height:auto; width:auto; min-width:0; max-width:420px; background:#2c3e50; color:#fff; padding:12px 18px; border-radius:8px; font-size:13px; opacity:0; transform:none; animation:none; transition:opacity .3s; z-index:9999; pointer-events:none; }
         .toast.show { opacity:1; pointer-events:auto; }
         .form-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px 16px; }
-        .form-grid label { font-size:12px; font-weight:600; color:#5a6c7d; display:block; margin-bottom:6px; }
+        .form-grid label { font-size:13px; font-weight:600; color:#5a6c7d; display:block; margin-bottom:6px; }
         .form-grid input, .form-grid select { width:100%; height:40px; border:1px solid #d0d5dd; border-radius:8px; padding:0 12px; font-size:13px; font-family:inherit; color:#1f2937; background:#fff; transition:border-color .2s ease, box-shadow .2s ease; }
         .form-grid input:focus, .form-grid select:focus { outline:none; border-color:#2c5aa0; box-shadow:0 0 0 3px rgba(44,90,160,.12); }
         .form-grid select { appearance:none; -webkit-appearance:none; background-image:url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7a90' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 12px center; padding-right:34px; cursor:pointer; }
@@ -55,6 +55,14 @@
                 </div>
             </div>
             <a href="../api/aklap_go.php" class="menu-item"><i class="fas fa-book"></i><span>Akuntansi</span></a>
+            <a href="../api/dokumen_go.php" class="menu-item"><i class="fas fa-pen-nib"></i><span>Tanda Tangan Dokumen</span></a>
+            <div class="menu-group" data-menu="pengaturan">
+                <a href="#" class="menu-item has-submenu"><i class="fas fa-cog"></i><span>Pengaturan</span><i class="fas fa-chevron-down submenu-arrow"></i></a>
+                <div class="submenu">
+                    <a href="../pengaturan/akun-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-coins"></i><span>Akun Penerimaan</span></a>
+                    <a href="../pengaturan/anggaran-neraca.html" class="menu-item submenu-item"><i class="fas fa-chart-line"></i><span>Anggaran &amp; Neraca</span></a>
+                </div>
+            </div>
             <span class="menu-label">AKUN</span>
             <a href="../api/logout.php" class="menu-item menu-logout"><i class="fas fa-sign-out-alt"></i><span>Keluar</span></a>
         </nav>
@@ -100,12 +108,15 @@
         <footer class="footer"><span>&copy; 2026 SIM-TKD - Modul Edukasi | Politeknik Negeri Bandung</span></footer>
     </div>
     <div id="toast" class="toast"></div>
+    <script src="../js/popup.js"></script>
     <script src="../js/dashboard.js"></script>
+    <script src="../js/cetak-belanja.js"></script>
     <script>
         (function () {
             'use strict';
             var tbody = document.getElementById('tbodySp2d');
             var curTab = 'pembuatan';
+            var dataRowCache = {};
             function toast(msg) { var t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(t._t); t._t = setTimeout(function () { t.classList.remove('show'); }, 2400); }
             function esc(s) { var d = document.createElement('div'); d.textContent = String(s || ''); return d.innerHTML; }
             function rupiah(v) { return Number(v || 0).toLocaleString('id-ID'); }
@@ -119,10 +130,12 @@
                     .then(function (d) {
                         var data = (d && d.success) ? (d.data || []) : [];
                         if (!data.length) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#9098a5;">Belum ada data SP2D.</td></tr>'; return; }
+                        dataRowCache = {};
+                        data.forEach(function (r) { dataRowCache[r.id] = r; });
                         tbody.innerHTML = data.map(function (r, i) {
-                            var btn = '';
-                            if (r.status === 'belum_diverifikasi') btn = '<button class="btn btn-sm" data-act="verifikasi" data-id="' + r.id + '">Verifikasi</button>';
-                            else if (r.status === 'sudah_diverifikasi') btn = '<button class="btn btn-sm" data-act="cair" data-id="' + r.id + '">Transfer Dana</button>';
+                            var btn = '<button class="btn btn-sm" data-cetak="' + r.id + '"><i class="fas fa-print"></i> Cetak</button>';
+                            if (r.status === 'belum_diverifikasi') btn += '<button class="btn btn-sm" data-act="verifikasi" data-id="' + r.id + '">Verifikasi</button>';
+                            else if (r.status === 'sudah_diverifikasi') btn += '<button class="btn btn-sm" data-act="cair" data-id="' + r.id + '">Transfer Dana</button>';
                             return '<tr><td>' + (i + 1) + '</td><td>' + esc(r.nomor_sp2d) + '</td><td>' + fmtTgl(r.tanggal) + '</td><td>' + esc(r.nomor_spm || '-') + '</td><td>' + esc(r.rekening || '-') + '</td><td class="num">' + rupiah(r.jumlah) + '</td><td>' + badge(r.status) + '</td><td>' + btn + '</td></tr>';
                         }).join('');
                     })
@@ -136,7 +149,7 @@
                 fetch('../api/belanja.php?action=spm_ver_list').then(function (r) { return r.json(); }).then(function (d) {
                     var sel = document.getElementById('spm_id');
                     sel.innerHTML = '<option value="">-- Pilih SPM --</option>' + ((d && d.success) ? (d.data || []).map(function (s) { return '<option value="' + s.id + '">' + esc(s.nomor_spm) + ' (Rp ' + rupiah(s.jumlah) + ')</option>'; }).join('') : '');
-                });
+                }).catch(function () { toast('Gagal memuat daftar SPM.'); });
             }
             document.getElementById('btnSimpan').addEventListener('click', function () {
                 post({ action: 'sp2d_create', tanggal: document.getElementById('tanggal').value, spm_id: document.getElementById('spm_id').value, rekening: document.getElementById('rekening').value, jumlah: document.getElementById('jumlah').value }, function (d) {
@@ -144,6 +157,8 @@
                 });
             });
             tbody.addEventListener('click', function (e) {
+                var c = e.target.closest('[data-cetak]');
+                if (c) { cetakSp2d(parseInt(c.getAttribute('data-cetak'), 10)); return; }
                 var b = e.target.closest('[data-act]'); if (!b) return;
                 var id = parseInt(b.getAttribute('data-id'), 10);
                 var act = b.getAttribute('data-act');
@@ -157,6 +172,47 @@
                     post({ action: 'sp2d_pencairan', id: id, tanggal: tgl }, function (d) { toast(d.message || (d.success ? 'Dana dicairkan.' : 'Gagal.')); if (d.success) load(); });
                 }
             });
+
+            function cetakSp2d(id) {
+                var r = dataRowCache[id];
+                if (!r) return;
+                var C = CetakBelanja;
+                var skpd = C.instansi();
+                C.bukaCetak({
+                    title: 'SP2D - Surat Perintah Pencairan Dana',
+                    judul: 'SURAT PERINTAH PENCAIRAN DANA (SP2D)',
+                    subjudul: 'Diterbitkan oleh Kuasa Bendahara Umum Daerah',
+                    nomor: r.nomor_sp2d ? 'Nomor : ' + r.nomor_sp2d : '',
+                    garis2: true,
+                    fields: [
+                        ['Tanggal', C.tgl(r.tanggal)],
+                        ['Diterbitkan Berdasarkan (Nomor SPM)', r.nomor_spm || '-'],
+                        ['Kepada / Untuk Pembayaran Kepada', skpd],
+                        ['Bank / Rekening Tujuan', r.rekening || '-'],
+                        ['Jumlah yang Dicairkan (Rp)', C.rupiah(r.jumlah) + ',-  (' + C.terbilangRupiah(r.jumlah) + ')']
+                    ],
+                    detail: {
+                        cols: [
+                            { t: 'No', key: null },
+                            { t: 'Uraian', key: 'uraian' },
+                            { t: 'Jumlah (Rp)', key: 'jumlah', num: true, fmt: function (v) { return (v === '' || v == null) ? '' : C.rupiah(v); } }
+                        ],
+                        rows: [
+                            { uraian: 'Pembayaran sesuai SPM ' + (r.nomor_spm || ''), jumlah: r.jumlah },
+                            { uraian: '', jumlah: '' },
+                            { uraian: '', jumlah: '' }
+                        ]
+                    },
+                    total: 'Total : ' + C.rupiah(r.jumlah) + ',-',
+                    catatan: 'Dana dicairkan sesuai SPM yang telah diverifikasi. SP2D diterbitkan oleh Kuasa BUD.',
+                    ttd: {
+                        left: { jabatan: 'Mengetahui,', nama: 'Kepala SKPD' },
+                        right: { jabatan: 'Kuasa Bendahara Umum Daerah', nama: '(................................)' }
+                    },
+                    // Kirim ke antrean tanda tangan (doc.simtkd.com)
+                    dokumen: { jenis: 'SP2D', refId: r.id, nomor: r.nomor_sp2d || '', tanggal: r.tanggal || '', url: new URL('../api/dokumen.php', location.href).toString() }
+                });
+            }
             document.querySelectorAll('.tab-btn').forEach(function (b) {
                 b.addEventListener('click', function () {
                     document.querySelectorAll('.tab-btn').forEach(function (x) { x.classList.remove('active'); });

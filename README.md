@@ -7,7 +7,7 @@ Frontend menggunakan **HTML, CSS, dan JavaScript murni (vanilla)**. Backend meng
 
 ## ✨ Fitur
 
-- **Login** dengan validasi captcha & indikator status akun (pending / aktif / nonaktif)
+- **Login** menggunakan username atau email + validasi captcha
 - **Pendaftaran (Daftar)** dengan validasi lengkap + indikator kekuatan kata sandi
 - **Dashboard** ringkasan APBD yang datanya diambil langsung dari database
 - Perlindungan sesi (halaman dashboard hanya bisa diakses setelah login)
@@ -32,7 +32,10 @@ PENATAUSAHAAN/
 │   ├── register.php    #   POST: pendaftaran akun
 │   ├── logout.php      #   GET : hapus sesi (logout)
 │   ├── session.php     #   GET : cek status login
-│   └── summary.php     #   GET : data ringkasan dashboard
+│   ├── summary.php     #   GET : data ringkasan dashboard
+│   ├── dokumen.php     #   POST: simpan dokumen ke antrean TTD (doc.simtkd.com)
+│   ├── dokumen_go.php  #   GET : SSO redirect ke doc.simtkd.com (?token=)
+│   └── aklap_go.php    #   GET : SSO redirect ke peta.simtkd.com (?token=)
 ├── config/
 │   └── db.php          # Koneksi database (PDO)
 ├── includes/
@@ -40,6 +43,9 @@ PENATAUSAHAAN/
 │   └── auth.php        # Sesi & proteksi halaman
 ├── database/
 │   └── simtkd.sql      # Skema database (referensi)
+│   └── dokumen_ttd.sql # Tabel dokumen & tanda tangan elektronik
+├── peta.simtkd.com/    # Subdomain modul AKLAP (SSO via ?token=)
+├── doc.simtkd.com/     # Subdomain dokumen & tanda tangan elektronik
 ├── setup.php           # Installer otomatis (DB + admin)
 └── README.md
 ```
@@ -151,6 +157,40 @@ Semua endpoint mengembalikan JSON:
 
 ---
 
+## ✍️ Dokumen & Tanda Tangan Elektronik (doc.simtkd.com)
+
+Dokumen hasil laman cetak (belanja & penerimaan) dapat dikirim ke antrean tanda
+tangan lalu ditandatangani elektronik dengan **tanda tangan tangan** (ala Privy):
+
+1. Saat mencetak dokumen, klik **"✎ Kirim ke Tanda Tangan"** pada panel
+   pengaturan cetak (modul Belanja: SPD, SPP, SPM, SP2D, LPJ, NPD, Pengajuan TU
+   lewat `CetakBelanja`; modul Penerimaan: STBP, STS, BKU, LPJ, Register STS,
+   Rekap Penerimaan Harian & Bulanan, SKP Daerah lewat tombol di laman cetaknya
+   masing-masing)
+   → dokumen tersimpan di tabel `dokumen` (database sama) beserta orientasi
+   kertasnya (aturan `@page` mengikuti pilihan di panel cetak).
+2. Buka **menu "Tanda Tangan Dokumen"** → SSO otomatis ke doc.simtkd.com
+   (membawa token API user, pola sama dengan modul Akuntansi/AKLAP).
+3. Di doc.simtkd.com: pilih dokumen → pratinjau dirender selebar kertas A4
+   asli (sama seperti tampilan di SIM-TKD); orientasi kertas dapat dipilih
+   di atas pratinjau: **Otomatis** (mengikuti aturan `@page` dokumen),
+   **Potret**, atau **Lanskap** — pilihan ini juga dipakai saat mencetak.
+4. Gambar tanda tangan di kanvas (mouse/sentuh) → **Tanda Tangan Dokumen**.
+   Sistem menyematkan gambar TTD pada slot tanda tangan serta satu
+   **barcode (QR) verifikasi** di akhir dokumen (HTML final bersifat mandiri &
+   tidak dapat diubah; nama, jabatan, waktu, kode verifikasi, dan hash
+   SHA-256 tercatat pada database dan dapat dilihat melalui laman verifikasi
+   publik).
+5. Dokumen final dapat dicetak/simpan PDF; keaslian dapat dicek publik di
+   `doc.simtkd.com/verify.html?kode=TTD-XXXXXXXX`.
+
+Endpoint doc.simtkd.com (`api/dokumen.php`): `list`, `me`, `detail`, `konten`,
+`ttd_gambar`, `ttd` — dilindungi token; `verify` publik (rate-limited).
+Skema database: `database/dokumen_ttd.sql` (tabel `dokumen`, `dokumen_ttd`,
+`user_ttd`). Deployment: `.cpanel.doc.yml`.
+
+---
+
 ## 🔐 Keamanan
 
 - Password disimpan dengan `password_hash()` (bcrypt)
@@ -165,9 +205,19 @@ Semua endpoint mengembalikan JSON:
 
 - Aplikasi harus diakses melalui **server** (`http://localhost/...`), bukan langsung
   dari file (`file://`) — karena backend PHP & sesi membutuhkan server.
-- Akun baru yang mendaftar berstatus **`pending`** dan harus diaktifkan admin
-  (ubah `status` menjadi `aktif` di database/phpMyAdmin sebelum bisa login).
+- Akun baru yang mendaftar **langsung aktif** (tanpa verifikasi admin) dan bisa
+  login menggunakan **username atau email**. Untuk database yang sudah berjalan,
+  jalankan `database/users_status_aktif.sql` agar akun lama yang masih `pending`
+  ikut teraktifkan.
 
 ---
 
-© 2026 SIM-TKD — Politeknik Negeri Bandung (Modul Edukasi)
+## ⚖️ Lisensi
+
+Hak cipta © 2026 **Politeknik Negeri Bandung — Jurusan Akuntansi**. Seluruh hak cipta dilindungi.
+
+Aplikasi ini dilindungi oleh **lisensi perangkat lunak proprietari** dan **DILARANG untuk disebarluaskan**, disalin, dijual, atau digunakan kembali tanpa izin tertulis dari pemegang hak cipta. Lihat file [`LICENSE`](./LICENSE) untuk ketentuan lengkap.
+
+> ⛔ **TIDAK BOLEH DI-SEBAR.** Dengan menggunakan aplikasi ini, Anda menyetujui seluruh
+> ketentuan lisensi yang berlaku. Setiap pelanggaran dapat ditindaklanjuti sesuai
+> hukum yang berlaku di Republik Indonesia.

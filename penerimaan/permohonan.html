@@ -62,6 +62,12 @@
                         </div>
                     </div>
 
+                    <!-- SKP - Daerah (alur sebelum STBP) -->
+                    <a href="skp-daerah.html" class="menu-item">
+                        <i class="fas fa-receipt"></i>
+                        <span>SKP - Daerah</span>
+                    </a>
+
             <div class="menu-group" data-menu="stbp">
                 <a href="#" class="menu-item has-submenu">
                     <i class="fas fa-file-invoice"></i>
@@ -90,8 +96,9 @@
                         </a>
                         <div class="submenu">
                             <a href="bku-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-book"></i><span>BKU Penerimaan</span></a>
-                            <a href="#" class="menu-item submenu-item"><i class="fas fa-clipboard-list"></i><span>Register</span></a>
-                            <a href="#" class="menu-item submenu-item"><i class="fas fa-file-invoice-dollar"></i><span>LPJ</span></a>
+                            <a href="register-sts.html" class="menu-item submenu-item"><i class="fas fa-clipboard-list"></i><span>Register STS</span></a>
+                            <a href="lpj-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-file-invoice-dollar"></i><span>LPJ</span></a>
+                            <a href="rekap-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-table"></i><span>Rekap Harian &amp; Bulanan</span></a>
                         </div>
                     </div>
                 </div>
@@ -123,6 +130,10 @@
                 <i class="fas fa-book"></i>
                 <span>Akuntansi</span>
             </a>
+            <a href="../api/dokumen_go.php" class="menu-item">
+                <i class="fas fa-pen-nib"></i>
+                <span>Tanda Tangan Dokumen</span>
+            </a>
             <!-- Pengaturan (dropdown) -->
             <div class="menu-group" data-menu="pengaturan">
                 <a href="#" class="menu-item has-submenu">
@@ -132,6 +143,7 @@
                 </a>
                 <div class="submenu">
                     <a href="../pengaturan/akun-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-coins"></i><span>Akun Penerimaan</span></a>
+                    <a href="../pengaturan/anggaran-neraca.html" class="menu-item submenu-item"><i class="fas fa-chart-line"></i><span>Anggaran &amp; Neraca</span></a>
                 </div>
             </div>
 
@@ -296,6 +308,20 @@
                             required
                         >
                     </div>
+
+                    <!-- Nomor Rekening -->
+                    <div class="form-group">
+                        <label for="nomorRekening">Nomor Rekening <span style="color:#e2542c;">*</span></label>
+                        <input
+                            type="text"
+                            id="nomorRekening"
+                            class="form-control"
+                            placeholder="Contoh: 000000000 000000"
+                            inputmode="numeric"
+                            required
+                        >
+                        <p class="form-hint"><i class="fas fa-info-circle"></i> Nomor rekening bank penerimaan daerah.</p>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline" id="btnBatal">Batalkan</button>
@@ -348,7 +374,12 @@
                 const toast = document.createElement('div');
                 toast.className = 'toast toast-' + (type || 'success');
                 const icons = { success: 'fa-check-circle', error: 'fa-times-circle', warning: 'fa-exclamation-triangle' };
-                toast.innerHTML = '<i class="fas ' + (icons[type] || icons.success) + '"></i><span>' + message + '</span>';
+                const span = document.createElement('span');
+                span.textContent = message; // aman dari XSS
+                const icon = document.createElement('i');
+                icon.className = 'fas ' + (icons[type] || icons.success);
+                toast.appendChild(icon);
+                toast.appendChild(span);
                 document.body.appendChild(toast);
                 setTimeout(function () { toast.remove(); }, 3200);
             }
@@ -472,9 +503,11 @@
 
                 const bank = document.getElementById('bank').value;
                 const nama = document.getElementById('namaPemilik').value.trim();
+                const nomor = document.getElementById('nomorRekening').value.trim();
 
                 if (!bank) { showToast('Silakan pilih bank terlebih dahulu.', 'warning'); return; }
                 if (!nama) { showToast('Nama pemilik rekening wajib diisi.', 'warning'); return; }
+                if (!nomor) { showToast('Nomor rekening wajib diisi.', 'warning'); return; }
 
                 const btnSubmit = formPermohonan.querySelector('.btn-primary');
                 btnSubmit.disabled = true;
@@ -482,7 +515,7 @@
                 fetch('../api/permohonan.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: new URLSearchParams({ bank: bank, nama_rekening: nama })
+                    body: new URLSearchParams({ bank: bank, nama_rekening: nama, nomor_rekening: nomor })
                 })
                 .then(function (res) { return res.json(); })
                 .then(function (data) {

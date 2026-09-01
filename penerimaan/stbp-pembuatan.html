@@ -75,6 +75,12 @@
                         </div>
                     </div>
 
+                    <!-- SKP - Daerah (alur sebelum STBP) -->
+                    <a href="skp-daerah.html" class="menu-item">
+                        <i class="fas fa-receipt"></i>
+                        <span>SKP - Daerah</span>
+                    </a>
+
                     <!-- STBP (dropdown tahap) -->
                     <div class="menu-group open" data-menu="stbp">
                         <a href="#" class="menu-item has-submenu active">
@@ -104,8 +110,9 @@
                         </a>
                         <div class="submenu">
                             <a href="bku-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-book"></i><span>BKU Penerimaan</span></a>
-                            <a href="#" class="menu-item submenu-item"><i class="fas fa-clipboard-list"></i><span>Register</span></a>
-                            <a href="#" class="menu-item submenu-item"><i class="fas fa-file-invoice-dollar"></i><span>LPJ</span></a>
+                            <a href="register-sts.html" class="menu-item submenu-item"><i class="fas fa-clipboard-list"></i><span>Register STS</span></a>
+                            <a href="lpj-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-file-invoice-dollar"></i><span>LPJ</span></a>
+                            <a href="rekap-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-table"></i><span>Rekap Harian &amp; Bulanan</span></a>
                         </div>
                     </div>
                 </div>
@@ -137,6 +144,10 @@
                 <i class="fas fa-book"></i>
                 <span>Akuntansi</span>
             </a>
+            <a href="../api/dokumen_go.php" class="menu-item">
+                <i class="fas fa-pen-nib"></i>
+                <span>Tanda Tangan Dokumen</span>
+            </a>
 
             <!-- Pengaturan -->
             <div class="menu-group" data-menu="pengaturan">
@@ -147,6 +158,7 @@
                 </a>
                 <div class="submenu">
                     <a href="../pengaturan/akun-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-coins"></i><span>Akun Penerimaan</span></a>
+                    <a href="../pengaturan/anggaran-neraca.html" class="menu-item submenu-item"><i class="fas fa-chart-line"></i><span>Anggaran &amp; Neraca</span></a>
                 </div>
             </div>
 
@@ -245,6 +257,7 @@
                                 <th>No.</th>
                                 <th>Tanggal STBP</th>
                                 <th>Metode Penyetoran</th>
+                                <th>No. SKP</th>
                                 <th>Nilai (Rp)</th>
                                 <th>Keterangan</th>
                                 <th>Status</th>
@@ -254,7 +267,7 @@
                         </thead>
                         <tbody id="stbpTableBody">
                             <tr>
-                                <td colspan="8" style="text-align:center; color:#9098a5;">Memuat data...</td>
+                                <td colspan="9" style="text-align:center; color:#9098a5;">Memuat data...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -342,7 +355,12 @@
                 const toast = document.createElement('div');
                 toast.className = 'toast toast-' + (type || 'success');
                 const icons = { success: 'fa-check-circle', error: 'fa-times-circle', warning: 'fa-exclamation-triangle' };
-                toast.innerHTML = '<i class="fas ' + (icons[type] || icons.success) + '"></i><span>' + message + '</span>';
+                const span = document.createElement('span');
+                span.textContent = message; // aman dari XSS
+                const icon = document.createElement('i');
+                icon.className = 'fas ' + (icons[type] || icons.success);
+                toast.appendChild(icon);
+                toast.appendChild(span);
                 document.body.appendChild(toast);
                 setTimeout(function () { toast.remove(); }, 3200);
             }
@@ -459,6 +477,7 @@
                         '<td><div class="akun-name">' + formatTanggal(p.tanggal) + '</div>' +
                             '<div class="skpd-meta">' + escapeHtml(p.nomor_stbp || '') + '</div></td>' +
                         '<td>' + (METODE_LABEL[p.metode_penyetoran] || p.metode_penyetoran || '-') + '</td>' +
+                        '<td>' + escapeHtml(p.nomor_skp || '-') + '</td>' +
                         '<td class="num">' + formatRupiah(p.jumlah) + '</td>' +
                         '<td>' + escapeHtml(p.uraian || '-') + '</td>' +
                         '<td>' + statusBadge(p.status) + '</td>' +

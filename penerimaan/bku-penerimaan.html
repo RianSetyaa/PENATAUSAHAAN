@@ -381,6 +381,12 @@
                         </div>
                     </div>
 
+                    <!-- SKP - Daerah (alur sebelum STBP) -->
+                    <a href="skp-daerah.html" class="menu-item">
+                        <i class="fas fa-receipt"></i>
+                        <span>SKP - Daerah</span>
+                    </a>
+
                     <!-- STBP -->
                     <div class="menu-group" data-menu="stbp">
                         <a href="#" class="menu-item has-submenu">
@@ -412,8 +418,9 @@
                         <div class="submenu">
                             <a href="bku-penerimaan.html" class="menu-item submenu-item active"><i class="fas fa-book"></i><span>BKU Penerimaan</span></a>
 
-                            <a href="#" class="menu-item submenu-item"><i class="fas fa-clipboard-list"></i><span>Register</span></a>
-                            <a href="#" class="menu-item submenu-item"><i class="fas fa-file-invoice-dollar"></i><span>LPJ</span></a>
+                            <a href="register-sts.html" class="menu-item submenu-item"><i class="fas fa-clipboard-list"></i><span>Register STS</span></a>
+                            <a href="lpj-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-file-invoice-dollar"></i><span>LPJ</span></a>
+                            <a href="rekap-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-table"></i><span>Rekap Harian &amp; Bulanan</span></a>
                         </div>
                     </div>
                 </div>
@@ -445,6 +452,10 @@
                 <i class="fas fa-book"></i>
                 <span>Akuntansi</span>
             </a>
+            <a href="../api/dokumen_go.php" class="menu-item">
+                <i class="fas fa-pen-nib"></i>
+                <span>Tanda Tangan Dokumen</span>
+            </a>
 
             <!-- Pengaturan -->
             <div class="menu-group" data-menu="pengaturan">
@@ -455,6 +466,7 @@
                 </a>
                 <div class="submenu">
                     <a href="../pengaturan/akun-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-coins"></i><span>Akun Penerimaan</span></a>
+                    <a href="../pengaturan/anggaran-neraca.html" class="menu-item submenu-item"><i class="fas fa-chart-line"></i><span>Anggaran &amp; Neraca</span></a>
                 </div>
             </div>
 
@@ -712,6 +724,7 @@
         </footer>
     </div>
 
+    <script src="../js/popup.js"></script>
     <script src="../js/dashboard.js"></script>
     <script>
         // ==========================================
@@ -894,7 +907,7 @@
                 reader.onload = function (ev) {
                     sheet.style.setProperty('--wm', 'url("' + ev.target.result + '")');
                     sheet.classList.add('watermarked');
-                    wmText.innerHTML = 'File: <b>' + file.name + '</b>';
+                    wmText.textContent = 'File: ' + file.name;
                     wmClear.style.display = 'inline-flex';
                 };
                 reader.readAsDataURL(file);

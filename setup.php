@@ -2,21 +2,43 @@
 /**
  * SIM-TKD - Setup Installer (Form)
  * ============================================
- * Installer berbasis form. Masukkan kredensial database (host, user,
- * password, nama database) lalu klik "Mulai Instalasi".
+ * Installer berbasis form (TERKUNCI TOKEN).
+ *
+ * Cara pakai:
+ *   1. Buat file config/setup_token.php:  <?php return 'TOKEN_RAHASIA';
+ *   2. Buka http://localhost/PENATAUSAHAAN/setup.php?token=TOKEN_RAHASIA
+ *   3. Isi kredensial database lalu klik "Mulai Instalasi".
  *
  * Script ini akan:
  *  1. Koneksi ke MySQL menggunakan kredensial yang Anda isi
  *  2. Membuat database (jika belum ada)
  *  3. Membuat tabel `users` dan `kegiatan`
  *  4. Membuat akun admin (default: admin / admin123)
- *  5. Menulis kredensial ke file `config/db.php`
+ *  5. Menulis kredensial ke file `config/credentials.php` (tidak menimpa db.php)
  *
- * Cara pakai: buka http://localhost/PENATAUSAHAAN/setup.php
  * Setelah sukses, HAPUS file ini dari server Anda!
  */
 
 declare(strict_types=1);
+
+// ============================================
+// PENGAMAN: installer hanya bisa dijalankan dengan SETUP_TOKEN
+// ============================================
+// Cara pakai:
+//   1. Buat file config/setup_token.php berisi: <?php return 'TOKEN_RAHASIA';
+//   2. Buka: setup.php?token=TOKEN_RAHASIA
+// Setelah instalasi selesai: HAPUS file setup.php dari server!
+$setupTokenFile = __DIR__ . '/config/setup_token.php';
+$setupToken = is_file($setupTokenFile) ? trim((string) require $setupTokenFile) : '';
+if ($setupToken === '') {
+    http_response_code(403);
+    exit('<h2 style="font-family:sans-serif">Setup terkunci</h2><p style="font-family:sans-serif">Installer dinonaktifkan. Buat file <code>config/setup_token.php</code> berisi token rahasia (<code>&lt;?php return "TOKEN";</code>) lalu akses <code>setup.php?token=TOKEN</code>. Setelah selesai, hapus file <code>setup.php</code> dari server.</p>');
+}
+$givenToken = (string) ($_REQUEST['setup_token'] ?? $_GET['token'] ?? '');
+if ($givenToken === '' || !hash_equals($setupToken, $givenToken)) {
+    http_response_code(403);
+    exit('<h2 style="font-family:sans-serif">Akses ditolak</h2><p style="font-family:sans-serif">Token setup tidak valid. Akses dengan <code>setup.php?token=TOKEN</code>.</p>');
+}
 
 error_reporting(E_ALL);
 ini_set('display_errors', '1');
@@ -50,85 +72,25 @@ $hasError = false;
 $done     = false;
 
 // ============================================
-// Fungsi menulis config/db.php
+// Fungsi menulis config/credentials.php
 // ============================================
 function writeConfigFile(array $cfg): bool
 {
-    // Template config (NOWDOC - tidak ada interpolasi otomatis)
-    $template = <<<'CONFIG'
-<?php
-/**
- * SIM-TKD - Database Connection (PDO)
- * ============================================
- * File ini dibuat otomatis oleh setup.php.
- * Edit hanya jika diperlukan.
- */
+    // Tulis kredensial ke config/credentials.php (file terpisah, di-gitignore).
+    // db.php sudah membaca file ini secara otomatis — tidak perlu menimpa db.php.
+    $cred = "<?php\n"
+        . "/**\n"
+        . " * KREDENSIAL DATABASE - dibuat oleh setup.php (" . date('Y-m-d H:i:s') . ")\n"
+        . " * File ini TIDAK di-commit ke git. Jaga kerahasiaannya.\n"
+        . " */\n"
+        . "return [\n"
+        . "    'host' => " . var_export($cfg['db_host'], true) . ",\n"
+        . "    'name' => " . var_export($cfg['db_name'], true) . ",\n"
+        . "    'user' => " . var_export($cfg['db_user'], true) . ",\n"
+        . "    'pass' => " . var_export($cfg['db_pass'], true) . ",\n"
+        . "];\n";
 
-declare(strict_types=1);
-
-// Konfigurasi database
-define('DB_HOST', __DB_HOST__);
-define('DB_NAME', __DB_NAME__);
-define('DB_USER', __DB_USER__);
-define('DB_PASS', __DB_PASS__);
-
-// Cegah akses langsung ke file ini
-if (basename($_SERVER['PHP_SELF'] ?? '') === 'db.php') {
-    http_response_code(403);
-    exit('Akses ditolak.');
-}
-
-/**
- * Mengembalikan koneksi PDO (singleton).
- */
-function db(): PDO
-{
-    static $pdo = null;
-
-    if ($pdo === null) {
-        try {
-            $pdo = new PDO(
-                'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=utf8mb4',
-                DB_USER,
-                DB_PASS,
-                [
-                    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                    PDO::ATTR_EMULATE_PREPARES   => false,
-                ]
-            );
-        } catch (PDOException $e) {
-            // Respons JSON jika dipanggil dari API
-            if (strpos($_SERVER['REQUEST_URI'] ?? '', '/api/') !== false) {
-                http_response_code(500);
-                header('Content-Type: application/json');
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Koneksi ke database gagal. Pastikan MySQL aktif dan database sudah dibuat (jalankan setup.php).'
-                ]);
-                exit;
-            }
-            http_response_code(500);
-            exit('Koneksi ke database gagal: ' . htmlspecialchars($e->getMessage()));
-        }
-    }
-
-    return $pdo;
-}
-CONFIG;
-
-    $content = str_replace(
-        ['__DB_HOST__', '__DB_NAME__', '__DB_USER__', '__DB_PASS__'],
-        [
-            var_export($cfg['db_host'], true),
-            var_export($cfg['db_name'], true),
-            var_export($cfg['db_user'], true),
-            var_export($cfg['db_pass'], true),
-        ],
-        $template
-    );
-
-    return file_put_contents(__DIR__ . '/config/db.php', $content) !== false;
+    return file_put_contents(__DIR__ . '/config/credentials.php', $cred) !== false;
 }
 
 // ============================================
@@ -181,7 +143,7 @@ if ($submitted) {
                     api_token     VARCHAR(64)   DEFAULT NULL,
                     peran         ENUM('Admin Dinas','Operator','Bendahara','Verifikator','Kepala Dinas','Pengguna Umum')
                                   DEFAULT 'Pengguna Umum',
-                    status        ENUM('pending','aktif','nonaktif') DEFAULT 'pending',
+                    status        ENUM('pending','aktif','nonaktif') DEFAULT 'aktif',
                     created_at    TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
                     updated_at    TIMESTAMP     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                     INDEX idx_status (status),
@@ -592,6 +554,7 @@ if ($submitted) {
         <?php if (!$submitted): ?>
             <!-- FORM -->
             <form method="post" autocomplete="off">
+                <input type="hidden" name="setup_token" value="<?= htmlspecialchars($givenToken) ?>">
                 <label for="db_host">Database Host</label>
                 <input type="text" id="db_host" name="db_host" value="<?= htmlspecialchars($input['db_host']) ?>" required>
                 <div class="hint">Umumnya <b>localhost</b> untuk XAMPP/MAMP/Laragon.</div>
@@ -637,7 +600,7 @@ if ($submitted) {
                     <a href="login.html" class="primary">Ke Halaman Login</a>
                     <a href="dashboard.html" class="secondary">Ke Dashboard</a>
                 <?php else: ?>
-                    <a href="setup.php" class="primary">Coba Lagi</a>
+                    <a href="setup.php?token=<?= urlencode($givenToken) ?>" class="primary">Coba Lagi</a>
                 <?php endif; ?>
             </div>
         <?php endif; ?>

@@ -147,7 +147,8 @@
         .stbp-footer {
             margin-top: 44px;
             display: flex;
-            justify-content: flex-end;
+            justify-content: space-between;
+            gap: 40px;
         }
         .stbp-sign {
             text-align: center;
@@ -381,6 +382,12 @@
                         </div>
                     </div>
 
+                    <!-- SKP - Daerah (alur sebelum STBP) -->
+                    <a href="skp-daerah.html" class="menu-item">
+                        <i class="fas fa-receipt"></i>
+                        <span>SKP - Daerah</span>
+                    </a>
+
                     <!-- STBP (aktif) -->
                     <a href="stbp-pembuatan.html" class="menu-item active">
                         <i class="fas fa-file-invoice"></i>
@@ -401,8 +408,9 @@
                         </a>
                         <div class="submenu">
                             <a href="bku-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-book"></i><span>BKU Penerimaan</span></a>
-                            <a href="#" class="menu-item submenu-item"><i class="fas fa-clipboard-list"></i><span>Register</span></a>
-                            <a href="#" class="menu-item submenu-item"><i class="fas fa-file-invoice-dollar"></i><span>LPJ</span></a>
+                            <a href="register-sts.html" class="menu-item submenu-item"><i class="fas fa-clipboard-list"></i><span>Register STS</span></a>
+                            <a href="lpj-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-file-invoice-dollar"></i><span>LPJ</span></a>
+                            <a href="rekap-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-table"></i><span>Rekap Harian &amp; Bulanan</span></a>
                         </div>
                     </div>
                 </div>
@@ -434,6 +442,10 @@
                 <i class="fas fa-book"></i>
                 <span>Akuntansi</span>
             </a>
+            <a href="../api/dokumen_go.php" class="menu-item">
+                <i class="fas fa-pen-nib"></i>
+                <span>Tanda Tangan Dokumen</span>
+            </a>
 
             <!-- Pengaturan -->
             <div class="menu-group" data-menu="pengaturan">
@@ -444,6 +456,7 @@
                 </a>
                 <div class="submenu">
                     <a href="../pengaturan/akun-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-coins"></i><span>Akun Penerimaan</span></a>
+                    <a href="../pengaturan/anggaran-neraca.html" class="menu-item submenu-item"><i class="fas fa-chart-line"></i><span>Anggaran &amp; Neraca</span></a>
                 </div>
             </div>
 
@@ -505,6 +518,7 @@
             <div class="print-toolbar">
                 <button class="btn btn-outline" onclick="history.back();"><i class="fas fa-arrow-left"></i> Kembali</button>
                 <button class="btn btn-success" id="btnCetak" onclick="window.print();"><i class="fas fa-print"></i> Cetak Sekarang</button>
+                <button class="btn btn-primary" id="btnKirimTtd"><i class="fas fa-pen-nib"></i> Kirim ke Tanda Tangan</button>
             </div>
 
             <!-- ===== Pengaturan Kertas PDF ===== -->
@@ -654,6 +668,7 @@
                 <div class="stbp-field"><span class="flabel">e. Sebesar</span><span class="fval amount" id="fSebesar">-</span></div>
                 <div class="stbp-field"><span class="flabel">f. Terbilang</span><span class="fval stbp-words" id="fTerbilang">-</span></div>
                 <div class="stbp-field"><span class="flabel">g. Sebagai Pembayaran</span><span class="fval" id="fUraian">-</span></div>
+                <div class="stbp-field" id="skpField"><span class="flabel">h. Nomor SKP Daerah</span><span class="fval" id="fSkp">-</span></div>
 
                 <div class="stbp-rincian-title">Dengan rincian penerimaan sebagai berikut:</div>
                 <table class="stbp-table">
@@ -679,7 +694,13 @@
                 <div class="stbp-footer">
                     <div class="stbp-sign">
                         <div class="role">Bendahara Penerimaan,<br><span id="signRole">Dinas Kepemudaan dan Olahraga</span></div>
+                        <div class="ttd-slot" data-urut="2"></div>
                         <div class="name" id="signName">(______________________)</div>
+                    </div>
+                    <div class="stbp-sign">
+                        <div class="role">Penyetor/Pembayar,</div>
+                        <div class="ttd-slot" data-urut="1"></div>
+                        <div class="name" id="signNamePenyetor">(______________________)</div>
                     </div>
                 </div>
             </div>
@@ -691,6 +712,7 @@
         </footer>
     </div>
 
+    <script src="../js/popup.js"></script>
     <script src="../js/dashboard.js"></script>
     <script>
         // ==========================================
@@ -740,6 +762,66 @@
             const params = new URLSearchParams(window.location.search);
             const id = params.get('id');
 
+            // ==== Kirim ke antrean tanda tangan (doc.simtkd.com) ====
+            var metaTtd = { jenis: 'STBP', refId: id, nomor: '', tanggal: '', judul: '', penandatangan: [] };
+
+            function kirimTtd() {
+                var btn = document.getElementById('btnKirimTtd');
+                var sheet = document.getElementById('stbpSheet');
+                if (!btn || !sheet) return;
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengirim...';
+
+                // Bangun HTML mandiri (CSS tertanam) agar bisa ditandatangani
+                var cssText = '';
+                try {
+                    var linkCss = document.querySelector('link[href*="dashboard.css"]');
+                    var req = new XMLHttpRequest();
+                    req.open('GET', linkCss ? linkCss.getAttribute('href') : '../css/dashboard.css', false);
+                    req.send();
+                    if (req.status >= 200 && req.status < 300) cssText += req.responseText;
+                } catch (e) { /* abaikan */ }
+                document.querySelectorAll('style').forEach(function (st) { cssText += '\n' + st.textContent; });
+                cssText += '\n.stbp-sheet{position:relative;}\n#docArea .ttd-slot img{max-width:200px;max-height:64px;display:block;}\n';
+
+                var html = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + escapeHtml(metaTtd.judul) + '</title><style>' + cssText + '</style></head>' +
+                    '<body style="margin:0;background:#fff;"><div id="docArea">' + sheet.outerHTML + '</div></body></html>';
+
+                var body = new URLSearchParams();
+                body.append('action', 'kirim');
+                body.append('jenis', metaTtd.jenis);
+                body.append('ref_id', String(metaTtd.refId || ''));
+                body.append('nomor', metaTtd.nomor || '');
+                body.append('judul', metaTtd.judul || '');
+                body.append('tanggal', metaTtd.tanggal || '');
+                body.append('konten_html', html);
+                if (metaTtd.penandatangan && metaTtd.penandatangan.length) {
+                    body.append('penandatangan', JSON.stringify(metaTtd.penandatangan));
+                }
+
+                fetch('../api/dokumen.php', { method: 'POST', body: body })
+                    .then(function (res) { return res.json(); })
+                    .then(function (d) {
+                        if (d && d.success) {
+                            btn.innerHTML = '<i class="fas fa-check"></i> Terkirim ke TTD';
+                            var t = document.createElement('div');
+                            t.style.cssText = 'position:fixed;bottom:20px;right:20px;background:#0e2140;color:#fff;padding:12px 18px;border-radius:8px;z-index:9999;font:13px -apple-system,system-ui,sans-serif;box-shadow:0 6px 18px rgba(0,0,0,.25)';
+                            t.textContent = d.message || 'Dokumen terkirim ke antrean tanda tangan.';
+                            document.body.appendChild(t);
+                            setTimeout(function () { t.remove(); }, 4000);
+                        } else {
+                            btn.disabled = false;
+                            btn.innerHTML = '<i class="fas fa-pen-nib"></i> Kirim ke Tanda Tangan';
+                            alert((d && d.message) || 'Gagal mengirim dokumen.');
+                        }
+                    })
+                    .catch(function () {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-pen-nib"></i> Kirim ke Tanda Tangan';
+                        alert('Gagal mengirim (jaringan).');
+                    });
+            }
+
             function showNotFound() {
                 document.getElementById('stbpNotFound').style.display = 'block';
                 document.getElementById('stbpSheet').style.display = 'none';
@@ -763,6 +845,9 @@
 
                     document.getElementById('docInstansi').textContent = (s.skpd || 'PEMERINTAH DAERAH').toUpperCase();
                     document.getElementById('docNomor').textContent = 'Nomor: ' + (s.nomor_stbp || '-');
+                    metaTtd.nomor = s.nomor_stbp || '';
+                    metaTtd.tanggal = s.tanggal || '';
+                    metaTtd.judul = 'STBP - ' + (s.nomor_stbp || id);
                     document.getElementById('fDari').textContent = p.nama_penyetor || '-';
                     document.getElementById('fTanggal').textContent = formatTanggal(s.tanggal);
                     document.getElementById('fBank').textContent = p.bank || '-';
@@ -771,8 +856,23 @@
                     document.getElementById('fTerbilang').textContent = terbilang(s.jumlah);
                     document.getElementById('fUraian').textContent = s.uraian ||
                         ('Penerimaan ' + (s.akun_nama || '') + ' pada ' + (s.skpd || ''));
+                    // Nomor SKP Daerah (data STBP merujuk/konsisten dengan SKP)
+                    if (s.nomor_skp) {
+                        document.getElementById('skpField').style.display = '';
+                        document.getElementById('fSkp').textContent =
+                            s.nomor_skp +
+                            (s.jenis_pajak ? ' (' + s.jenis_pajak + (s.skp_akun_kode ? ' — ' + s.skp_akun_kode + ')' : ')') : '');
+                    } else {
+                        document.getElementById('skpField').style.display = 'none';
+                    }
+                    // Dua penandatangan: Bendahara Penerimaan (kiri) dan Penyetor/Pembayar (kanan, tanpa nama dinas)
                     document.getElementById('signRole').textContent = s.skpd || 'Dinas';
                     document.getElementById('signName').textContent = s.dibuat_oleh || '(______________________)';
+                    document.getElementById('signNamePenyetor').textContent = p.nama_penyetor || '(______________________)';
+                    metaTtd.penandatangan = [
+                        { user: '', urutan: 1, jabatan: 'Penyetor', nama: p.nama_penyetor || '' },
+                        { user: 'self', urutan: 2, jabatan: 'Bendahara Penerimaan', nama: s.dibuat_oleh || '' }
+                    ];
 
                     const tbody = document.getElementById('rincianBody');
                     if (!rows.length) {
@@ -848,7 +948,7 @@
                 reader.onload = function (ev) {
                     sheet.style.setProperty('--sf-watermark', 'url("' + ev.target.result + '")');
                     sheet.classList.add('watermarked');
-                    wmText.innerHTML = 'File: <b>' + file.name + '</b>';
+                    wmText.textContent = 'File: ' + file.name;
                     wmClear.style.display = 'inline-flex';
                 };
                 reader.readAsDataURL(file);
@@ -874,6 +974,10 @@
                 wmDrop.classList.remove('drag');
                 if (e.dataTransfer.files && e.dataTransfer.files[0]) setWatermark(e.dataTransfer.files[0]);
             });
+
+            // ==== Kirim ke Tanda Tangan ====
+            var btnTtd = document.getElementById('btnKirimTtd');
+            if (btnTtd) btnTtd.addEventListener('click', kirimTtd);
         })();
     </script>
 </body>

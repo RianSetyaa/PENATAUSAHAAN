@@ -120,6 +120,14 @@
                 </div>
             </div>
             <a href="../api/aklap_go.php" class="menu-item"><i class="fas fa-book"></i><span>Akuntansi</span></a>
+            <a href="../api/dokumen_go.php" class="menu-item"><i class="fas fa-pen-nib"></i><span>Tanda Tangan Dokumen</span></a>
+            <div class="menu-group" data-menu="pengaturan">
+                <a href="#" class="menu-item has-submenu"><i class="fas fa-cog"></i><span>Pengaturan</span><i class="fas fa-chevron-down submenu-arrow"></i></a>
+                <div class="submenu">
+                    <a href="../pengaturan/akun-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-coins"></i><span>Akun Penerimaan</span></a>
+                    <a href="../pengaturan/anggaran-neraca.html" class="menu-item submenu-item"><i class="fas fa-chart-line"></i><span>Anggaran &amp; Neraca</span></a>
+                </div>
+            </div>
             <span class="menu-label">AKUN</span>
             <a href="../api/logout.php" class="menu-item menu-logout"><i class="fas fa-sign-out-alt"></i><span>Keluar</span></a>
         </nav>
@@ -199,6 +207,7 @@
                     <div class="bku-actions">
                         <button class="btn btn-primary" id="btnGenerate"><i class="fas fa-book"></i> BKU Belanja SKPD</button>
                         <button class="btn btn-success" id="btnCetak" onclick="window.print();"><i class="fas fa-print"></i> Cetak Sekarang</button>
+                        <button class="btn btn-primary" id="btnKirimTtd"><i class="fas fa-pen-nib"></i> Kirim ke Tanda Tangan</button>
                     </div>
                 </div>
             </div>
@@ -241,6 +250,7 @@
                         <div>Disiapkan Oleh</div>
                         <div class="label">Bendahara Pengeluaran</div>
                         <div class="space"></div>
+                        <div class="ttd-slot"></div>
                         <div class="name" id="signBP">(______________________)</div>
                     </div>
                 </div>
@@ -252,6 +262,7 @@
         </footer>
     </div>
 
+    <script src="../js/popup.js"></script>
     <script src="../js/dashboard.js"></script>
     <script>
         // ==========================================
@@ -381,6 +392,62 @@
                     '<p>Total Pengeluaran (SP2D Dicairkan) : ' + formatRupiah(total) + '</p>';
             }
 
+            // ---------- Kirim ke antrean tanda tangan (doc.simtkd.com) ----------
+            function kirimTtd() {
+                var btn = document.getElementById('btnKirimTtd');
+                var sheetEl = document.getElementById('bkuSheet');
+                if (!btn || !sheetEl) return;
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengirim...';
+
+                var cssText = '';
+                try {
+                    var linkCss = document.querySelector('link[href*="dashboard.css"]');
+                    var req = new XMLHttpRequest();
+                    req.open('GET', linkCss ? linkCss.getAttribute('href') : '../css/dashboard.css', false);
+                    req.send();
+                    if (req.status >= 200 && req.status < 300) cssText += req.responseText;
+                } catch (e) { /* abaikan */ }
+                document.querySelectorAll('style').forEach(function (st) { cssText += '\n' + st.textContent; });
+                cssText += '\n.bku-sheet{position:relative;}\n#docArea .ttd-slot img{max-width:200px;max-height:64px;display:block;}\n';
+
+                var judul = 'BKU Belanja - ' + formatTanggal(document.getElementById('perDari').value) + ' s.d ' + formatTanggal(document.getElementById('perSampai').value);
+                var html = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + escapeHtml(judul) + '</title><style>' + cssText + '</style></head>' +
+                    '<body style="margin:0;background:#fff;"><div id="docArea">' + sheetEl.outerHTML + '</div></body></html>';
+
+                var body = new URLSearchParams();
+                body.append('action', 'kirim');
+                body.append('jenis', 'BKU Belanja');
+                body.append('ref_id', '');
+                body.append('nomor', '');
+                body.append('judul', judul);
+                body.append('tanggal', document.getElementById('perSampai').value || '');
+                body.append('konten_html', html);
+
+                fetch('../api/dokumen.php', { method: 'POST', body: body })
+                    .then(function (res) { return res.json(); })
+                    .then(function (d) {
+                        if (d && d.success) {
+                            btn.innerHTML = '<i class="fas fa-check"></i> Terkirim ke TTD';
+                            var t = document.createElement('div');
+                            t.style.cssText = 'position:fixed;bottom:20px;right:20px;background:#0e2140;color:#fff;padding:12px 18px;border-radius:8px;z-index:9999;font:13px -apple-system,system-ui,sans-serif;box-shadow:0 6px 18px rgba(0,0,0,.25)';
+                            t.textContent = d.message || 'Dokumen terkirim ke antrean tanda tangan.';
+                            document.body.appendChild(t);
+                            setTimeout(function () { t.remove(); }, 4000);
+                        } else {
+                            btn.disabled = false;
+                            btn.innerHTML = '<i class="fas fa-pen-nib"></i> Kirim ke Tanda Tangan';
+                            alert((d && d.message) || 'Gagal mengirim dokumen.');
+                        }
+                    })
+                    .catch(function () {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-pen-nib"></i> Kirim ke Tanda Tangan';
+                        alert('Gagal mengirim (jaringan).');
+                    });
+            }
+            document.getElementById('btnKirimTtd').addEventListener('click', kirimTtd);
+
             // ---------- Watermark ----------
             const sheet = document.getElementById('bkuSheet');
 
@@ -433,7 +500,7 @@
                 reader.onload = function (ev) {
                     sheet.style.setProperty('--wm', 'url("' + ev.target.result + '")');
                     sheet.classList.add('watermarked');
-                    wmText.innerHTML = 'File: <b>' + file.name + '</b>';
+                    wmText.textContent = 'File: ' + file.name;
                     wmClear.style.display = 'inline-flex';
                 };
                 reader.readAsDataURL(file);

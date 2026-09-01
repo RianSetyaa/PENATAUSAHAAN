@@ -62,6 +62,12 @@
                         </div>
                     </div>
 
+                    <!-- SKP - Daerah (alur sebelum STBP) -->
+                    <a href="skp-daerah.html" class="menu-item">
+                        <i class="fas fa-receipt"></i>
+                        <span>SKP - Daerah</span>
+                    </a>
+
                     <!-- STBP -->
                     <div class="menu-group" data-menu="stbp">
                         <a href="#" class="menu-item has-submenu">
@@ -92,8 +98,9 @@
                         </a>
                         <div class="submenu">
                             <a href="bku-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-book"></i><span>BKU Penerimaan</span></a>
-                            <a href="#" class="menu-item submenu-item"><i class="fas fa-clipboard-list"></i><span>Register</span></a>
-                            <a href="#" class="menu-item submenu-item"><i class="fas fa-file-invoice-dollar"></i><span>LPJ</span></a>
+                            <a href="register-sts.html" class="menu-item submenu-item"><i class="fas fa-clipboard-list"></i><span>Register STS</span></a>
+                            <a href="lpj-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-file-invoice-dollar"></i><span>LPJ</span></a>
+                            <a href="rekap-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-table"></i><span>Rekap Harian &amp; Bulanan</span></a>
                         </div>
                     </div>
                 </div>
@@ -124,6 +131,10 @@
             <a href="../api/aklap_go.php" class="menu-item">
                 <i class="fas fa-book"></i>
                 <span>Akuntansi</span>
+            </a>
+            <a href="../api/dokumen_go.php" class="menu-item">
+                <i class="fas fa-pen-nib"></i>
+                <span>Tanda Tangan Dokumen</span>
             </a>
 
             <!-- Pengaturan -->
@@ -242,6 +253,11 @@
                                 </select>
                             </div>
                             <div class="form-group">
+                                <label for="kuasaKpa">Nama Kuasa Pengguna Anggaran</label>
+                                <input type="text" id="kuasaKpa" class="form-control" placeholder="Nama Kuasa Pengguna Anggaran ...">
+                                <p class="form-hint"><i class="fas fa-info-circle"></i> Nama ini tampil sebagai penandatangan ke-2 pada dokumen STS.</p>
+                            </div>
+                            <div class="form-group">
                                 <label for="namaBank">Pilih Bank</label>
                                 <select id="namaBank" class="form-control">
                                     <option value="">Pilih Bank</option>
@@ -321,7 +337,7 @@
                         </div>
 
                         <!-- Tabel STBP terpilih -->
-                        <div class="sts-pilih-title">Pilih STBP</div>
+                        <div class="sts-pilih-title">Pilih STBP <span class="tab-count" style="font-weight:400;font-size:11px;">menampilkan STBP yang belum pernah dibuatkan STS</span></div>
                         <div class="card table-card" id="stbpTableCard" style="display:none;">
                             <div class="card-body table-body">
                                 <table class="data-table">
@@ -375,7 +391,12 @@
                 const toast = document.createElement('div');
                 toast.className = 'toast toast-' + (type || 'success');
                 const icons = { success: 'fa-check-circle', error: 'fa-times-circle', warning: 'fa-exclamation-triangle' };
-                toast.innerHTML = '<i class="fas ' + (icons[type] || icons.success) + '"></i><span>' + message + '</span>';
+                const span = document.createElement('span');
+                span.textContent = message; // aman dari XSS
+                const icon = document.createElement('i');
+                icon.className = 'fas ' + (icons[type] || icons.success);
+                toast.appendChild(icon);
+                toast.appendChild(span);
                 document.body.appendChild(toast);
                 setTimeout(function () { toast.remove(); }, 3200);
             }
@@ -518,12 +539,16 @@
 
             function renderStbpPicker() {
                 const q = cariStbp.value.trim().toLowerCase();
+                // STBP yang sudah dipilih disembunyikan dari daftar (tidak dobel)
+                const selectedIds = {};
+                selectedStbp.forEach(function (s) { selectedIds[s.id] = true; });
                 const filtered = stbpCache.filter(function (s) {
+                    if (selectedIds[s.id]) return false;
                     return (s.nomor_stbp + ' ' + s.akun_nama + ' ' + s.uraian).toLowerCase().indexOf(q) !== -1;
                 });
 
                 if (!filtered.length) {
-                    stbpPickBody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#9098a5;">Data tidak ditemukan.</td></tr>';
+                    stbpPickBody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#9098a5;">Tidak ada STBP tersedia (sudah pernah dibuatkan STS).</td></tr>';
                     pickPageInfo.textContent = 'Menampilkan 0 data';
                     pickPrev.disabled = true;
                     pickNext.disabled = true;
@@ -538,13 +563,9 @@
                 const start = (pickPage - 1) * perPage;
                 const pageData = filtered.slice(start, start + perPage);
 
-                const selectedIds = {};
-                selectedStbp.forEach(function (s) { selectedIds[s.id] = true; });
-
                 stbpPickBody.innerHTML = pageData.map(function (s) {
-                    const disabled = selectedIds[s.id] ? ' disabled' : '';
                     return '<tr>' +
-                        '<td><input type="checkbox" class="row-check pick-check" data-id="' + s.id + '"' + disabled + '></td>' +
+                        '<td><input type="checkbox" class="row-check pick-check" data-id="' + s.id + '"></td>' +
                         '<td><strong>' + escapeHtml(s.nomor_stbp) + '</strong></td>' +
                         '<td class="num">' + formatRupiah(s.jumlah) + '</td>' +
                         '<td>' + formatTanggalSts(s.tanggal) + '</td>' +
@@ -554,7 +575,7 @@
 
                 checkAll.checked = false;
                 const end = start + pageData.length;
-                pickPageInfo.textContent = 'Menampilkan ' + start + 1 + ' sampai ' + end + ' dari ' + filtered.length + ' data';
+                pickPageInfo.textContent = 'Menampilkan ' + (start + 1) + ' sampai ' + end + ' dari ' + filtered.length + ' data';
                 pickPrev.disabled = pickPage <= 1;
                 pickNext.disabled = pickPage >= totalPages;
                 pickPageCurrent.textContent = pickPage;
@@ -572,7 +593,10 @@
             pickNext.addEventListener('click', function () {
                 const perPage = parseInt(pickPerPage.value, 10);
                 const q = cariStbp.value.trim().toLowerCase();
+                const selIds = {};
+                selectedStbp.forEach(function (s) { selIds[s.id] = true; });
                 const totalPages = Math.max(1, Math.ceil(stbpCache.filter(function (s) {
+                    if (selIds[s.id]) return false;
                     return (s.nomor_stbp + ' ' + s.akun_nama + ' ' + s.uraian).toLowerCase().indexOf(q) !== -1;
                 }).length / perPage));
                 if (pickPage < totalPages) { pickPage++; renderStbpPicker(); }
@@ -641,6 +665,7 @@
                         tanggal_acuan_dari: document.getElementById('tanggalDari').value,
                         tanggal_acuan_akhir: document.getElementById('tanggalAkhir').value,
                         mengetahui: document.getElementById('mengetahui').value,
+                        kuasa_pengguna_anggaran: document.getElementById('kuasaKpa').value.trim(),
                         nama_bank: document.getElementById('namaBank').value.split('|')[0],
                         nomor_rekening: document.getElementById('nomorRekening').value.trim(),
                         nama_rekening: document.getElementById('namaRekening').value.trim(),

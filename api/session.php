@@ -27,10 +27,10 @@ $pdo = db();
 // (mis. akun lama yang dibuat sebelum sistem token), buatkan sekarang
 // agar link AKLAP selalu bisa membawa ?token= tanpa migrasi manual.
 if (empty($_SESSION['api_token'])) {
-    $newToken = bin2hex(random_bytes(16));
+    $newToken = generateApiToken();
     try {
         $stmt = $pdo->prepare("UPDATE users SET api_token = ? WHERE id = ?");
-        $stmt->execute([$newToken, (int) $_SESSION['user_id']]);
+        $stmt->execute([hashApiToken($newToken), (int) $_SESSION['user_id']]);
         $_SESSION['api_token'] = $newToken;
     } catch (Throwable $e) {
         // abaikan; biarkan kosong bila gagal (tetap login)
