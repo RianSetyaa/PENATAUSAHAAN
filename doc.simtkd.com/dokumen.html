@@ -100,6 +100,7 @@
                     </div>
                     <div class="btn-row">
                         <button type="button" class="btn btn-outline btn-sm" id="btnBersih"><i class="fas fa-eraser"></i> Bersihkan</button>
+                        <button type="button" class="btn btn-outline btn-sm" id="btnPerbesar" title="Perbesar area gambar"><i class="fas fa-expand"></i> Perbesar</button>
                         <button type="button" class="btn btn-blue btn-sm" id="btnTempatkan"><i class="fas fa-hand-pointer"></i> Tempatkan Manual</button>
                     </div>
                     <div id="placeBox" class="place-box" style="display:none;">
@@ -119,6 +120,22 @@
                         <button type="button" class="btn btn-green btn-block" id="btnTtd"><i class="fas fa-pen-nib"></i> Tanda Tangan Dokumen</button>
                     </div>
                     <div id="qrBox" style="position:absolute;left:-9999px;" aria-hidden="true"></div>
+                </div>
+
+                <!-- Modal perbesar kanvas tanda tangan -->
+                <div class="pad-modal" id="padModal" style="display:none;">
+                    <div class="pad-modal-card">
+                        <div class="pad-modal-head">
+                            <h3><i class="fas fa-pen-nib"></i> Gambar Tanda Tangan</h3>
+                            <button type="button" class="pad-modal-close" id="btnPadTutup" title="Tutup"><i class="fas fa-xmark"></i></button>
+                        </div>
+                        <div id="padModalWrap"></div>
+                        <div class="pad-note">Gambar tanda tangan Anda di kotak besar di atas — jauh lebih lega daripada di panel samping.</div>
+                        <div class="btn-row">
+                            <button type="button" class="btn btn-outline btn-sm" id="btnBersihModal"><i class="fas fa-eraser"></i> Bersihkan</button>
+                            <button type="button" class="btn btn-blue btn-sm" id="btnPadSelesai"><i class="fas fa-check"></i> Selesai</button>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="side-card" id="panelSelesai" style="display:none;">
@@ -431,6 +448,42 @@
             hasInk = false;
         }
         document.getElementById('btnBersih').addEventListener('click', bersihkan);
+
+        // ===== Perbesar area gambar tanda tangan (modal) =====
+        // Kanvas yang sama dipindah sementara ke modal: isi gambar, tanda tangan
+        // tersimpan, dan listener menggambar tetap berfungsi tanpa duplikasi.
+        (function () {
+            var modal = document.getElementById('padModal');
+            var wrap = document.getElementById('padModalWrap');
+            var btnPerbesar = document.getElementById('btnPerbesar');
+            var btnSelesai = document.getElementById('btnPadSelesai');
+            var btnTutup = document.getElementById('btnPadTutup');
+            var btnBersihModal = document.getElementById('btnBersihModal');
+            var padNote = document.getElementById('padNote');
+            if (!modal || !wrap || !btnPerbesar || !padNote) return;
+
+            function buka() {
+                wrap.appendChild(pad); // pindahkan kanvas ke modal
+                ctx.lineWidth = 3.4; // goresan lebih tebal agar terlihat jelas di kanvas besar
+                modal.style.display = 'flex';
+            }
+            function tutup() {
+                modal.style.display = 'none';
+                ctx.lineWidth = 2.4; // kembali ke ketebalan normal di panel samping
+                padNote.parentNode.insertBefore(pad, padNote); // kembalikan ke panel
+            }
+            btnPerbesar.addEventListener('click', buka);
+            btnSelesai.addEventListener('click', tutup);
+            btnTutup.addEventListener('click', tutup);
+            if (btnBersihModal) btnBersihModal.addEventListener('click', bersihkan);
+            modal.addEventListener('mousedown', function (e) {
+                if (e.target === modal) tutup(); // klik area gelap di luar kartu
+            });
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape' && modal.style.display !== 'none') tutup();
+            });
+        })();
+
 
         // Muat tanda tangan tersimpan (bila ada) ke kanvas
         function muatTtdTersimpan() {
