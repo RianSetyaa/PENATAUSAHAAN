@@ -230,6 +230,176 @@ if ($action === 'approve' || $action === 'reject') {
 }
 
 // ============================================
+// 1c. JURNAL BIASA - input manual jurnal (menggantikan alur approve).
+//     Pengguna memasukkan nomor dokumen + nomor akun secara manual;
+//     entri tersimpan persisten di tabel jurnal_manual (multi-tenant).
+// ============================================
+if ($action === 'jurnal_biasa') {
+    // Pastikan tabel tersedia (tanpa perlu import SQL manual)
+    $pdo->exec("CREATE TABLE IF NOT EXISTS jurnal_manual (
+        id            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        user_id       INT UNSIGNED      DEFAULT NULL,
+        skpd          VARCHAR(150)      NOT NULL DEFAULT '',
+        nomor_jurnal  VARCHAR(60)       NOT NULL DEFAULT '',
+        nomor_dokumen VARCHAR(100)      NOT NULL DEFAULT '',
+        kode_akun     VARCHAR(50)       NOT NULL DEFAULT '',
+        nama_akun     VARCHAR(200)      NOT NULL DEFAULT '',
+        tanggal       DATE              NULL,
+        uraian        VARCHAR(255)      NOT NULL DEFAULT '',
+        jumlah        DECIMAL(15,2)     NOT NULL DEFAULT 0,
+        created_at    TIMESTAMP         DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_skpd (skpd),
+        INDEX idx_user (user_id),
+        INDEX idx_tanggal (tanggal)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+    $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+
+    // --- Hapus entri (POST subaksi=hapus&id=X) ---
+    if ($method === 'POST' && ($_POST['subaksi'] ?? '') === 'hapus') {
+        $id = (int) ($_POST['id'] ?? 0);
+        if ($id <= 0) {
+            http_response_code(422);
+            echo json_encode(['success' => false, 'message' => 'ID jurnal tidak valid.'], JSON_UNESCAPED_UNICODE);
+            exit;
+        }
+        $sql = "DELETE FROM jurnal_manual WHERE id = ?";
+        $params = [$id];
+        if ($skpdUser !== '') { $sql .= " AND skpd = ?"; $params[] = $skpdUser; }
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        echo json_encode([
+            'success' => true,
+            'message' => $stmt->rowCount() > 0 ? 'Jurnal dihapus.' : 'Jurnal tidak ditemukan.',
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    // --- Simpan entri baru (POST) ---
+    if ($method === 'POST') {
+        $nomorDok = trim((string) ($_POST['nomor_dokumen'] ?? ''));
+        $kodeAkun = trim((string) ($_POST['kode_akun'] ?? ''));
+        $tanggal  = trim((string) ($_POST['tanggal'] ?? ''));
+        $uraian   = trim((string) ($_POST['uraian'] ?? ''));
+        $jumlah   = (float) ($_POST['jumlah'] ?? 0);
+
+        if ($nomorDok === '' || $kodeAkun === '') {
+            http_response_code(422);
+            echo json_encode(['success' => false, 'message' => 'Nomor dokumen dan nomor akun wajib diisi.'], JSON_UNESCAPED_UNICODE);
+            exit;
+        }
+        if ($tanggal !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $tanggal)) {
+            http_response_code(422);
+            echo json_encode(['success' => false, 'message' => 'Format tanggal tidak valid.'], JSON_UNESCAPED_UNICODE);
+            exit;
+        }
+        if ($jumlah <= 0) {
+            http_response_code(422);
+            echo json_encode(['success' => false, 'message' => 'Jumlah harus lebih besar dari nol.'], JSON_UNESCAPED_UNICODE);
+            exit;
+        }
+
+        // Nama akun: dari input (auto-terisi frontend) atau lookup ke akun_penerimaan
+        $namaAkun = trim((string) ($_POST['nama_akun'] ?? ''));
+        if ($namaAkun === '') {
+            try {
+                $q = $pdo->prepare("SELECT nama_akun FROM akun_penerimaan WHERE kode_akun = ? ORDER BY id DESC LIMIT 1");
+                $q->execute([$kodeAkun]);
+                $namaAkun = (string) ($q->fetchColumn() ?: '');
+            } catch (Throwable $e) { $namaAkun = ''; }
+        }
+
+        $stmt = $pdo->prepare("INSERT INTO jurnal_manual
+            (user_id, skpd, nomor_dokumen, kode_akun, nama_akun, tanggal, uraian, jumlah)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->execute([
+            (int) ($user['id'] ?? 0), $skpdUser, $nomorDok, $kodeAkun,
+            $namaAkun, $tanggal !== '' ? $tanggal : null, $uraian, $jumlah,
+        ]);
+        $newId = (int) $pdo->lastInsertId();
+        $nomorJurnal = 'JB-' . str_pad((string) $newId, 4, '0', STR_PAD_LEFT);
+        $pdo->prepare("UPDATE jurnal_manual SET nomor_jurnal = ? WHERE id = ?")->execute([$nomorJurnal, $newId]);
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Jurnal ' . $nomorJurnal . ' tersimpan.',
+            'id'      => $newId,
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    // --- Daftar entri (GET) dengan filter periode & kata kunci ---
+    $dari  = $_GET['dari'] ?? '';
+    $akhir = $_GET['akhir'] ?? '';
+    if ($dari !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $dari))  $dari = '';
+    if ($akhir !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $akhir)) $akhir = '';
+    $kw    = trim((string) ($_GET['q'] ?? ''));
+    $tipe  = trim((string) ($_GET['tipe'] ?? ''));
+
+    $sql = "SELECT id, nomor_jurnal, nomor_dokumen, kode_akun, nama_akun, tanggal, uraian, jumlah
+            FROM jurnal_manual WHERE 1=1";
+    $params = [];
+    if ($skpdUser !== '') { $sql .= " AND skpd = ?"; $params[] = $skpdUser; }
+    if ($dari !== '')  { $sql .= " AND tanggal >= ?"; $params[] = $dari; }
+    if ($akhir !== '') { $sql .= " AND tanggal <= ?"; $params[] = $akhir; }
+    if ($kw !== '') {
+        $col = ['jurnal' => 'nomor_jurnal', 'dokumen' => 'nomor_dokumen', 'keterangan' => 'uraian'][$tipe] ?? 'uraian';
+        if ($tipe === '' || isset(['jurnal' => 1, 'dokumen' => 1, 'keterangan' => 1][$tipe])) {
+            $sql .= " AND $col LIKE ?";
+            $params[] = '%' . $kw . '%';
+        } else {
+            $sql .= " AND (nomor_jurnal LIKE ? OR nomor_dokumen LIKE ? OR uraian LIKE ?)";
+            $params = array_merge($params, ['%' . $kw . '%', '%' . $kw . '%', '%' . $kw . '%']);
+        }
+    }
+    $sql .= " ORDER BY tanggal DESC, id DESC";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+
+    $rows = array_map(function ($r) {
+        return [
+            'id'            => (int) $r['id'],
+            'nomor_jurnal'  => (string) $r['nomor_jurnal'],
+            'nomor_dokumen' => (string) $r['nomor_dokumen'],
+            'kode_akun'     => (string) $r['kode_akun'],
+            'nama_akun'     => (string) $r['nama_akun'],
+            'tanggal'       => (string) ($r['tanggal'] ?? ''),
+            'uraian'        => (string) $r['uraian'],
+            'jumlah'        => (float) $r['jumlah'],
+        ];
+    }, $stmt->fetchAll());
+
+    echo json_encode([
+        'success' => true,
+        'message' => 'OK',
+        'data'    => $rows,
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+// ============================================
+// 1d. DAFTAR AKUN - saran nomor akun utk input jurnal biasa
+// ============================================
+if ($action === 'akun_list') {
+    $q = trim((string) ($_GET['q'] ?? ''));
+    $sql  = "SELECT kode_akun, nama_akun FROM akun_penerimaan WHERE 1=1";
+    $params = [];
+    if ($q !== '') { $sql .= " AND (kode_akun LIKE ? OR nama_akun LIKE ?)"; $params[] = "%$q%"; $params[] = "%$q%"; }
+    $sql .= " ORDER BY kode_akun ASC LIMIT 100";
+    try {
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        $akun = array_map(function ($r) {
+            return ['kode' => (string) $r['kode_akun'], 'nama' => (string) $r['nama_akun']];
+        }, $stmt->fetchAll());
+    } catch (Throwable $e) {
+        $akun = [];
+    }
+    echo json_encode(['success' => true, 'data' => $akun], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+// ============================================
 // 2. LRA - realisasi per akun (dari STBP) + pagu (dari kegiatan)
 // ============================================
 if ($action === 'lra_rekap') {
