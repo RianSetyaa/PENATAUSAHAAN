@@ -25,7 +25,7 @@ $skpd = requireInstansi(); // pemisahan data multi-dinas (fail-closed)
 
 $action = input('action', 'bku');
 
-if ($action !== 'bku') {
+if (!in_array($action, ['bku', 'rekap'], true)) {
     jsonResponse(false, 'Aksi tidak dikenali.', [], 422);
 }
 
@@ -34,6 +34,80 @@ $sampai = input('sampai', '');
 
 if ($dari === '' || $sampai === '') {
     jsonResponse(false, 'Periode (tanggal awal dan akhir) wajib diisi.', [], 422);
+}
+
+// ============================================
+// REKAPITULASI PENERIMAAN (Harian / Bulanan)
+//   GET ?action=rekap&mode=harian|bulanan&dari=YYYY-MM-DD&sampai=YYYY-MM-DD
+//   Baris = periode (tanggal/bulan); kolom = 3 kelompok PAD
+//   (Pajak Daerah 4.1.1.x, Retribusi Daerah 4.1.2.x, Lain-Lain PAD 4.1.x lain).
+//   Sumber: STBP (setoran penerimaan) — STS adalah penyetoran, bukan penerimaan.
+// ============================================
+if ($action === 'rekap') {
+    $mode = input('mode', 'harian') === 'bulanan' ? 'bulanan' : 'harian';
+    // Kunci periode: tanggal utk harian, tanggal 1 utk bulanan
+    $keySql = $mode === 'bulanan' ? "DATE_FORMAT(t.tanggal, '%Y-%m-01')" : 'DATE(t.tanggal)';
+
+    $sql = "SELECT {$keySql} AS kunci, t.akun_kode, t.akun_nama, SUM(t.jumlah) AS jumlah
+            FROM stbp t
+            WHERE t.status <> 'dihapus' AND t.tanggal BETWEEN ? AND ?" . ($skpd !== '' ? " AND t.skpd = ?" : "") . "
+            GROUP BY kunci, t.akun_kode, t.akun_nama
+            ORDER BY kunci ASC, t.akun_kode ASC";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($skpd !== '' ? [$dari, $sampai, $skpd] : [$dari, $sampai]);
+
+    $perKunci = []; // kunci periode => [kelompok => [[kode, nama, jumlah]], total]
+    foreach ($stmt->fetchAll() as $r) {
+        $kunci = (string) $r['kunci'];
+        $kode  = (string) $r['akun_kode'];
+        $jml   = (float) $r['jumlah'];
+
+        if (preg_match('/^4\.1\.1\./', $kode))      $g = 0; // Pajak Daerah
+        elseif (preg_match('/^4\.1\.2\./', $kode))  $g = 1; // Retribusi Daerah
+        else                                        $g = 2; // Lain-Lain PAD
+
+        if (!isset($perKunci[$kunci])) {
+            $perKunci[$kunci] = ['periode' => $kunci, 'kelompok' => [[], [], []], 'total' => 0.0];
+        }
+        $perKunci[$kunci]['kelompok'][$g][] = [
+            'kode'   => $kode,
+            'nama'   => (string) $r['akun_nama'],
+            'jumlah' => round($jml, 2),
+        ];
+        $perKunci[$kunci]['total'] += $jml;
+    }
+    ksort($perKunci);
+
+    // Total per kelompok + grand total
+    $totG = [0.0, 0.0, 0.0];
+    $grand = 0.0;
+    foreach ($perKunci as $k) {
+        for ($i = 0; $i < 3; $i++) {
+            foreach ($k['kelompok'][$i] as $b) $totG[$i] += $b['jumlah'];
+        }
+        $grand += $k['total'];
+    }
+
+    // Nama Kuasa/Pengguna Anggaran: dari STS terbaru dalam periode (blok identitas)
+    $sqlK = "SELECT st.kuasa_pengguna_anggaran FROM sts st
+             WHERE st.status = 'aktif' AND st.kuasa_pengguna_anggaran <> ''"
+          . ($skpd !== '' ? " AND st.skpd = ?" : "")
+          . " AND st.tanggal_sts BETWEEN ? AND ?
+             ORDER BY st.tanggal_sts DESC, st.id DESC LIMIT 1";
+    $stmtK = $pdo->prepare($sqlK);
+    $stmtK->execute($skpd !== '' ? [$skpd, $dari, $sampai] : [$dari, $sampai]);
+    $kuasa = (string) ($stmtK->fetchColumn() ?: '');
+
+    jsonResponse(true, 'OK', [
+        'periode'   => ['dari' => $dari, 'sampai' => $sampai],
+        'mode'      => $mode,
+        'skpd'      => $skpd,
+        'rows'      => array_values($perKunci),
+        'total_kelompok' => [round($totG[0], 2), round($totG[1], 2), round($totG[2], 2)],
+        'total'     => round($grand, 2),
+        'bendahara' => (string) ($_SESSION['nama'] ?? ''),
+        'pengguna_anggaran' => $kuasa,
+    ]);
 }
 
 $entries = [];

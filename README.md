@@ -165,7 +165,8 @@ tangan lalu ditandatangani elektronik dengan **tanda tangan tangan** (ala Privy)
 1. Saat mencetak dokumen, klik **"✎ Kirim ke Tanda Tangan"** pada panel
    pengaturan cetak (modul Belanja: SPD, SPP, SPM, SP2D, LPJ, NPD, Pengajuan TU
    lewat `CetakBelanja`; modul Penerimaan: STBP, STS, BKU, LPJ, Register STS,
-   SKP Daerah lewat tombol di laman cetaknya masing-masing)
+   Rekap Penerimaan Harian & Bulanan, SKP Daerah lewat tombol di laman cetaknya
+   masing-masing)
    → dokumen tersimpan di tabel `dokumen` (database sama) beserta orientasi
    kertasnya (aturan `@page` mengikuti pilihan di panel cetak).
 2. Buka **menu "Tanda Tangan Dokumen"** → SSO otomatis ke doc.simtkd.com
