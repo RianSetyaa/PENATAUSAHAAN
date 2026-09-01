@@ -400,6 +400,68 @@ if ($action === 'akun_list') {
 }
 
 // ============================================
+// 1c. Daftar dokumen dari SIM-TKD (STBP + STS)
+//     Untuk saran "Nomor Dokumen" pada Jurnal Biasa.
+// ============================================
+if ($action === 'dokumen_list') {
+    $q = trim((string) ($_GET['q'] ?? ''));
+    $docs = [];
+
+    // --- STBP (penerimaan) ---
+    $stSql = "SELECT nomor_stbp, tanggal, jumlah, akun_kode, akun_nama, uraian
+              FROM stbp
+              WHERE status <> 'dihapus' AND nomor_stbp <> ''";
+    $stParams = [];
+    if ($skpdUser !== '') { $stSql .= " AND skpd = ?"; $stParams[] = $skpdUser; }
+    if ($q !== '')       { $stSql .= " AND (nomor_stbp LIKE ? OR uraian LIKE ?)"; $stParams[] = "%{$q}%"; $stParams[] = "%{$q}%"; }
+    $stSql .= " ORDER BY tanggal DESC, id DESC LIMIT 150";
+    try {
+        $st = $pdo->prepare($stSql);
+        $st->execute($stParams);
+        foreach ($st->fetchAll() as $r) {
+            $docs[] = [
+                'nomor'     => (string) $r['nomor_stbp'],
+                'jenis'     => 'STBP',
+                'tanggal'   => (string) $r['tanggal'],
+                'jumlah'    => (float) $r['jumlah'],
+                'akun_kode' => (string) $r['akun_kode'],
+                'akun_nama' => (string) $r['akun_nama'],
+                'uraian'    => (string) $r['uraian'],
+            ];
+        }
+    } catch (Throwable $e) { /* tabel belum ada -> lewati */ }
+
+    // --- STS (penyetoran) ---
+    $tsSql = "SELECT t.nomor_sts, t.tanggal_sts AS tanggal, t.total AS jumlah, t.keterangan AS uraian,
+                     (SELECT d.akun_kode FROM sts_detail d WHERE d.sts_id = t.id ORDER BY d.id ASC LIMIT 1) AS akun_kode,
+                     (SELECT d.akun_nama FROM sts_detail d WHERE d.sts_id = t.id ORDER BY d.id ASC LIMIT 1) AS akun_nama
+              FROM sts t
+              WHERE t.status = 'aktif' AND t.nomor_sts <> ''";
+    $tsParams = [];
+    if ($skpdUser !== '') { $tsSql .= " AND t.skpd = ?"; $tsParams[] = $skpdUser; }
+    if ($q !== '')        { $tsSql .= " AND (t.nomor_sts LIKE ? OR t.keterangan LIKE ?)"; $tsParams[] = "%{$q}%"; $tsParams[] = "%{$q}%"; }
+    $tsSql .= " ORDER BY t.tanggal_sts DESC, t.id DESC LIMIT 150";
+    try {
+        $ts = $pdo->prepare($tsSql);
+        $ts->execute($tsParams);
+        foreach ($ts->fetchAll() as $r) {
+            $docs[] = [
+                'nomor'     => (string) $r['nomor_sts'],
+                'jenis'     => 'STS',
+                'tanggal'   => (string) $r['tanggal'],
+                'jumlah'    => (float) $r['jumlah'],
+                'akun_kode' => (string) ($r['akun_kode'] ?? ''),
+                'akun_nama' => (string) ($r['akun_nama'] ?? ''),
+                'uraian'    => (string) ($r['uraian'] ?? ''),
+            ];
+        }
+    } catch (Throwable $e) { /* tabel belum ada -> lewati */ }
+
+    echo json_encode(['success' => true, 'data' => $docs], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+// ============================================
 // 2. LRA - realisasi per akun (dari STBP) + pagu (dari kegiatan)
 // ============================================
 if ($action === 'lra_rekap') {

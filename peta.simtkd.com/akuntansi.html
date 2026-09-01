@@ -420,7 +420,8 @@
                         <div class="filter-grid">
                             <div class="filter-field">
                                 <label>Nomor Dokumen <span style="color:#dc2626;">*</span></label>
-                                <input type="text" id="jNoDok" placeholder="cth: STBP-2026-0001 / STS-001">
+                                <input type="text" id="jNoDok" list="dokList" placeholder="Klik / ketik untuk mencari STBP atau STS" autocomplete="off">
+                                <datalist id="dokList"></datalist>
                             </div>
                             <div class="filter-field">
                                 <label>Nomor Akun <span style="color:#dc2626;">*</span></label>
@@ -639,6 +640,40 @@
 
             // Isi nama akun otomatis saat nomor akun diketik/dipilih
             var AKUN_MAP = {};
+            var DOK_MAP = {}; // nomor dokumen -> data dokumen dari SIM-TKD (STBP/STS)
+
+            // Saran nomor dokumen (datalist) dari dokumen asli SIM-TKD
+            (function muatDokumen() {
+                var url = SIMTKD_API.endpoint + '?token=' + encodeURIComponent(SIMTKD_API.getToken()) + '&action=dokumen_list';
+                fetch(url)
+                    .then(function (res) { return res.json(); })
+                    .then(function (d) {
+                        var list = (d && d.data) || [];
+                        list.forEach(function (doc) { DOK_MAP[doc.nomor] = doc; });
+                        document.getElementById('dokList').innerHTML = list.map(function (doc) {
+                            return '<option value="' + esc(doc.nomor) + '">' +
+                                esc(doc.jenis + ' · ' + doc.tanggal + ' · Rp ' + Number(doc.jumlah).toLocaleString('id-ID')) +
+                                '</option>';
+                        }).join('');
+                    })
+                    .catch(function () { /* saran kosong, input tetap manual */ });
+            })();
+
+            // Pilih/ketik nomor dokumen -> isi otomatis tanggal, jumlah, uraian & akun
+            document.getElementById('jNoDok').addEventListener('input', function () {
+                var doc = DOK_MAP[this.value.trim()];
+                if (!doc) return;
+                if (doc.tanggal) document.getElementById('jTanggal').value = doc.tanggal;
+                if (doc.jumlah > 0) document.getElementById('jJumlah').value = doc.jumlah;
+                if (doc.uraian && !document.getElementById('jUraian').value) {
+                    document.getElementById('jUraian').value = doc.uraian;
+                }
+                if (doc.akun_kode) {
+                    document.getElementById('jKodeAkun').value = doc.akun_kode;
+                    document.getElementById('jNamaAkun').value = doc.akun_nama || (AKUN_MAP[doc.akun_kode] || '');
+                }
+            });
+
             document.getElementById('jKodeAkun').addEventListener('input', function () {
                 var kode = this.value.trim();
                 var nama = AKUN_MAP[kode] || '';
