@@ -28,3 +28,5 @@ CREATE TABLE IF NOT EXISTS jurnal_manual (
 
 -- Tabel pendukung saran nomor akun (sudah ada dari modul penerimaan):
 -- akun_penerimaan (kode_akun, nama_akun) -> API aksi akun_list
+
+require __DIR__.'/../Vendor/autolad.php';

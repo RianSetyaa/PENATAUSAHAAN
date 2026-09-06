@@ -154,6 +154,32 @@ Semua endpoint mengembalikan JSON:
 | Penerimaan → Rekening → Permohonan | `permohonan.html` | `api/permohonan.php` | `permohonan` |
 | Pengaturan → Akun Penerimaan | `akun-penerimaan.html` | `api/akun_penerimaan.php` | `akun_penerimaan` |
 | Penerimaan → STBP (Pembuatan) | `stbp-pembuatan.html` · `stbp-tambah.html` | `api/stbp.php` | `stbp`, `stbp_pembayaran`, `stbp_pendapatan` |
+| AKLAP → Jurnal Umum (Manual) | `peta.simtkd.com/jurnal-umum.html` | `peta.simtkd.com/api/akuntansi.php` | `jurnal_umum`, `jurnal_umum_detail`, `akun_master` |
+| AKLAP → Buku Besar | `peta.simtkd.com/buku-besar.html` | `peta.simtkd.com/api/akuntansi.php` | `jurnal_umum_detail` (posting on-the-fly) |
+| AKLAP → Neraca Saldo | `peta.simtkd.com/neraca-saldo.html` | `peta.simtkd.com/api/akuntansi.php` | `jurnal_umum_detail`, `akun_master` |
+
+### 🧾 Model Akuntansi Manual (Double-Entry)
+
+Menu **AKLAP** di `peta.simtkd.com` menyediakan pencatatan akuntansi manual
+dua sisi (Debet/Kredit) sesuai lembar kerja **Modul 3 AKLAP SKPKD**:
+
+1. **Jurnal Umum** (`jurnal-umum.html`) — input manual minimal 2 baris dengan
+   validasi **Total Debet = Total Kredit** (divalidasi ulang di server), plus
+   tombol **"Isi dari Dokumen"** yang menarik template jurnal dari dokumen modul
+   yang sudah ada:
+   - **STS aktif** → D *Kas di Bendahara Penerimaan* / K *Pendapatan* (per kode rekening `sts_detail`)
+   - **SP2D LS Gaji/LS B&J cair** → D *Belanja* (bruto) / K *Utang Pajak & Potongan* (dari `spp_potongan_pajak`) + K *Kas di BUD* (neto)
+   - **SP2D UP/GU/TU cair** → D *Kas di Bendahara Pengeluaran* / K *Kas di BUD*
+   Dokumen yang sudah dibuatkan jurnal ditandai `sudah_dijurnal` agar tidak dobel.
+2. **Approve/Reject** — hanya jurnal berstatus `sudah_approve` yang di-posting.
+3. **Buku Besar** (`buku-besar.html`) — posting per akun dengan saldo berjalan
+   (dapat dicetak), termasuk saldo awal dari `neraca_awal`.
+4. **Neraca Saldo** (`neraca-saldo.html`) — rekap saldo awal, mutasi D/K, dan
+   saldo akhir semua akun + indikator keseimbangan.
+
+Skema database: `database/akuntansi_manual.sql` (idempoten, kompatibel
+MySQL & MariaDB; tabel juga dibuat otomatis oleh API).
+
 
 ---
 

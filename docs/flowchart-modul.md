@@ -192,6 +192,33 @@ flowchart TD
 
 ---
 
+## 4b. Model Akuntansi Manual — Jurnal Umum Double-Entry (peta.simtkd.com)
+
+```mermaid
+flowchart TD
+    A[Jurnal Umum - input manual 2 baris D/K] --> V{Debet = Kredit?}
+    B[Isi dari Dokumen: STS aktif / SP2D sudah_dicairkan] --> T[Template baris D/K dari dokumen - diedit manual] --> A
+    A --> S{Simpan via jurnal_simpan}
+    V -->|Tidak| X[Ditolak: jurnal tidak seimbang]
+    V -->|Ya| S
+    S --> Y[sudah_dijurnal = 1 utk dokumen sumber - anti dobel]
+    Y --> J[jurnal_umum status: draft]
+    J --> K{Approve / Reject}
+    K -->|Approve| L[jurnal_umum status: sudah_approve]
+    K -->|Reject| M[status: ditolak]
+    L --> N[Buku Besar - posting per akun + saldo berjalan]
+    N --> O[Neraca Saldo - mutasi D/K per akun]
+    O --> P[LRA & Neraca - hanya dari jurnal approved]
+    J --> H[Hapus jurnal: sudah_dijurnal kembali 0 - dokumen bisa dijurnal ulang]
+```
+
+Sumber template jurnal:
+- **STS aktif** → D Kas di Bendahara Penerimaan / K Pendapatan (per `sts_detail`)
+- **SP2D LS** (Gaji/B&J) → D Belanja (bruto) / K Utang Pajak-Potongan (`spp_potongan_pajak`) + K Kas di BUD (neto)
+- **SP2D UP/GU/TU** → D Kas di Bendahara Pengeluaran / K Kas di BUD
+
+---
+
 ## 5. Peta Ringkas Alur (End-to-End)
 
 ```mermaid
