@@ -315,18 +315,6 @@
             <a href="index.html" class="side-link"><i class="fas fa-th-large"></i> Dashboard</a>
             <a href="#" class="side-link"><i class="fas fa-file-import"></i> Input Transaksi Non Anggaran</a>
             <a href="jurnal-umum.html" class="side-link"><i class="fas fa-book"></i> Jurnal Umum</a>
-            <div class="side-group open" id="sideGroupToApprove">
-                <a href="#" class="side-link active" id="sideLinkToApprove"><i class="fas fa-book-bookmark"></i> Jurnal Biasa <i class="fas fa-chevron-right side-arrow"></i></a>
-                <div class="side-sub open" id="sideSubToApprove">
-                    <a href="#" class="side-link"><i class="fas fa-coins"></i> Anggaran</a>
-                    <a href="#" class="side-link active"><i class="fas fa-arrow-down"></i> Pendapatan</a>
-                    <a href="#" class="side-link"><i class="fas fa-arrow-up"></i> Belanja</a>
-                    <a href="#" class="side-link"><i class="fas fa-file-import"></i> Transaksi Non Anggaran</a>
-                    <a href="#" class="side-link"><i class="fas fa-list"></i> Umum</a>
-                    <a href="#" class="side-link"><i class="fas fa-rotate-left"></i> Pembalik</a>
-                    <a href="#" class="side-link"><i class="fas fa-lock"></i> Penutup</a>
-                </div>
-            </div>
             <a href="#" class="side-link"><i class="fas fa-book-open"></i> Buku Jurnal</a>
             <a href="buku-besar.html" class="side-link"><i class="fas fa-table-list"></i> Buku Besar</a>
             <a href="#" class="side-link"><i class="fas fa-right-left"></i> Laporan Mutasi Rekening</a>
@@ -721,24 +709,11 @@
                 });
             });
 
-            // Sidebar submenu "Jurnal Biasa"
-            document.getElementById('sideLinkToApprove').addEventListener('click', function (e) {
-                e.preventDefault();
-                document.getElementById('sideGroupToApprove').classList.toggle('open');
-                document.getElementById('sideSubToApprove').classList.toggle('open');
-            });
+            // Sidebar submenu "Laporan Keuangan"
             document.getElementById('sideLinkKeuangan').addEventListener('click', function (e) {
                 e.preventDefault();
                 document.getElementById('sideGroupKeuangan').classList.toggle('open');
                 document.getElementById('sideSubKeuangan').classList.toggle('open');
-            });
-            document.querySelectorAll('#sideSubToApprove .side-link').forEach(function (l) {
-                l.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    document.querySelectorAll('#sideSubToApprove .side-link').forEach(function (x) { x.classList.remove('active'); });
-                    l.classList.add('active');
-                    toast('Jurnal Biasa > "' + l.textContent.trim() + '" dipilih.');
-                });
             });
 
             // Dropdown aksi per baris
