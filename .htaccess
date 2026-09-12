@@ -1,0 +1,13 @@
+# SIM-TKD - konfigurasi Apache (cPanel)
+# 1) Paksa HTTPS (mendukung hosting di balik proxy, mis. Cloudflare/LoadBalancer)
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{HTTPS} !=on [NC]
+    RewriteCond %{HTTP:X-Forwarded-Proto} !https [NC]
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</IfModule>
+
+# 2) Lindungi file sensitif dari akses langsung
+<FilesMatch "^(setup\.php|\.git|composer\.(json|lock))$">
+    Require all denied
+</FilesMatch>
