@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Penerimaan - SIM-TKD | Sistem Informasi Manajemen Tata Kelola Daerah</title>
+    <meta name="robots" content="noindex, nofollow">
     <link rel="stylesheet" href="../css/dashboard.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -62,6 +63,12 @@
                         </div>
                     </div>
 
+                    <!-- SKP - Daerah (alur sebelum STBP) -->
+                    <a href="skp-daerah.html" class="menu-item">
+                        <i class="fas fa-receipt"></i>
+                        <span>SKP - Daerah</span>
+                    </a>
+
             <div class="menu-group" data-menu="stbp">
                 <a href="#" class="menu-item has-submenu">
                     <i class="fas fa-file-invoice"></i>
@@ -90,8 +97,10 @@
                         </a>
                         <div class="submenu">
                             <a href="bku-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-book"></i><span>BKU Penerimaan</span></a>
-                            <a href="#" class="menu-item submenu-item"><i class="fas fa-clipboard-list"></i><span>Register</span></a>
-                            <a href="#" class="menu-item submenu-item"><i class="fas fa-file-invoice-dollar"></i><span>LPJ</span></a>
+                            <a href="buku-pembantu-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-book-open"></i><span>Buku Pembantu Penerimaan</span></a>
+                            <a href="register-sts.html" class="menu-item submenu-item"><i class="fas fa-clipboard-list"></i><span>Register STS</span></a>
+                            <a href="lpj-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-file-invoice-dollar"></i><span>LPJ</span></a>
+                            <a href="rekap-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-table"></i><span>Rekap Harian &amp; Bulanan</span></a>
                         </div>
                     </div>
                 </div>
@@ -123,6 +132,10 @@
                 <i class="fas fa-book"></i>
                 <span>Akuntansi</span>
             </a>
+            <a href="../api/dokumen_go.php" class="menu-item">
+                <i class="fas fa-pen-nib"></i>
+                <span>Tanda Tangan Dokumen</span>
+            </a>
             <!-- Pengaturan (dropdown) -->
             <div class="menu-group" data-menu="pengaturan">
                 <a href="#" class="menu-item has-submenu">
@@ -131,7 +144,7 @@
                     <i class="fas fa-chevron-down submenu-arrow"></i>
                 </a>
                 <div class="submenu">
-                    <a href="../pengaturan/akun-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-coins"></i><span>Akun Penerimaan</span></a>
+                    <a href="../pengaturan/profil.html" class="menu-item submenu-item"><i class="fas fa-user"></i><span>Profil</span></a><a href="../pengaturan/akun-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-coins"></i><span>Akun Penerimaan</span></a>
                 </div>
             </div>
 

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - SIM-TKD | Sistem Informasi Manajemen Tata Kelola Daerah</title>
+    <meta name="robots" content="noindex, nofollow">
     <link rel="stylesheet" href="css/dashboard.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -60,6 +61,12 @@
                             <a href="penerimaan/permohonan.html" class="menu-item submenu-item"><i class="fas fa-file-signature"></i><span>Permohonan</span></a>
                         </div>
                     </div>
+                    <!-- SKP - Daerah (alur sebelum STBP) -->
+                    <a href="penerimaan/skp-daerah.html" class="menu-item">
+                        <i class="fas fa-receipt"></i>
+                        <span>SKP - Daerah</span>
+                    </a>
+
 
             <div class="menu-group" data-menu="stbp">
                 <a href="#" class="menu-item has-submenu">
@@ -89,8 +96,6 @@
                         </a>
                         <div class="submenu">
                             <a href="penerimaan/bku-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-book"></i><span>BKU Penerimaan</span></a>
-                            <a href="#" class="menu-item submenu-item"><i class="fas fa-clipboard-list"></i><span>Register</span></a>
-                            <a href="#" class="menu-item submenu-item"><i class="fas fa-file-invoice-dollar"></i><span>LPJ</span></a>
                         </div>
                     </div>
                 </div>
@@ -122,6 +127,10 @@
                 <i class="fas fa-book"></i>
                 <span>Akuntansi</span>
             </a>
+            <a href="api/dokumen_go.php" class="menu-item">
+                <i class="fas fa-pen-nib"></i>
+                <span>Tanda Tangan Dokumen</span>
+            </a>
             <!-- Pengaturan (dropdown) -->
             <div class="menu-group" data-menu="pengaturan">
                 <a href="#" class="menu-item has-submenu">
@@ -130,7 +139,8 @@
                     <i class="fas fa-chevron-down submenu-arrow"></i>
                 </a>
                 <div class="submenu">
-                    <a href="pengaturan/akun-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-coins"></i><span>Akun Penerimaan</span></a>
+                    <a href="pengaturan/profil.html" class="menu-item submenu-item"><i class="fas fa-user"></i><span>Profil</span></a><a href="pengaturan/akun-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-coins"></i><span>Akun Penerimaan</span></a>
+                    <a href="pengaturan/anggaran-neraca.html" class="menu-item submenu-item"><i class="fas fa-chart-line"></i><span>Anggaran &amp; Neraca</span></a>
                 </div>
             </div>
 

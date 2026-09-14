@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil - SIM-TKD | Sistem Informasi Manajemen Tata Kelola Daerah</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .profil-card { display: flex; align-items: center; gap: 18px; padding: 22px; }
+        .profil-avatar { width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg,#1d3a6e,#2c5aa0); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0; }
+        .profil-info { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+        .profil-nama { font-size: 18px; font-weight: 800; color: #1f2937; }
+        .profil-instansi { font-size: 13px; color: #64748b; }
+        .profil-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+        .profil-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: #eef2f9; color: #1d3a6e; }
+        .form-card { max-width: 640px; }
+        .form-row { display: flex; flex-direction: column; gap: 14px; }
+        .form-field { display: flex; flex-direction: column; gap: 6px; }
+        .form-field label { font-size: 12px; font-weight: 700; color: #475569; }
+        .form-field input { padding: 10px 12px; border: 1px solid var(--border, #e2e8f0); border-radius: 8px; font-size: 14px; color: #1f2937; background: #fff; }
+        .form-field input:focus { outline: none; border-color: #1d3a6e; box-shadow: 0 0 0 3px rgba(29,58,110,.12); }
+        .form-field input[readonly] { background: #f4f7fc; color: #64748b; cursor: not-allowed; }
+        .form-field .hint { font-size: 11px; color: #94a3b8; }
+        .form-actions { margin-top: 16px; display: flex; gap: 10px; }
+        .btn-primary { padding: 10px 24px; font-weight: 700; }
+        .section-gap { height: 18px; }
+    </style>
+</head>
+<body>
+
+    <!-- ================= SIDEBAR ================= -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <img src="../img/Logo Polban.png" alt="Logo POLBAN">
+                <div class="sidebar-title">
+                    <span class="title-main">SIM-TKD</span>
+                    <span class="title-sub">Modul Edukasi</span>
+                </div>
+            </div>
+            <button class="sidebar-toggle" id="sidebarToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+
+        <div class="sidebar-user">
+            <div class="user-avatar">
+                <i class="fas fa-user-tie"></i>
+            </div>
+            <div class="user-info">
+                <span class="user-name" id="sidebarUserName">Admin Dinas</span>
+                <span class="user-role" id="sidebarUserRole">Dinas Kepemudaan dan Olahraga</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-menu">
+            <span class="menu-label">MENU UTAMA</span>
+
+            <a href="../dashboard/dashboard.html" class="menu-item">
+                <i class="fas fa-th-large"></i>
+                <span>Dashboard</span>
+            </a>
+
+            <!-- Penerimaan (dropdown utama) -->
+            <div class="menu-group" data-menu="penerimaan">
+                <a href="#" class="menu-item has-submenu">
+                    <i class="fas fa-arrow-down"></i>
+                    <span>Penerimaan</span>
+                    <i class="fas fa-chevron-down submenu-arrow"></i>
+                </a>
+                <div class="submenu">
+                    <!-- Rekening -->
+                    <div class="menu-group" data-menu="rekening">
+                        <a href="#" class="menu-item has-submenu">
+                            <i class="fas fa-university"></i>
+                            <span>Rekening</span>
+                            <i class="fas fa-chevron-down submenu-arrow"></i>
+                        </a>
+                        <div class="submenu">
+                            <a href="../penerimaan/permohonan.html" class="menu-item submenu-item"><i class="fas fa-file-signature"></i><span>Permohonan</span></a>
+                        </div>
+                    </div>
+
+            <div class="menu-group" data-menu="stbp">
+                <a href="#" class="menu-item has-submenu">
+                    <i class="fas fa-file-invoice"></i>
+                    <span>STBP</span>
+                    <i class="fas fa-chevron-down submenu-arrow"></i>
+                </a>
+                <div class="submenu">
+                    <a href="../penerimaan/stbp-pembuatan.html" class="menu-item submenu-item"><i class="fas fa-plus-circle"></i><span>Pembuatan</span></a>
+                    <a href="../penerimaan/stbp-pembuatan.html?tahap=sudah_diverifikasi" class="menu-item submenu-item"><i class="fas fa-check"></i><span>Verifikasi</span></a>
+                    <a href="../penerimaan/stbp-pembuatan.html?tahap=sudah_diotorisasi" class="menu-item submenu-item"><i class="fas fa-signature"></i><span>Otorisasi</span></a>
+                    <a href="../penerimaan/stbp-pembuatan.html?tahap=sudah_divalidasi" class="menu-item submenu-item"><i class="fas fa-stamp"></i><span>Validasi</span></a>
+                </div>
+            </div>
+
+            <a href="../penerimaan/sts-pembuatan.html" class="menu-item">
+                <i class="fas fa-file-invoice-dollar"></i>
+                <span>STS</span>
+            </a>
+
+                    <!-- Laporan -->
+                    <div class="menu-group" data-menu="laporan">
+                        <a href="#" class="menu-item has-submenu">
+                            <i class="fas fa-file-alt"></i>
+                            <span>Laporan</span>
+                            <i class="fas fa-chevron-down submenu-arrow"></i>
+                        </a>
+                        <div class="submenu">
+                            <a href="../penerimaan/bku-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-book"></i><span>BKU Penerimaan</span></a>
+                            <a href="#" class="menu-item submenu-item"><i class="fas fa-clipboard-list"></i><span>Register</span></a>
+                            <a href="#" class="menu-item submenu-item"><i class="fas fa-file-invoice-dollar"></i><span>LPJ</span></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="menu-group" data-menu="belanja">
+                <a href="#" class="menu-item has-submenu">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>Belanja</span>
+                    <i class="fas fa-chevron-down submenu-arrow"></i>
+                </a>
+                <div class="submenu">
+                    <a href="../belanja/index.html" class="menu-item submenu-item"><i class="fas fa-th-large"></i><span>Dashboard</span></a>
+                    <a href="../belanja/rekanan.html" class="menu-item submenu-item"><i class="fas fa-handshake"></i><span>Daftar Rekanan</span></a>
+                    <a href="../belanja/rekening.html" class="menu-item submenu-item"><i class="fas fa-university"></i><span>Rekening Bank SKPD</span></a>
+                    <a href="../belanja/spd.html" class="menu-item submenu-item"><i class="fas fa-file-invoice"></i><span>SPD</span></a>
+                    <a href="../belanja/spp.html" class="menu-item submenu-item"><i class="fas fa-file-signature"></i><span>SPP</span></a>
+                    <a href="../belanja/spm.html" class="menu-item submenu-item"><i class="fas fa-file-invoice-dollar"></i><span>SPM</span></a>
+                    <a href="../belanja/sp2d.html" class="menu-item submenu-item"><i class="fas fa-money-check-alt"></i><span>SP2D</span></a>
+                    <a href="../belanja/lpj.html" class="menu-item submenu-item"><i class="fas fa-clipboard-check"></i><span>LPJ</span></a>
+                    <a href="../belanja/pengajuan-tu.html" class="menu-item submenu-item"><i class="fas fa-paper-plane"></i><span>Pengajuan TU</span></a>
+                    <a href="../belanja/npd.html" class="menu-item submenu-item"><i class="fas fa-file-invoice-dollar"></i><span>NPD</span></a>
+                    <a href="../belanja/besaran-up.html" class="menu-item submenu-item"><i class="fas fa-coins"></i><span>Besaran UP</span></a>
+                    <a href="../belanja/kebijakan-spd.html" class="menu-item submenu-item"><i class="fas fa-gavel"></i><span>Kebijakan SPD</span></a>
+                    <a href="../belanja/bku-belanja.html" class="menu-item submenu-item"><i class="fas fa-book"></i><span>BKU Belanja</span></a>
+                </div>
+            </div>
+            <a href="../api/aklap_go.php" class="menu-item">
+                <i class="fas fa-book"></i>
+                <span>Akuntansi</span>
+            </a>
+            <a href="../api/dokumen_go.php" class="menu-item">
+                <i class="fas fa-pen-nib"></i>
+                <span>Tanda Tangan Dokumen</span>
+            </a>
+
+            <!-- Pengaturan (dropdown, aktif) -->
+            <div class="menu-group open" data-menu="pengaturan">
+                <a href="#" class="menu-item has-submenu active">
+                    <i class="fas fa-cog"></i>
+                    <span>Pengaturan</span>
+                    <i class="fas fa-chevron-down submenu-arrow"></i>
+                </a>
+                <div class="submenu">
+                    <a href="profil.html" class="menu-item submenu-item active"><i class="fas fa-user"></i><span>Profil</span></a>
+                    <a href="akun-penerimaan.html" class="menu-item submenu-item"><i class="fas fa-coins"></i><span>Akun Penerimaan</span></a>
+                    <a href="anggaran-neraca.html" class="menu-item submenu-item"><i class="fas fa-chart-line"></i><span>Anggaran &amp; Neraca</span></a>
+                </div>
+            </div>
+
+            <span class="menu-label">AKUN</span>
+            <a href="../api/logout.php" class="menu-item menu-logout" id="logoutLink">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Keluar</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <span>&copy; 2026 SIM-TKD POLBAN</span>
+        </div>
+    </aside>
+
+    <!-- ================= OVERLAY (mobile) ================= -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- ================= MAIN ================= -->
+    <div class="main-wrapper">
+
+        <!-- Topbar -->
+        <header class="topbar">
+            <div class="topbar-left">
+                <button class="topbar-toggle" id="topbarToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="breadcrumb">
+                    <i class="fas fa-home"></i>
+                    <span>Beranda</span>
+                    <i class="fas fa-chevron-right"></i>
+                    <span>Pengaturan</span>
+                    <i class="fas fa-chevron-right"></i>
+                    <span class="current">Profil</span>
+                </div>
+            </div>
+            <div class="topbar-right">
+                <div class="topbar-item notification">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge">3</span>
+                </div>
+                <div class="topbar-item">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span id="currentDate">--</span>
+                </div>
+                <div class="topbar-item user">
+                    <div class="user-avatar small">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <span id="topbarUserName">Admin Dinas</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Content -->
+                <main class="content">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Profil Pengguna</h1>
+                    <p class="page-subtitle">Kelola data akun dan keamanan akun Anda</p>
+                </div>
+            </div>
+
+            <!-- Ringkasan Profil -->
+            <div class="card">
+                <div class="profil-card">
+                    <div class="profil-avatar"><i class="fas fa-user-tie"></i></div>
+                    <div class="profil-info">
+                        <span class="profil-nama" id="ringkasanNama">-</span>
+                        <span class="profil-instansi" id="ringkasanInstansi">-</span>
+                        <div class="profil-meta">
+                            <span class="profil-badge"><i class="fas fa-id-badge"></i> <span id="ringkasanUsername">-</span></span>
+                            <span class="profil-badge"><i class="fas fa-user-shield"></i> <span id="ringkasanPeran">-</span></span>
+                            <span class="profil-badge"><i class="fas fa-calendar-check"></i> Bergabung <span id="ringkasanDibuat">-</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-gap"></div>
+
+            <!-- Data Profil -->
+            <div class="card form-card">
+                <div class="card-header">
+                    <h3><i class="fas fa-id-card"></i> Data Profil</h3>
+                </div>
+                <div class="card-body">
+                    <form id="formProfil" class="form-row" novalidate>
+                        <div class="form-field">
+                            <label for="inpNama">Nama Lengkap</label>
+                            <input type="text" id="inpNama" name="nama_lengkap" maxlength="100" required>
+                        </div>
+                        <div class="form-field">
+                            <label for="inpEmail">Email</label>
+                            <input type="email" id="inpEmail" name="email" maxlength="100" required>
+                            <span class="hint">Email dipakai untuk notifikasi &amp; harus unik.</span>
+                        </div>
+                        <div class="form-field">
+                            <label for="inpInstansi">Instansi (SKPD)</label>
+                            <input type="text" id="inpInstansi" name="instansi" maxlength="150">
+                            <span class="hint">Perubahan instansi memengaruhi cakupan data dinas yang Anda akses.</span>
+                        </div>
+                        <div class="form-field">
+                            <label for="inpUsername">Username</label>
+                            <input type="text" id="inpUsername" readonly>
+                            <span class="hint">Username tidak dapat diubah.</span>
+                        </div>
+                        <div class="form-field">
+                            <label for="inpPeran">Peran</label>
+                            <input type="text" id="inpPeran" readonly>
+                            <span class="hint">Peran hanya dapat diatur oleh admin.</span>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary" id="btnSimpanProfil"><i class="fas fa-save"></i> Simpan Profil</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="section-gap"></div>
+
+            <!-- Ganti Password -->
+            <div class="card form-card">
+                <div class="card-header">
+                    <h3><i class="fas fa-lock"></i> Ganti Password</h3>
+                </div>
+                <div class="card-body">
+                    <form id="formPassword" class="form-row" novalidate>
+                        <div class="form-field">
+                            <label for="inpPwLama">Password Lama</label>
+                            <input type="password" id="inpPwLama" autocomplete="current-password" required>
+                        </div>
+                        <div class="form-field">
+                            <label for="inpPwBaru">Password Baru</label>
+                            <input type="password" id="inpPwBaru" autocomplete="new-password" minlength="6" required>
+                            <span class="hint">Minimal 6 karakter.</span>
+                        </div>
+                        <div class="form-field">
+                            <label for="inpPwKonf">Konfirmasi Password Baru</label>
+                            <input type="password" id="inpPwKonf" autocomplete="new-password" minlength="6" required>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary" id="btnGantiPw"><i class="fas fa-key"></i> Ubah Password</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </main>
+
+
+        <!-- Footer -->
+        <footer class="footer">
+            <span>&copy; 2026 SIM-TKD - Sistem Informasi Manajemen Tata Kelola Daerah (Modul Edukasi) | Politeknik Negeri Bandung</span>
+        </footer>
+    </div>
+
+    <script src="../js/dashboard.js"></script>
+    <script>
+            (function () {
+            'use strict';
+
+            // ===== Toast (pola sama dengan akun-penerimaan.html) =====
+            function showToast(message, type) {
+                const toast = document.createElement('div');
+                toast.className = 'toast toast-' + (type || 'success');
+                const icons = { success: 'fa-check-circle', error: 'fa-times-circle', warning: 'fa-exclamation-triangle' };
+                const span = document.createElement('span');
+                span.textContent = message;
+                const icon = document.createElement('i');
+                icon.className = 'fas ' + (icons[type] || icons.success);
+                toast.appendChild(icon);
+                toast.appendChild(span);
+                document.body.appendChild(toast);
+                setTimeout(function () { toast.remove(); }, 3200);
+            }
+
+            function setNamaSidebar(nama) {
+                if (!nama) return;
+                [document.getElementById('sidebarUserName'), document.getElementById('topbarUserName')]
+                    .forEach(function (el) { if (el) el.textContent = nama; });
+            }
+
+            function setInstansiSidebar(instansi) {
+                if (!instansi) return;
+                const el = document.getElementById('sidebarUserRole');
+                if (el) el.textContent = instansi;
+            }
+
+            const BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+            function fmtTgl(s) {
+                if (!s) return '-';
+                const p = String(s).split('-');
+                if (p.length < 3) return s;
+                return parseInt(p[2], 10) + ' ' + BULAN[parseInt(p[1], 10) - 1] + ' ' + p[0];
+            }
+
+            let instansiAwal = '';
+
+            // ===== Init: proteksi sesi + muat profil =====
+            fetch('../api/session.php')
+                .then(function (res) { return res.json(); })
+                .then(function (d) {
+                    if (!d.success) { window.location.href = '../login.html'; return; }
+                    setNamaSidebar(d.user.nama);
+                    setInstansiSidebar(d.user.instansi);
+                    const now = new Date();
+                    const tglEl = document.getElementById('currentDate');
+                    if (tglEl) tglEl.textContent = now.getDate() + ' ' + BULAN[now.getMonth()] + ' ' + now.getFullYear();
+                    return fetch('../api/profil.php').then(function (r) { return r.json(); });
+                })
+                .then(function (d) {
+                    if (!d || !d.success) return;
+                    const p = d.profil || {};
+                    instansiAwal = p.instansi || '';
+                    document.getElementById('ringkasanNama').textContent = p.nama_lengkap || '-';
+                    document.getElementById('ringkasanInstansi').textContent = p.instansi || '-';
+                    document.getElementById('ringkasanUsername').textContent = p.username || '-';
+                    document.getElementById('ringkasanPeran').textContent = p.peran || '-';
+                    document.getElementById('ringkasanDibuat').textContent = fmtTgl(p.dibuat);
+                    document.getElementById('inpNama').value = p.nama_lengkap || '';
+                    document.getElementById('inpEmail').value = p.email || '';
+                    document.getElementById('inpInstansi').value = p.instansi || '';
+                    document.getElementById('inpUsername').value = p.username || '-';
+                    document.getElementById('inpPeran').value = p.peran || '-';
+                })
+                .catch(function () { window.location.href = '../login.html'; });
+
+            // ===== Simpan profil =====
+            document.getElementById('formProfil').addEventListener('submit', function (e) {
+                e.preventDefault();
+                const nama = document.getElementById('inpNama').value.trim();
+                const email = document.getElementById('inpEmail').value.trim();
+                const instansi = document.getElementById('inpInstansi').value.trim();
+
+                if (nama.length < 3) { showToast('Nama lengkap minimal 3 karakter.', 'warning'); return; }
+                if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { showToast('Format email tidak valid.', 'warning'); return; }
+
+                // Konfirmasi bila instansi diubah (memengaruhi cakupan data multi-dinas)
+                if (instansi !== instansiAwal) {
+                    const ok = confirm(
+                        'Anda mengubah Instansi/SKPD.\n\n' +
+                        'Instansi menentukan pemisahan data antar dinas. ' +
+                        'Setelah diubah, data yang Anda akses akan mengikuti instansi baru.\n\nLanjutkan?'
+                    );
+                    if (!ok) {
+                        document.getElementById('inpInstansi').value = instansiAwal;
+                        return;
+                    }
+                }
+
+                const btn = document.getElementById('btnSimpanProfil');
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
+
+                const body = new URLSearchParams({ action: 'simpan', nama_lengkap: nama, email: email, instansi: instansi });
+                fetch('../api/profil.php', { method: 'POST', body: body })
+                    .then(function (r) { return r.json(); })
+                    .then(function (d) {
+                        if (d.success) {
+                            showToast(d.message || 'Profil berhasil diperbarui.', 'success');
+                            setNamaSidebar(d.profil.nama_lengkap);
+                            setInstansiSidebar(d.profil.instansi);
+                            instansiAwal = d.profil.instansi;
+                            document.getElementById('ringkasanNama').textContent = d.profil.nama_lengkap;
+                            document.getElementById('ringkasanInstansi').textContent = d.profil.instansi || '-';
+                        } else {
+                            showToast(d.message || 'Gagal memperbarui profil.', 'error');
+                        }
+                    })
+                    .catch(function () { showToast('Terjadi kesalahan koneksi ke server.', 'error'); })
+                    .finally(function () {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-save"></i> Simpan Profil';
+                    });
+            });
+
+            // ===== Ganti password =====
+            document.getElementById('formPassword').addEventListener('submit', function (e) {
+                e.preventDefault();
+                const lama = document.getElementById('inpPwLama').value;
+                const baru = document.getElementById('inpPwBaru').value;
+                const konf = document.getElementById('inpPwKonf').value;
+
+                if (!lama) { showToast('Password lama wajib diisi.', 'warning'); return; }
+                if (baru.length < 6) { showToast('Password baru minimal 6 karakter.', 'warning'); return; }
+                if (baru !== konf) { showToast('Konfirmasi password tidak cocok.', 'warning'); return; }
+                if (baru === lama) { showToast('Password baru tidak boleh sama dengan password lama.', 'warning'); return; }
+
+                const btn = document.getElementById('btnGantiPw');
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
+
+                const body = new URLSearchParams({ action: 'ganti_password', password_lama: lama, password_baru: baru, password_konfirmasi: konf });
+                fetch('../api/profil.php', { method: 'POST', body: body })
+                    .then(function (r) { return r.json(); })
+                    .then(function (d) {
+                        if (d.success) {
+                            showToast(d.message || 'Password berhasil diubah.', 'success');
+                            document.getElementById('formPassword').reset();
+                        } else {
+                            showToast(d.message || 'Gagal mengubah password.', 'error');
+                        }
+                    })
+                    .catch(function () { showToast('Terjadi kesalahan koneksi ke server.', 'error'); })
+                    .finally(function () {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-key"></i> Ubah Password';
+                    });
+            });
+        })();
+    </script>
+</body>
+</html>

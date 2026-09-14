@@ -52,7 +52,7 @@ function requestBody(): array
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $q     = input('q');
     $aktif = input('aktif', ''); // '1' = hanya akun yang dicentang (aktif)
-    $skpd  = (string) ($_SESSION['instansi'] ?? ''); // pemisahan data multi-dinas
+    $skpd  = requireInstansi(); // pemisahan data multi-dinas (fail-closed)
 
     $sql    = "SELECT a.*, u.nama_lengkap AS dibuat_oleh
                FROM akun_penerimaan a
@@ -106,7 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $body   = requestBody();
     $action = $body['action'] ?? 'create';
     // skpd selalu dari sesi (jangan percaya input klien)
-    $skpd   = trim((string) ($_SESSION['instansi'] ?? ''));
+    $skpd   = requireInstansi();
 
     // ---------- 1. Simpan satu akun baru ----------
     if ($action === 'create') {
@@ -177,10 +177,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!is_array($items)) {
             $items = [];
         }
-        $skpdSel = trim((string) ($_SESSION['instansi'] ?? ''));
-        if ($skpdSel === '') {
-            jsonResponse(false, 'Instansi tidak terdeteksi. Silakan login ulang.', [], 422);
-        }
+        $skpdSel = requireInstansi();
 
         $pdo->beginTransaction();
         try {
@@ -218,7 +215,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             jsonResponse(false, 'Tidak ada data untuk disimpan.', [], 422);
         }
 
-        $stmt = $pdo->prepare("UPDATE akun_penerimaan SET metode_input = ?, status_aktif = ? WHERE id = ?");
+        $stmt = $pdo->prepare("UPDATE akun_penerimaan SET metode_input = ?, status_aktif = ? WHERE id = ? AND skpd = ?");
         $updated = 0;
 
         $pdo->beginTransaction();
@@ -230,7 +227,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 $metode = normalizeMetode((string) ($item['metode_input'] ?? ''), $METODE_LIST);
                 $status = !empty($item['status_aktif']) ? 1 : 0;
-                $stmt->execute([$metode, $status, $id]);
+                // Scope skpd: cegah modifikasi akun instansi lain (IDOR)
+                $stmt->execute([$metode, $status, $id, $skpd]);
                 $updated += $stmt->rowCount();
             }
             $pdo->commit();
