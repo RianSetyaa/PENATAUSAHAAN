@@ -228,12 +228,12 @@
                 <div class="profil-card">
                     <div class="profil-avatar"><i class="fas fa-user-tie"></i></div>
                     <div class="profil-info">
-                        <span class="profil-nama" id="ringkasanNama">-</span>
-                        <span class="profil-instansi" id="ringkasanInstansi">-</span>
+                        <span class="profil-nama" id="ringkasanNama">Memuat profil...</span>
+                        <span class="profil-instansi" id="ringkasanInstansi">Memuat data...</span>
                         <div class="profil-meta">
-                            <span class="profil-badge"><i class="fas fa-id-badge"></i> <span id="ringkasanUsername">-</span></span>
-                            <span class="profil-badge"><i class="fas fa-user-shield"></i> <span id="ringkasanPeran">-</span></span>
-                            <span class="profil-badge"><i class="fas fa-calendar-check"></i> Bergabung <span id="ringkasanDibuat">-</span></span>
+                            <span class="profil-badge"><i class="fas fa-id-badge"></i> <span id="ringkasanUsername">—</span></span>
+                            <span class="profil-badge"><i class="fas fa-user-shield"></i> <span id="ringkasanPeran">—</span></span>
+                            <span class="profil-badge"><i class="fas fa-calendar-check"></i> Bergabung <span id="ringkasanDibuat">—</span></span>
                         </div>
                     </div>
                 </div>
@@ -250,26 +250,26 @@
                     <form id="formProfil" class="form-row" novalidate>
                         <div class="form-field">
                             <label for="inpNama">Nama Lengkap</label>
-                            <input type="text" id="inpNama" name="nama_lengkap" maxlength="100" required>
+                            <input type="text" id="inpNama" name="nama_lengkap" maxlength="100" placeholder="Nama lengkap sesuai identitas" required>
                         </div>
                         <div class="form-field">
                             <label for="inpEmail">Email</label>
-                            <input type="email" id="inpEmail" name="email" maxlength="100" required>
+                            <input type="email" id="inpEmail" name="email" maxlength="100" placeholder="nama@email.com" required>
                             <span class="hint">Email dipakai untuk notifikasi &amp; harus unik.</span>
                         </div>
                         <div class="form-field">
                             <label for="inpInstansi">Instansi (SKPD)</label>
-                            <input type="text" id="inpInstansi" name="instansi" maxlength="150">
+                            <input type="text" id="inpInstansi" name="instansi" maxlength="150" placeholder="Dinas Kepemudaan dan Olahraga">
                             <span class="hint">Perubahan instansi memengaruhi cakupan data dinas yang Anda akses.</span>
                         </div>
                         <div class="form-field">
                             <label for="inpUsername">Username</label>
-                            <input type="text" id="inpUsername" readonly>
+                            <input type="text" id="inpUsername" placeholder="username" readonly>
                             <span class="hint">Username tidak dapat diubah.</span>
                         </div>
                         <div class="form-field">
                             <label for="inpPeran">Peran</label>
-                            <input type="text" id="inpPeran" readonly>
+                            <input type="text" id="inpPeran" placeholder="Peran pengguna" readonly>
                             <span class="hint">Peran hanya dapat diatur oleh admin.</span>
                         </div>
                         <div class="form-actions">
@@ -290,16 +290,16 @@
                     <form id="formPassword" class="form-row" novalidate>
                         <div class="form-field">
                             <label for="inpPwLama">Password Lama</label>
-                            <input type="password" id="inpPwLama" autocomplete="current-password" required>
+                            <input type="password" id="inpPwLama" autocomplete="current-password" placeholder="Masukkan password saat ini" required>
                         </div>
                         <div class="form-field">
                             <label for="inpPwBaru">Password Baru</label>
-                            <input type="password" id="inpPwBaru" autocomplete="new-password" minlength="6" required>
+                            <input type="password" id="inpPwBaru" autocomplete="new-password" minlength="6" placeholder="Minimal 6 karakter" required>
                             <span class="hint">Minimal 6 karakter.</span>
                         </div>
                         <div class="form-field">
                             <label for="inpPwKonf">Konfirmasi Password Baru</label>
-                            <input type="password" id="inpPwKonf" autocomplete="new-password" minlength="6" required>
+                            <input type="password" id="inpPwKonf" autocomplete="new-password" minlength="6" placeholder="Ulangi password baru" required>
                         </div>
                         <div class="form-actions">
                             <button type="submit" class="btn btn-primary" id="btnGantiPw"><i class="fas fa-key"></i> Ubah Password</button>
